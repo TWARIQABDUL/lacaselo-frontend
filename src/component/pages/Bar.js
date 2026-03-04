@@ -184,10 +184,10 @@ function Bar() {
         </div>
       </div>
 
-      {/* PREMIUM TABLE */}
+      {/* PREMIUM ELITE TABLE */}
       <div className="card shadow-lg border-0 rounded-4">
         <div className="table-responsive">
-          <table className="table table-hover table-borderless text-center align-middle mb-0">
+          <table className="table table-borderless text-center align-middle mb-0">
             <thead
               className="text-white"
               style={{ backgroundColor: "#1C2833", letterSpacing: "1px" }}
@@ -220,7 +220,12 @@ function Bar() {
                   <tr
                     key={p.id}
                     className="align-middle"
-                    style={{ transition: "all 0.3s", cursor: "pointer" }}
+                    style={{
+                      transition: "all 0.3s",
+                      cursor: "pointer",
+                      background: i % 2 === 0 ? "#f9f9f9" : "#e8e8e8",
+                      boxShadow: "inset 0 -1px 0 rgba(0,0,0,0.1)",
+                    }}
                   >
                     <td>{i + 1}</td>
                     <td className="fw-bold text-start ps-3">{p.name}</td>
@@ -237,7 +242,13 @@ function Bar() {
                           handleLocalChange(p.id, "entree", e.target.value)
                         }
                         onBlur={() => saveStock(p)}
-                        style={{ borderRadius: "8px" }}
+                        style={{
+                          borderRadius: "8px",
+                          border:
+                            Number(p.closing_stock) < 5
+                              ? "2px solid #FFD700"
+                              : "1px solid #ccc",
+                        }}
                       />
                     </td>
 
@@ -252,11 +263,25 @@ function Bar() {
                           handleLocalChange(p.id, "sold", e.target.value)
                         }
                         onBlur={() => saveStock(p)}
-                        style={{ borderRadius: "8px" }}
+                        style={{
+                          borderRadius: "8px",
+                          border:
+                            Number(p.closing_stock) < 5
+                              ? "2px solid #FFD700"
+                              : "1px solid #ccc",
+                        }}
                       />
                     </td>
 
-                    <td>{p.closing_stock}</td>
+                    <td
+                      className="fw-bold"
+                      style={{
+                        color: Number(p.closing_stock) < 5 ? "#FFD700" : "#000",
+                      }}
+                    >
+                      {p.closing_stock}
+                    </td>
+
                     <td className="text-success fw-bold">
                       RWF {formatNumber(p.total_sold)}
                     </td>
