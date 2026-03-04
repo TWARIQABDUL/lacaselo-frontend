@@ -12,7 +12,7 @@ function Employees() {
   const [totalCredit, setTotalCredit] = useState(0);       
   const [totalRemaining, setTotalRemaining] = useState(0); 
 
-  const API_URL = "https://backend-vitq.onrender.com/api/employees";
+  const API_URL = "https://backend-vitq.onrender.com/api/credits"; // Update with your backend URL
 
   // Fetch all employees
   const fetchEmployees = async () => {
