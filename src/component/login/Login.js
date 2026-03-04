@@ -1,71 +1,86 @@
 import React from "react";
 
 function Login({ show, handleClose }) {
+  if (!show) return null;
+
   return (
-    <>
-      {show && (
-        <div
-          className="modal fade show d-block"
-          tabIndex="-1"
-          style={{ backgroundColor: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}
+    <div
+      className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
+      style={{
+        backgroundColor: "rgba(0,0,0,0.5)",
+        backdropFilter: "blur(6px)",
+        zIndex: 1050,
+      }}
+    >
+      <div
+        className="bg-white p-4 position-relative shadow"
+        style={{
+          width: "400px",
+          borderRadius: "20px",
+          animation: "fadeIn 0.3s ease",
+        }}
+      >
+        {/* 🔥 Close Icon */}
+        <span
+          onClick={handleClose}
+          style={{
+            position: "absolute",
+            top: "15px",
+            right: "20px",
+            fontSize: "22px",
+            fontWeight: "bold",
+            cursor: "pointer",
+            color: "#145C43",
+            transition: "0.3s",
+          }}
+          className="login-close"
         >
-          <div className="modal-dialog modal-dialog-centered">
-            <div
-              className="modal-content p-4"
-              style={{ borderRadius: "18px" }}
-            >
-              {/* Close Button */}
-              <button
-                type="button"
-                className="btn-close position-absolute top-0 end-0 m-3"
-                onClick={handleClose}
-              ></button>
+          &times;
+        </span>
 
-              {/* Title */}
-              <h4 className="text-center fw-semibold mb-2">
-                Log in or sign up
-              </h4>
+        <h4 className="text-center fw-semibold mb-3">
+          Welcome Back
+        </h4>
 
-              <p className="text-center text-muted small mb-4">
-                You’ll get smarter responses and can upload files, images, and more.
-              </p>
+        <p className="text-center text-muted small mb-4">
+          Login to access La Cielo Management
+        </p>
 
-              {/* Social Buttons */}
-              <button className="btn btn-light border rounded-pill mb-3 w-100">
-                Continue with Google
-              </button>
+        <input
+          type="email"
+          className="form-control rounded-pill mb-3"
+          placeholder="Email address"
+        />
 
-              <button className="btn btn-light border rounded-pill mb-3 w-100">
-                Continue with Apple
-              </button>
+        <input
+          type="password"
+          className="form-control rounded-pill mb-3"
+          placeholder="Password"
+        />
 
-              <button className="btn btn-light border rounded-pill mb-3 w-100">
-                Continue with phone
-              </button>
+        <button className="btn btn-dark rounded-pill w-100 mb-3">
+          Login
+        </button>
 
-              {/* Divider */}
-              <div className="d-flex align-items-center my-3">
-                <hr className="flex-grow-1" />
-                <span className="px-2 text-muted small">OR</span>
-                <hr className="flex-grow-1" />
-              </div>
-
-              {/* Email Input */}
-              <input
-                type="email"
-                className="form-control rounded-pill mb-3"
-                placeholder="Email address"
-              />
-
-              {/* Continue Button */}
-              <button className="btn btn-secondary rounded-pill w-100">
-                Continue
-              </button>
-            </div>
-          </div>
+        <div className="text-center small text-muted">
+          Forgot password?
         </div>
-      )}
-    </>
+
+        <style>
+          {`
+          .login-close:hover {
+            color: #FFD700;
+            transform: rotate(90deg);
+          }
+
+          @keyframes fadeIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+          }
+          `}
+        </style>
+      </div>
+    </div>
   );
 }
 
