@@ -65,7 +65,7 @@ function Employees() {
       recalcTotals(newEmployees);
     } catch (err) {
       console.error("ADD EMPLOYEE ERROR:", err.response?.data || err.message);
-      alert("Error adding employee");
+      alert("Error adding employee: " + (err.response?.data?.error || err.message));
     }
   };
 
