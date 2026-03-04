@@ -1,53 +1,76 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate, useLocation } from "react-router-dom";
 
-function Credits() {
+function Employees() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const [totalPayment, setTotalPayment] = useState(0);
+
   const API_URL = "https://backend-vitq.onrender.com/api/credits";
 
-  // ===== Fetch all employees =====
+  // ===== FETCH EMPLOYEES =====
   const fetchEmployees = async () => {
     try {
       setLoading(true);
       const res = await axios.get(API_URL);
       setEmployees(res.data);
+      recalcTotals(res.data);
     } catch (err) {
-      console.error("Error fetching employees:", err);
+      console.error(err);
       setEmployees([]);
+      setTotalPayment(0);
     } finally {
       setLoading(false);
     }
   };
 
-  // ===== Add new employee =====
+  // ===== RECALCULATE TOTALS =====
+  const recalcTotals = (data) => {
+    let paymentSum = 0;
+    data.forEach((e) => {
+      paymentSum += Number(e.payment || 0);
+    });
+    setTotalPayment(paymentSum);
+  };
+
+  // ===== ADD NEW EMPLOYEE =====
   const handleAddEmployee = async () => {
     const name = prompt("Employee Name:");
-    const payment = Number(prompt("Monthly Payment:"));
+    const payment = Number(prompt("Monthly Payment:")) || 0;
 
     if (!name || !name.trim()) return alert("Name is required");
-    if (isNaN(payment)) return alert("Payment must be a number");
 
     try {
-      const res = await axios.post(API_URL, { name: name.trim(), payment });
-      setEmployees([res.data, ...employees]); // Add new employee to top
+      const res = await axios.post(API_URL, { name, payment });
+      const newEmployees = [res.data, ...employees];
+      setEmployees(newEmployees);
+      recalcTotals(newEmployees);
     } catch (err) {
-      console.error("Error adding employee:", err);
+      console.error(err);
       alert("Error adding employee");
     }
   };
 
-  // ===== Format numbers =====
+  // ===== NAVIGATE TO DETAILS (if needed) =====
+  const handleViewEmployee = (employeeId) => {
+    navigate(`/employees/${employeeId}`);
+  };
+
   const formatNumber = (value) => Number(value || 0).toLocaleString();
 
-  // ===== Load employees on page load =====
+  // ===== AUTO REFRESH ON ROUTE CHANGE =====
   useEffect(() => {
     fetchEmployees();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   return (
     <div className="container mt-4">
+
       {/* ===== HEADER ===== */}
       <div className="card shadow mb-4">
         <div className="card-body d-flex justify-content-between align-items-center">
@@ -55,6 +78,36 @@ function Credits() {
           <button className="btn btn-success" onClick={handleAddEmployee}>
             + Add Employee
           </button>
+        </div>
+      </div>
+
+      {/* ===== SUMMARY CARDS ===== */}
+      <div className="row g-4 mb-4">
+        <div className="col-md-4">
+          <div className="card shadow border-0" style={{ backgroundColor: "#D4AF37", color: "#000" }}>
+            <div className="card-body text-center">
+              <h6>Total Payment</h6>
+              <h4>RWF {formatNumber(totalPayment)}</h4>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-4">
+          <div className="card shadow border-0" style={{ backgroundColor: "#F28B82", color: "#000" }}>
+            <div className="card-body text-center">
+              <h6>Total Loan</h6>
+              <h4>RWF 0</h4>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-4">
+          <div className="card shadow border-0" style={{ backgroundColor: "#0E6251", color: "#fff" }}>
+            <div className="card-body text-center">
+              <h6>Total Remaining</h6>
+              <h4>RWF 0</h4>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -67,25 +120,34 @@ function Credits() {
                 <th>#</th>
                 <th>Name</th>
                 <th>Monthly Payment</th>
-                <th>Created At</th>
+                <th>Total Loan</th>
+                <th>Remaining</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="4">Loading...</td>
+                  <td colSpan="5">Loading...</td>
                 </tr>
               ) : employees.length === 0 ? (
                 <tr>
-                  <td colSpan="4">No employees found</td>
+                  <td colSpan="5">No employees found</td>
                 </tr>
               ) : (
                 employees.map((e, i) => (
                   <tr key={e.id}>
                     <td>{i + 1}</td>
-                    <td>{e.name}</td>
+                    <td>
+                      <span
+                        style={{ color: "#0d6efd", cursor: "pointer", textDecoration: "underline" }}
+                        onClick={() => handleViewEmployee(e.id)}
+                      >
+                        {e.name}
+                      </span>
+                    </td>
                     <td>RWF {formatNumber(e.payment)}</td>
-                    <td>{new Date(e.created_at).toLocaleString()}</td>
+                    <td>RWF 0</td>
+                    <td>RWF 0</td>
                   </tr>
                 ))
               )}
@@ -93,8 +155,9 @@ function Credits() {
           </table>
         </div>
       </div>
+
     </div>
   );
 }
 
-export default Credits;
+export default Employees;
