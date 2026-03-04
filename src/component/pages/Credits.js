@@ -1,129 +1,88 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate, useLocation } from "react-router-dom";
 
-function Employees() {
-  const navigate = useNavigate();
-  const location = useLocation();
+function Credits() {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const [paymentInput, setPaymentInput] = useState("");
 
-  const [totalPayment, setTotalPayment] = useState(0); 
-  const [totalCredit, setTotalCredit] = useState(0);       
-  const [totalRemaining, setTotalRemaining] = useState(0); 
+  const API_URL = "https://backend-vitq.onrender.com/api/credits";
 
-  const API_URL = "https://backend-vitq.onrender.com/api/credits"; 
-
-  // Fetch all employees
+  // ===== Fetch all employees =====
   const fetchEmployees = async () => {
     try {
       setLoading(true);
       const res = await axios.get(API_URL);
       setEmployees(res.data);
-      recalcTotals(res.data);
     } catch (err) {
-      console.error("FETCH EMPLOYEES ERROR:", err);
+      console.error("Error fetching employees:", err);
       setEmployees([]);
-      setTotalPayment(0);
-      setTotalCredit(0);
-      setTotalRemaining(0);
     } finally {
       setLoading(false);
     }
   };
 
-  // Recalculate totals
-  const recalcTotals = (data) => {
-    let paymentSum = 0;
-    let creditSum = 0;
-    let remainingSum = 0;
+  // ===== Add new employee =====
+  const handleAddEmployee = async (e) => {
+    e.preventDefault();
 
-    data.forEach((e) => {
-      paymentSum += Number(e.payment || 0);
-      creditSum += Number(e.credit || 0);
-      remainingSum += Number(e.remaining || 0);
-    });
-
-    setTotalPayment(paymentSum);
-    setTotalCredit(creditSum);
-    setTotalRemaining(remainingSum);
-  };
-
-  // Add new employee
-  const handleAddEmployee = async () => {
-    const name = prompt("Employee Name:");
-    const paymentInput = prompt("Monthly Payment:");
-    const payment = Number(paymentInput);
-
-    if (!name || !name.trim()) return alert("Name is required");
-    if (isNaN(payment)) return alert("Payment must be a number");
+    if (!nameInput.trim()) return alert("Name is required");
+    if (paymentInput === "" || isNaN(Number(paymentInput))) return alert("Payment must be a number");
 
     try {
-      const res = await axios.post(API_URL, { name, payment });
-      const newEmployees = [res.data, ...employees];
-      setEmployees(newEmployees);
-      recalcTotals(newEmployees);
+      const res = await axios.post(API_URL, {
+        name: nameInput.trim(),
+        payment: Number(paymentInput),
+      });
+
+      // Add the new employee to state
+      setEmployees([res.data, ...employees]);
+      setNameInput("");
+      setPaymentInput("");
     } catch (err) {
-      console.error("ADD EMPLOYEE ERROR:", err.response?.data || err.message);
-      alert("Error adding employee: " + (err.response?.data?.error || err.message));
+      console.error("Error adding employee:", err);
+      alert("Error adding employee");
     }
   };
 
-  // View loans
-  const handleViewLoans = (employeeId) => {
-    navigate(`/employees/${employeeId}`);
-  };
-
+  // ===== Format numbers =====
   const formatNumber = (value) => Number(value || 0).toLocaleString();
 
+  // ===== Load employees on page load =====
   useEffect(() => {
     fetchEmployees();
-  }, [location.pathname]);
+  }, []);
 
   return (
     <div className="container mt-4">
-
-      {/* Header */}
+      {/* ===== Header ===== */}
       <div className="card shadow mb-4">
         <div className="card-body d-flex justify-content-between align-items-center">
           <h4 className="fw-bold mb-0">Employees</h4>
-          <button className="btn btn-success" onClick={handleAddEmployee}>
-            + Add Employee
-          </button>
+          <form className="d-flex" onSubmit={handleAddEmployee}>
+            <input
+              type="text"
+              placeholder="Name"
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              className="form-control me-2"
+            />
+            <input
+              type="number"
+              placeholder="Payment"
+              value={paymentInput}
+              onChange={(e) => setPaymentInput(e.target.value)}
+              className="form-control me-2"
+            />
+            <button type="submit" className="btn btn-success">
+              + Add
+            </button>
+          </form>
         </div>
       </div>
 
-      {/* Summary cards */}
-      <div className="row g-4 mb-4">
-        <div className="col-md-4">
-          <div className="card shadow border-0" style={{ backgroundColor: "#D4AF37", color: "#000" }}>
-            <div className="card-body text-center">
-              <h6>Total Payment</h6>
-              <h4>RWF {formatNumber(totalPayment)}</h4>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-4">
-          <div className="card shadow border-0" style={{ backgroundColor: "#F28B82", color: "#000" }}>
-            <div className="card-body text-center">
-              <h6>Total Credit</h6>
-              <h4>RWF {formatNumber(totalCredit)}</h4>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-4">
-          <div className="card shadow border-0" style={{ backgroundColor: "#0E6251", color: "#fff" }}>
-            <div className="card-body text-center">
-              <h6>Total Remaining</h6>
-              <h4>RWF {formatNumber(totalRemaining)}</h4>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Employees table */}
+      {/* ===== Employees Table ===== */}
       <div className="card shadow">
         <div className="table-responsive">
           <table className="table table-bordered table-hover text-center mb-0">
@@ -131,27 +90,26 @@ function Employees() {
               <tr>
                 <th>#</th>
                 <th>Name</th>
-                <th>Monthly Payment</th>
-                <th>Total Credit</th>
-                <th>Remaining</th>
+                <th>Payment (RWF)</th>
+                <th>Created At</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="5">Loading...</td></tr>
+                <tr>
+                  <td colSpan="4">Loading...</td>
+                </tr>
               ) : employees.length === 0 ? (
-                <tr><td colSpan="5">No employees found</td></tr>
+                <tr>
+                  <td colSpan="4">No employees found</td>
+                </tr>
               ) : (
                 employees.map((e, i) => (
                   <tr key={e.id}>
                     <td>{i + 1}</td>
-                    <td style={{ color: "#0d6efd", cursor: "pointer", textDecoration: "underline" }}
-                        onClick={() => handleViewLoans(e.id)}>{e.name}</td>
-                    <td>RWF {formatNumber(e.payment)}</td>
-                    <td>RWF {formatNumber(e.credit)}</td>
-                    <td className={e.remaining >= 0 ? "text-success fw-bold" : "text-danger fw-bold"}>
-                      RWF {formatNumber(e.remaining)}
-                    </td>
+                    <td>{e.name}</td>
+                    <td>{formatNumber(e.payment)}</td>
+                    <td>{new Date(e.created_at).toLocaleString()}</td>
                   </tr>
                 ))
               )}
@@ -159,9 +117,8 @@ function Employees() {
           </table>
         </div>
       </div>
-
     </div>
   );
 }
 
-export default Employees;
+export default Credits;
