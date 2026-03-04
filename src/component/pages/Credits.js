@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 function Employees() {
   const navigate = useNavigate();
+  const location = useLocation(); // detect route changes
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const [totalPayment, setTotalPayment] = useState(0); // NEW: monthly payment total
-  const [totalLoan, setTotalLoan] = useState(0);
-  const [totalRemaining, setTotalRemaining] = useState(0);
+  const [totalPayment, setTotalPayment] = useState(0); 
+  const [totalLoan, setTotalLoan] = useState(0);       
+  const [totalRemaining, setTotalRemaining] = useState(0); 
 
   const API_URL = "https://backend-vitq.onrender.com/api/employees";
 
@@ -30,10 +31,6 @@ function Employees() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchEmployees();
-  }, []);
 
   // ===== RECALCULATE TOTALS =====
   const recalcTotals = (data) => {
@@ -56,19 +53,31 @@ function Employees() {
   const handleAddEmployee = async () => {
     const name = prompt("Employee Name:");
     const salary = Number(prompt("Monthly Payment:")) || 0;
-    if (!name.trim()) return alert("Name is required");
+    if (!name || !name.trim()) return alert("Name is required");
 
     try {
-      const res = await axios.post(API_URL, { name, monthly_salary: salary });
+      const res = await axios.post(API_URL, { name, salary });
       const newEmployees = [res.data, ...employees];
       setEmployees(newEmployees);
       recalcTotals(newEmployees);
     } catch (err) {
       console.error(err);
+      alert("Error adding employee");
     }
   };
 
+  // ===== NAVIGATE TO LOAN PAGE =====
+  const handleViewLoans = (employeeId) => {
+    navigate(`/employees/${employeeId}`);
+  };
+
   const formatNumber = (value) => Number(value || 0).toLocaleString();
+
+  // ===== AUTO REFRESH ON RETURN =====
+  useEffect(() => {
+    fetchEmployees();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]); // refresh every time route changes
 
   return (
     <div className="container mt-4">
@@ -128,9 +137,13 @@ function Employees() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="5">Loading...</td></tr>
+                <tr>
+                  <td colSpan="5">Loading...</td>
+                </tr>
               ) : employees.length === 0 ? (
-                <tr><td colSpan="5">No employees found</td></tr>
+                <tr>
+                  <td colSpan="5">No employees found</td>
+                </tr>
               ) : (
                 employees.map((e, i) => (
                   <tr key={e.id}>
@@ -138,7 +151,7 @@ function Employees() {
                     <td>
                       <span
                         style={{ color: "#0d6efd", cursor: "pointer", textDecoration: "underline" }}
-                        onClick={() => navigate(`/employees/${e.id}`)}
+                        onClick={() => handleViewLoans(e.id)}
                       >
                         {e.name}
                       </span>
