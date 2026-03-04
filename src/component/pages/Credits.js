@@ -4,12 +4,12 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 function Employees() {
   const navigate = useNavigate();
-  const location = useLocation(); // detect route changes
+  const location = useLocation();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const [totalPayment, setTotalPayment] = useState(0); 
-  const [totalLoan, setTotalLoan] = useState(0);       
+  const [totalCredit, setTotalCredit] = useState(0);       
   const [totalRemaining, setTotalRemaining] = useState(0); 
 
   const API_URL = "https://backend-vitq.onrender.com/api/employees";
@@ -25,7 +25,7 @@ function Employees() {
       console.error(err);
       setEmployees([]);
       setTotalPayment(0);
-      setTotalLoan(0);
+      setTotalCredit(0);
       setTotalRemaining(0);
     } finally {
       setLoading(false);
@@ -35,28 +35,28 @@ function Employees() {
   // ===== RECALCULATE TOTALS =====
   const recalcTotals = (data) => {
     let paymentSum = 0;
-    let loanSum = 0;
+    let creditSum = 0;
     let remainingSum = 0;
 
     data.forEach((e) => {
-      paymentSum += Number(e.monthly_salary || 0);
-      loanSum += Number(e.total_loan || 0);
-      remainingSum += Number(e.total_remaining || 0);
+      paymentSum += Number(e.payment || 0);
+      creditSum += Number(e.credit || 0);
+      remainingSum += Number(e.remaining || 0);
     });
 
     setTotalPayment(paymentSum);
-    setTotalLoan(loanSum);
+    setTotalCredit(creditSum);
     setTotalRemaining(remainingSum);
   };
 
   // ===== ADD NEW EMPLOYEE =====
   const handleAddEmployee = async () => {
     const name = prompt("Employee Name:");
-    const salary = Number(prompt("Monthly Payment:")) || 0;
+    const payment = Number(prompt("Monthly Payment:")) || 0;
     if (!name || !name.trim()) return alert("Name is required");
 
     try {
-      const res = await axios.post(API_URL, { name, salary });
+      const res = await axios.post(API_URL, { name, payment });
       const newEmployees = [res.data, ...employees];
       setEmployees(newEmployees);
       recalcTotals(newEmployees);
@@ -77,7 +77,7 @@ function Employees() {
   useEffect(() => {
     fetchEmployees();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]); // refresh every time route changes
+  }, [location.pathname]);
 
   return (
     <div className="container mt-4">
@@ -106,8 +106,8 @@ function Employees() {
         <div className="col-md-4">
           <div className="card shadow border-0" style={{ backgroundColor: "#F28B82", color: "#000" }}>
             <div className="card-body text-center">
-              <h6>Total Loan</h6>
-              <h4>RWF {formatNumber(totalLoan)}</h4>
+              <h6>Total Credit</h6>
+              <h4>RWF {formatNumber(totalCredit)}</h4>
             </div>
           </div>
         </div>
@@ -131,7 +131,7 @@ function Employees() {
                 <th>#</th>
                 <th>Name</th>
                 <th>Monthly Payment</th>
-                <th>Total Loan</th>
+                <th>Total Credit</th>
                 <th>Remaining</th>
               </tr>
             </thead>
@@ -156,10 +156,10 @@ function Employees() {
                         {e.name}
                       </span>
                     </td>
-                    <td>RWF {formatNumber(e.monthly_salary)}</td>
-                    <td>RWF {formatNumber(e.total_loan)}</td>
-                    <td className={e.total_remaining >= 0 ? "text-success fw-bold" : "text-danger fw-bold"}>
-                      RWF {formatNumber(e.total_remaining)}
+                    <td>RWF {formatNumber(e.payment)}</td>
+                    <td>RWF {formatNumber(e.credit)}</td>
+                    <td className={e.remaining >= 0 ? "text-success fw-bold" : "text-danger fw-bold"}>
+                      RWF {formatNumber(e.remaining)}
                     </td>
                   </tr>
                 ))
