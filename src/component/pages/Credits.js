@@ -14,7 +14,7 @@ function Employees() {
 
   const API_URL = "https://backend-vitq.onrender.com/api/employees";
 
-  // ===== FETCH EMPLOYEES =====
+  // Fetch all employees
   const fetchEmployees = async () => {
     try {
       setLoading(true);
@@ -22,7 +22,7 @@ function Employees() {
       setEmployees(res.data);
       recalcTotals(res.data);
     } catch (err) {
-      console.error(err);
+      console.error("FETCH EMPLOYEES ERROR:", err);
       setEmployees([]);
       setTotalPayment(0);
       setTotalCredit(0);
@@ -32,7 +32,7 @@ function Employees() {
     }
   };
 
-  // ===== RECALCULATE TOTALS =====
+  // Recalculate totals
   const recalcTotals = (data) => {
     let paymentSum = 0;
     let creditSum = 0;
@@ -49,11 +49,14 @@ function Employees() {
     setTotalRemaining(remainingSum);
   };
 
-  // ===== ADD NEW EMPLOYEE =====
+  // Add new employee
   const handleAddEmployee = async () => {
     const name = prompt("Employee Name:");
-    const payment = Number(prompt("Monthly Payment:")) || 0;
+    const paymentInput = prompt("Monthly Payment:");
+    const payment = Number(paymentInput);
+
     if (!name || !name.trim()) return alert("Name is required");
+    if (isNaN(payment)) return alert("Payment must be a number");
 
     try {
       const res = await axios.post(API_URL, { name, payment });
@@ -61,28 +64,26 @@ function Employees() {
       setEmployees(newEmployees);
       recalcTotals(newEmployees);
     } catch (err) {
-      console.error(err);
+      console.error("ADD EMPLOYEE ERROR:", err.response?.data || err.message);
       alert("Error adding employee");
     }
   };
 
-  // ===== NAVIGATE TO LOAN PAGE =====
+  // View loans
   const handleViewLoans = (employeeId) => {
     navigate(`/employees/${employeeId}`);
   };
 
   const formatNumber = (value) => Number(value || 0).toLocaleString();
 
-  // ===== AUTO REFRESH ON RETURN =====
   useEffect(() => {
     fetchEmployees();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
   return (
     <div className="container mt-4">
 
-      {/* ===== HEADER ===== */}
+      {/* Header */}
       <div className="card shadow mb-4">
         <div className="card-body d-flex justify-content-between align-items-center">
           <h4 className="fw-bold mb-0">Employees</h4>
@@ -92,7 +93,7 @@ function Employees() {
         </div>
       </div>
 
-      {/* ===== SUMMARY CARDS ===== */}
+      {/* Summary cards */}
       <div className="row g-4 mb-4">
         <div className="col-md-4">
           <div className="card shadow border-0" style={{ backgroundColor: "#D4AF37", color: "#000" }}>
@@ -122,7 +123,7 @@ function Employees() {
         </div>
       </div>
 
-      {/* ===== EMPLOYEES TABLE ===== */}
+      {/* Employees table */}
       <div className="card shadow">
         <div className="table-responsive">
           <table className="table table-bordered table-hover text-center mb-0">
@@ -137,25 +138,15 @@ function Employees() {
             </thead>
             <tbody>
               {loading ? (
-                <tr>
-                  <td colSpan="5">Loading...</td>
-                </tr>
+                <tr><td colSpan="5">Loading...</td></tr>
               ) : employees.length === 0 ? (
-                <tr>
-                  <td colSpan="5">No employees found</td>
-                </tr>
+                <tr><td colSpan="5">No employees found</td></tr>
               ) : (
                 employees.map((e, i) => (
                   <tr key={e.id}>
                     <td>{i + 1}</td>
-                    <td>
-                      <span
-                        style={{ color: "#0d6efd", cursor: "pointer", textDecoration: "underline" }}
-                        onClick={() => handleViewLoans(e.id)}
-                      >
-                        {e.name}
-                      </span>
-                    </td>
+                    <td style={{ color: "#0d6efd", cursor: "pointer", textDecoration: "underline" }}
+                        onClick={() => handleViewLoans(e.id)}>{e.name}</td>
                     <td>RWF {formatNumber(e.payment)}</td>
                     <td>RWF {formatNumber(e.credit)}</td>
                     <td className={e.remaining >= 0 ? "text-success fw-bold" : "text-danger fw-bold"}>
