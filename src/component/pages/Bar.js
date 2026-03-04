@@ -14,33 +14,25 @@ function Bar() {
 
   const API_URL = "https://backend-vitq.onrender.com/api/drinks";
 
-  // ================= FETCH =================
   const fetchProducts = async (date) => {
     try {
       setLoading(true);
       const res = await axios.get(API_URL, { params: { date } });
-
       const prods = res.data.products || [];
-
       setProducts(prods);
       setTotalEarned(res.data.totalEarned || 0);
 
       const profitSum = prods.reduce((sum, p) => sum + Number(p.profit || 0), 0);
-
       const stockValue = prods.reduce(
         (sum, p) =>
           sum + Number(p.closing_stock || 0) * Number(p.initial_price || 0),
         0
       );
-
-      const lowStock = prods.filter(
-        (p) => Number(p.closing_stock) < 5
-      ).length;
+      const lowStock = prods.filter((p) => Number(p.closing_stock) < 5).length;
 
       setTotalProfit(profitSum);
       setTotalStockValue(stockValue);
       setLowStockCount(lowStock);
-
     } catch (err) {
       console.error(err);
     } finally {
@@ -52,17 +44,14 @@ function Bar() {
     fetchProducts(selectedDate);
   }, [selectedDate]);
 
-  // ================= DATE CHANGE =================
   const changeDate = (days) => {
     const newDate = new Date(selectedDate);
     newDate.setDate(newDate.getDate() + days);
     const formatted = newDate.toISOString().split("T")[0];
-
     if (formatted > today) return;
     setSelectedDate(formatted);
   };
 
-  // ================= ADD PRODUCT =================
   const handleAdd = async () => {
     const name = prompt("Product name:");
     if (!name) return alert("Name is required");
@@ -82,7 +71,6 @@ function Bar() {
     fetchProducts(selectedDate);
   };
 
-  // ================= EDIT PRODUCT =================
   const handleEdit = async (product) => {
     const newName = prompt("Edit product name:", product.name);
     if (!newName) return alert("Name is required");
@@ -102,16 +90,12 @@ function Bar() {
     fetchProducts(selectedDate);
   };
 
-  // ================= LOCAL CHANGE =================
   const handleLocalChange = (id, field, value) => {
     setProducts((prev) =>
-      prev.map((p) =>
-        p.id === id ? { ...p, [field]: value } : p
-      )
+      prev.map((p) => (p.id === id ? { ...p, [field]: value } : p))
     );
   };
 
-  // ================= SAVE STOCK =================
   const saveStock = async (product) => {
     await axios.put(`${API_URL}/stock/${product.id}`, {
       entree: Number(product.entree) || 0,
@@ -122,75 +106,92 @@ function Bar() {
     fetchProducts(selectedDate);
   };
 
-  const formatNumber = (value) =>
-    Number(value || 0).toLocaleString();
+  const formatNumber = (value) => Number(value || 0).toLocaleString();
 
   return (
     <div className="container-fluid mt-4">
       {/* DASHBOARD CARDS */}
       <div className="row g-4 mb-4">
         <div className="col-md-3">
-          <div className="card text-white shadow border-0" style={{ backgroundColor: "#0B3D2E" }}>
-            <div className="card-body">
-              <h6>Total Sales</h6>
-              <h4>RWF {formatNumber(totalEarned)}</h4>
+          <div
+            className="card shadow-lg border-0 rounded-4 text-white"
+            style={{ backgroundColor: "#0B3D2E" }}
+          >
+            <div className="card-body text-center">
+              <h6 className="fw-bold">Total Sales</h6>
+              <h4 className="fw-bold">RWF {formatNumber(totalEarned)}</h4>
             </div>
           </div>
         </div>
 
         <div className="col-md-3">
-          <div className="card shadow border-0" style={{ backgroundColor: "#D4AF37", color: "#000" }}>
-            <div className="card-body">
-              <h6>Total Profit</h6>
-              <h4>RWF {formatNumber(totalProfit)}</h4>
+          <div
+            className="card shadow-lg border-0 rounded-4"
+            style={{ backgroundColor: "#D4AF37", color: "#000" }}
+          >
+            <div className="card-body text-center">
+              <h6 className="fw-bold">Total Profit</h6>
+              <h4 className="fw-bold">RWF {formatNumber(totalProfit)}</h4>
             </div>
           </div>
         </div>
 
         <div className="col-md-3">
-          <div className="card text-white shadow border-0" style={{ backgroundColor: "#0E6251" }}>
-            <div className="card-body">
-              <h6>Total Stock Value</h6>
-              <h4>RWF {formatNumber(totalStockValue)}</h4>
+          <div
+            className="card shadow-lg border-0 rounded-4 text-white"
+            style={{ backgroundColor: "#0E6251" }}
+          >
+            <div className="card-body text-center">
+              <h6 className="fw-bold">Total Stock Value</h6>
+              <h4 className="fw-bold">RWF {formatNumber(totalStockValue)}</h4>
             </div>
           </div>
         </div>
 
         <div className="col-md-3">
-          <div className="card text-white shadow border-0" style={{ backgroundColor: "#C0392B" }}>
-            <div className="card-body">
-              <h6>Low Stock</h6>
-              <h4>{lowStockCount}</h4>
+          <div
+            className="card shadow-lg border-0 rounded-4 text-white"
+            style={{ backgroundColor: "#C0392B" }}
+          >
+            <div className="card-body text-center">
+              <h6 className="fw-bold">Low Stock</h6>
+              <h4 className="fw-bold">{lowStockCount}</h4>
             </div>
           </div>
         </div>
       </div>
 
       {/* HEADER */}
-      <div className="card shadow border-0 mb-4">
+      <div className="card shadow-lg border-0 rounded-4 mb-4">
         <div className="card-body d-flex justify-content-between align-items-center">
           <h4 className="fw-bold mb-0">Bar</h4>
           <div className="d-flex align-items-center gap-2">
-            <button className="btn btn-outline-dark btn-sm" onClick={() => changeDate(-1)}>◀</button>
+            <button className="btn btn-outline-dark btn-sm" onClick={() => changeDate(-1)}>
+              ◀
+            </button>
             <strong>{selectedDate}</strong>
             <button
               className="btn btn-outline-dark btn-sm"
               onClick={() => changeDate(1)}
               disabled={selectedDate === today}
-            >▶</button>
-
-            <button className="btn btn-success ms-3" onClick={handleAdd}>
+            >
+              ▶
+            </button>
+            <button className="btn btn-success ms-3 shadow-sm" onClick={handleAdd}>
               + Add Product
             </button>
           </div>
         </div>
       </div>
 
-      {/* TABLE */}
-      <div className="card shadow border-0">
+      {/* PREMIUM TABLE */}
+      <div className="card shadow-lg border-0 rounded-4">
         <div className="table-responsive">
-          <table className="table table-bordered table-hover text-center mb-0">
-            <thead className="table-dark">
+          <table className="table table-hover table-borderless text-center align-middle mb-0">
+            <thead
+              className="text-white"
+              style={{ backgroundColor: "#1C2833", letterSpacing: "1px" }}
+            >
               <tr>
                 <th>#</th>
                 <th>Product</th>
@@ -207,27 +208,36 @@ function Bar() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="11">Loading...</td></tr>
+                <tr>
+                  <td colSpan="11">Loading...</td>
+                </tr>
               ) : products.length === 0 ? (
-                <tr><td colSpan="11">No report for this date</td></tr>
+                <tr>
+                  <td colSpan="11">No report for this date</td>
+                </tr>
               ) : (
                 products.map((p, i) => (
-                  <tr key={p.id}>
+                  <tr
+                    key={p.id}
+                    className="align-middle"
+                    style={{ transition: "all 0.3s", cursor: "pointer" }}
+                  >
                     <td>{i + 1}</td>
-                    <td>{p.name}</td>
-                    <td>{formatNumber(p.initial_price)}</td>
-                    <td>{formatNumber(p.price)}</td>
+                    <td className="fw-bold text-start ps-3">{p.name}</td>
+                    <td>RWF {formatNumber(p.initial_price)}</td>
+                    <td>RWF {formatNumber(p.price)}</td>
                     <td>{p.opening_stock}</td>
 
                     <td>
                       <input
                         type="number"
-                        className="form-control form-control-sm"
+                        className="form-control form-control-sm shadow-sm text-center"
                         value={p.entree || ""}
                         onChange={(e) =>
                           handleLocalChange(p.id, "entree", e.target.value)
                         }
                         onBlur={() => saveStock(p)}
+                        style={{ borderRadius: "8px" }}
                       />
                     </td>
 
@@ -236,23 +246,24 @@ function Bar() {
                     <td>
                       <input
                         type="number"
-                        className="form-control form-control-sm"
+                        className="form-control form-control-sm shadow-sm text-center"
                         value={p.sold || ""}
                         onChange={(e) =>
                           handleLocalChange(p.id, "sold", e.target.value)
                         }
                         onBlur={() => saveStock(p)}
+                        style={{ borderRadius: "8px" }}
                       />
                     </td>
 
                     <td>{p.closing_stock}</td>
                     <td className="text-success fw-bold">
-                      {formatNumber(p.total_sold)}
+                      RWF {formatNumber(p.total_sold)}
                     </td>
 
                     <td>
                       <button
-                        className="btn btn-sm btn-warning"
+                        className="btn btn-warning btn-sm shadow-sm"
                         onClick={() => handleEdit(p)}
                       >
                         Edit
