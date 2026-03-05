@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 function Gym() {
-  const today = new Date().toISOString().split("T")[0];
+  // ====== Use LOCAL date to avoid UTC issues ======
+  const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD in local time
+  const [selectedDate, setSelectedDate] = useState(today);
 
   const [entries, setEntries] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(today);
   const [loading, setLoading] = useState(false);
 
   const [totalIncome, setTotalIncome] = useState(0);
@@ -63,7 +64,7 @@ function Gym() {
   const changeDate = (days) => {
     const newDate = new Date(selectedDate);
     newDate.setDate(newDate.getDate() + days);
-    const formatted = newDate.toISOString().split("T")[0];
+    const formatted = newDate.toLocaleDateString("en-CA"); // local date format
     if (formatted > today) return;
     setSelectedDate(formatted);
   };
@@ -95,35 +96,22 @@ function Gym() {
   // ===== HANDLE EDIT =====
   const handleChange = (id, field, value) => {
     const numValue = Number(value || 0);
-    setEntries((prev) =>
-      prev.map((e) => {
-        if (e.id === id) {
-          const updated = { ...e, [field]: numValue };
-          // Recalculate total_people if daily_people or monthly_people changed
-          if (field === "daily_people" || field === "monthly_people") {
-            updated.total_people = (field === "daily_people" ? numValue + e.monthly_people : e.daily_people + numValue);
-          }
-          return updated;
+
+    const updatedEntries = entries.map((e) => {
+      if (e.id === id) {
+        const updated = { ...e, [field]: numValue };
+        if (field === "daily_people" || field === "monthly_people") {
+          updated.total_people =
+            field === "daily_people"
+              ? numValue + e.monthly_people
+              : e.daily_people + numValue;
         }
-        return e;
-      })
-    );
+        return updated;
+      }
+      return e;
+    });
 
-    const updatedEntries = entries.map((e) =>
-      e.id === id
-        ? {
-            ...e,
-            [field]: numValue,
-            total_people:
-              field === "daily_people"
-                ? numValue + e.monthly_people
-                : field === "monthly_people"
-                ? e.daily_people + numValue
-                : e.total_people,
-          }
-        : e
-    );
-
+    setEntries(updatedEntries);
     recalcTotals(updatedEntries);
 
     axios
@@ -172,7 +160,11 @@ function Gym() {
               ◀
             </button>
             <strong>{selectedDate}</strong>
-            <button className="btn btn-outline-dark btn-sm" onClick={() => changeDate(1)} disabled={selectedDate === today}>
+            <button
+              className="btn btn-outline-dark btn-sm"
+              onClick={() => changeDate(1)}
+              disabled={selectedDate === today}
+            >
               ▶
             </button>
             <button className="btn btn-success ms-3" onClick={handleAdd}>
