@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 function Gym() {
-  // ====== Local date for correct timezone ======
-  const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
+  const today = new Date().toLocaleDateString("en-CA"); // local YYYY-MM-DD
   const [selectedDate, setSelectedDate] = useState(today);
 
   const [entries, setEntries] = useState([]);
@@ -12,6 +11,14 @@ function Gym() {
   const [totalIncome, setTotalIncome] = useState(0);
   const [totalDaily, setTotalDaily] = useState(0);
   const [totalMonthly, setTotalMonthly] = useState(0);
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newEntry, setNewEntry] = useState({
+    daily_people: 0,
+    monthly_people: 0,
+    cash: 0,
+    cash_momo: 0,
+  });
 
   const API_URL = "https://backend-vitq.onrender.com/api/gym";
 
@@ -70,24 +77,22 @@ function Gym() {
   };
 
   // ===== ADD NEW ENTRY =====
-  const handleAdd = async () => {
-    const date = prompt("Date (YYYY-MM-DD):") || selectedDate;
-    const daily_people = Number(prompt("Daily People:")) || 0;
-    const monthly_people = Number(prompt("Monthly People:")) || 0;
-    const cash = Number(prompt("Cash:")) || 0;
-    const cash_momo = Number(prompt("Cash Momo:")) || 0;
-    const total_people = daily_people + monthly_people;
+  const handleAddEntry = async () => {
+    const { daily_people, monthly_people, cash, cash_momo } = newEntry;
+    const total_people = Number(daily_people) + Number(monthly_people);
 
     try {
       await axios.post(API_URL, {
-        date,
-        daily_people,
-        monthly_people,
+        date: selectedDate,
+        daily_people: Number(daily_people),
+        monthly_people: Number(monthly_people),
         total_people,
-        cash,
-        cash_momo,
+        cash: Number(cash),
+        cash_momo: Number(cash_momo),
       });
       fetchEntries(selectedDate);
+      setShowAddModal(false);
+      setNewEntry({ daily_people: 0, monthly_people: 0, cash: 0, cash_momo: 0 });
     } catch (err) {
       console.error("Error adding entry:", err);
     }
@@ -102,9 +107,7 @@ function Gym() {
         const updated = { ...e, [field]: numValue };
         if (field === "daily_people" || field === "monthly_people") {
           updated.total_people =
-            field === "daily_people"
-              ? numValue + e.monthly_people
-              : e.daily_people + numValue;
+            field === "daily_people" ? numValue + e.monthly_people : e.daily_people + numValue;
         }
         return updated;
       }
@@ -167,7 +170,7 @@ function Gym() {
             >
               ▶
             </button>
-            <button className="btn btn-success ms-3" onClick={handleAdd}>
+            <button className="btn btn-success ms-3" onClick={() => setShowAddModal(true)}>
               + Add Entry
             </button>
           </div>
@@ -181,7 +184,6 @@ function Gym() {
             <thead className="table-dark">
               <tr>
                 <th>#</th>
-                <th>Date</th>
                 <th>Daily People</th>
                 <th>Monthly People</th>
                 <th>Total People</th>
@@ -192,17 +194,16 @@ function Gym() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="7">Loading...</td>
+                  <td colSpan="6">Loading...</td>
                 </tr>
               ) : entries.length === 0 ? (
                 <tr>
-                  <td colSpan="7">No gym entries for this date</td>
+                  <td colSpan="6">No gym entries for this date</td>
                 </tr>
               ) : (
                 entries.map((e, i) => (
                   <tr key={e.id}>
                     <td>{i + 1}</td>
-                    <td>{e.date}</td>
                     <td>
                       <input
                         type="number"
@@ -243,6 +244,70 @@ function Gym() {
           </table>
         </div>
       </div>
+
+      {/* ===== ADD ENTRY MODAL ===== */}
+      {showAddModal && (
+        <div className="modal show d-block" tabIndex="-1">
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Add Gym Entry</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowAddModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="mb-2">
+                  <label>Daily People</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={newEntry.daily_people}
+                    onChange={(e) => setNewEntry({ ...newEntry, daily_people: e.target.value })}
+                  />
+                </div>
+                <div className="mb-2">
+                  <label>Monthly People</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={newEntry.monthly_people}
+                    onChange={(e) => setNewEntry({ ...newEntry, monthly_people: e.target.value })}
+                  />
+                </div>
+                <div className="mb-2">
+                  <label>Cash</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={newEntry.cash}
+                    onChange={(e) => setNewEntry({ ...newEntry, cash: e.target.value })}
+                  />
+                </div>
+                <div className="mb-2">
+                  <label>Cash Momo</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={newEntry.cash_momo}
+                    onChange={(e) => setNewEntry({ ...newEntry, cash_momo: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowAddModal(false)}>
+                  Close
+                </button>
+                <button className="btn btn-success" onClick={handleAddEntry}>
+                  Add Entry
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
