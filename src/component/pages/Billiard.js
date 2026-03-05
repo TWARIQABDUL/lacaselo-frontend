@@ -66,7 +66,7 @@ function Billiard() {
 
     try {
       const res = await axios.post(API_URL, { date: selectedDate, token, cash, cash_momo });
-      const newData = [res.data, ...billiards]; // includes total
+      const newData = [res.data, ...billiards];
       setBilliards(newData);
       recalcTotals(newData);
     } catch (err) {
@@ -158,7 +158,6 @@ function Billiard() {
             <thead className="table-dark">
               <tr>
                 <th>#</th>
-                <th>Date</th>
                 <th>Token</th>
                 <th>Cash</th>
                 <th>Momo</th>
@@ -167,14 +166,13 @@ function Billiard() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="6">Loading...</td></tr>
+                <tr><td colSpan="5">Loading...</td></tr>
               ) : billiards.length === 0 ? (
-                <tr><td colSpan="6">No records found</td></tr>
+                <tr><td colSpan="5">No records found</td></tr>
               ) : (
                 billiards.map((b, i) => (
                   <tr key={b.id}>
                     <td>{i + 1}</td>
-                    <td>{b.date}</td>
                     <td>
                       <input
                         type="number"
