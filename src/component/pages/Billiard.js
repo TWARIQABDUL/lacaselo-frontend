@@ -66,7 +66,7 @@ function Billiard() {
 
     try {
       const res = await axios.post(API_URL, { date: selectedDate, token, cash, cash_momo });
-      const newData = [res.data, ...billiards];
+      const newData = [res.data, ...billiards]; // includes total
       setBilliards(newData);
       recalcTotals(newData);
     } catch (err) {
