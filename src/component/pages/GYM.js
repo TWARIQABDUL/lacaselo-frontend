@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 function Gym() {
-  // ====== Use LOCAL date to avoid UTC issues ======
-  const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD in local time
+  // ====== Local date for correct timezone ======
+  const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
   const [selectedDate, setSelectedDate] = useState(today);
 
   const [entries, setEntries] = useState([]);
@@ -20,7 +20,7 @@ function Gym() {
     try {
       setLoading(true);
       const res = await axios.get(API_URL, { params: { date } });
-      const data = res.data.entries || res.data.records || [];
+      const data = res.data.records || [];
       setEntries(data);
       recalcTotals(data);
     } catch (err) {
@@ -64,7 +64,7 @@ function Gym() {
   const changeDate = (days) => {
     const newDate = new Date(selectedDate);
     newDate.setDate(newDate.getDate() + days);
-    const formatted = newDate.toLocaleDateString("en-CA"); // local date format
+    const formatted = newDate.toLocaleDateString("en-CA");
     if (formatted > today) return;
     setSelectedDate(formatted);
   };
