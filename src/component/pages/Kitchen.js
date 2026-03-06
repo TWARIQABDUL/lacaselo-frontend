@@ -1,274 +1,366 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-function Kitchen() {
-  const today = new Date().toISOString().split("T")[0];
+function Kitchen(){
 
-  const [foods, setFoods] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(today);
-  const [loading, setLoading] = useState(false);
+const today = new Date().toISOString().split("T")[0];
 
-  const [totalSales, setTotalSales] = useState(0);
-  const [totalProfit, setTotalProfit] = useState(0);
-  const [totalStockValue, setTotalStockValue] = useState(0);
-  const [lowStockCount, setLowStockCount] = useState(0);
+const [foods,setFoods]=useState([]);
+const [selectedDate,setSelectedDate]=useState(today);
+const [loading,setLoading]=useState(false);
 
-  const API_URL = "https://backend-vitq.onrender.com/api/kitchen";
+const [totalSales,setTotalSales]=useState(0);
+const [totalProfit,setTotalProfit]=useState(0);
+const [totalStockValue,setTotalStockValue]=useState(0);
 
-  const fetchFoods = async (date) => {
-    try {
-      setLoading(true);
-      const res = await axios.get(API_URL, { params: { date } });
-      const foodList = res.data.foods || [];
-      setFoods(foodList);
+const [lowStockFoods,setLowStockFoods]=useState([]);
+const [showLowStock,setShowLowStock]=useState(false);
 
-      let salesSum = 0;
-      let profitSum = 0;
-      let stockValueSum = 0;
-      let lowStock = 0;
+const API_URL="https://backend-vitq.onrender.com/api/kitchen";
 
-      foodList.forEach((f) => {
-        const opening = Number(f.opening_stock || 0);
-        const entree = Number(f.entree || 0);
-        const sold = Number(f.sold || 0);
-        const price = Number(f.price || 0);
-        const cost = Number(f.initial_price || 0);
-        const closing = opening + entree - sold;
+const fetchFoods=async(date)=>{
 
-        salesSum += sold * price;
-        profitSum += sold * (price - cost);
-        stockValueSum += closing * cost;
+try{
 
-        if (closing < 5) lowStock += 1;
-      });
+setLoading(true);
 
-      setTotalSales(salesSum);
-      setTotalProfit(profitSum);
-      setTotalStockValue(stockValueSum);
-      setLowStockCount(lowStock);
+const res=await axios.get(API_URL,{params:{date}});
 
-    } catch (err) {
-      console.error("Error fetching kitchen data:", err);
-      setFoods([]);
-      setTotalSales(0);
-      setTotalProfit(0);
-      setTotalStockValue(0);
-      setLowStockCount(0);
-    } finally {
-      setLoading(false);
-    }
-  };
+const list=res.data.foods||[];
 
-  useEffect(() => {
-    fetchFoods(selectedDate);
-  }, [selectedDate]);
+setFoods(list);
 
-  const changeDate = (days) => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() + days);
-    const formatted = newDate.toISOString().split("T")[0];
-    if (formatted > today) return;
-    setSelectedDate(formatted);
-  };
+let sales=0;
+let profit=0;
+let stock=0;
 
-  const handleAdd = async () => {
-    const name = prompt("Food name:");
-    if (!name) return alert("Name is required");
+const low=[];
 
-    const initial_price = Number(prompt("Cost (RWF):")) || 0;
-    const price = Number(prompt("Selling price (RWF):")) || 0;
-    const opening_stock = Number(prompt("Opening stock:")) || 0;
-    const entree = Number(prompt("Stock in:")) || 0;
-    const sold = Number(prompt("Sold quantity:")) || 0;
-    const momo = Number(prompt("Momo amount:")) || 0;
-    const cash = Number(prompt("Cash amount:")) || 0;
+list.forEach((f)=>{
 
-    try {
-      await axios.post(API_URL, {
-        name,
-        initial_price,
-        price,
-        opening_stock,
-        entree,
-        sold,
-        momo,
-        cash,
-        date: selectedDate,
-      });
-      fetchFoods(selectedDate);
-    } catch (err) {
-      console.error("Error adding food:", err);
-    }
-  };
+const opening=Number(f.opening_stock||0);
+const entree=Number(f.entree||0);
+const sold=Number(f.sold||0);
+const price=Number(f.price||0);
+const cost=Number(f.initial_price||0);
 
-  const handleEntreeChange = async (id, value) => {
-    const entreeValue = Number(value);
+const closing=opening+entree-sold;
 
-    setFoods((prev) =>
-      prev.map((f) =>
-        f.id === id ? { ...f, entree: entreeValue } : f
-      )
-    );
+sales+=sold*price;
+profit+=sold*(price-cost);
+stock+=closing*cost;
 
-    try {
-      await axios.put(`${API_URL}/entree/${id}`, { entree: entreeValue, date: selectedDate });
-      fetchFoods(selectedDate);
-    } catch (err) {
-      console.error("Error updating entree:", err);
-    }
-  };
+if(closing<5){
 
-  const handleSoldChange = async (id, value) => {
-    const soldValue = Number(value);
+low.push({...f,closing_stock:closing});
 
-    setFoods((prev) =>
-      prev.map((f) =>
-        f.id === id ? { ...f, sold: soldValue } : f
-      )
-    );
+}
 
-    try {
-      await axios.put(`${API_URL}/sold/${id}`, { sold: soldValue, date: selectedDate });
-      fetchFoods(selectedDate);
-    } catch (err) {
-      console.error("Error updating sold:", err);
-    }
-  };
+});
 
-  const formatNumber = (value) => Number(value || 0).toLocaleString();
+setTotalSales(sales);
+setTotalProfit(profit);
+setTotalStockValue(stock);
+setLowStockFoods(low);
 
-  return (
-    <div className="container-fluid mt-4">
+}catch(err){
 
-      {/* ===== SUMMARY CARDS ===== */}
-      <div className="row g-4 mb-4">
+console.error(err);
+setFoods([]);
 
-        <div className="col-md-3">
-          <div className="card text-white shadow border-0" style={{ backgroundColor: "#0B3D2E" }}>
-            <div className="card-body text-center">
-              <h6>Total Sales</h6>
-              <h4>RWF {formatNumber(totalSales)}</h4>
-            </div>
-          </div>
-        </div>
+}finally{
 
-        <div className="col-md-3">
-          <div className="card shadow border-0" style={{ backgroundColor: "#D4AF37", color: "#000" }}>
-            <div className="card-body text-center">
-              <h6>Total Profit</h6>
-              <h4>RWF {formatNumber(totalProfit)}</h4>
-            </div>
-          </div>
-        </div>
+setLoading(false);
 
-        <div className="col-md-3">
-          <div className="card text-white shadow border-0" style={{ backgroundColor: "#0E6251" }}>
-            <div className="card-body text-center">
-              <h6>Total Stock Value</h6>
-              <h4>RWF {formatNumber(totalStockValue)}</h4>
-            </div>
-          </div>
-        </div>
+}
 
-        <div className="col-md-3">
-          <div className="card text-white shadow border-0" style={{ backgroundColor: "#C0392B" }}>
-            <div className="card-body text-center">
-              <h6>Low Stock Items</h6>
-              <h4>{lowStockCount}</h4>
-            </div>
-          </div>
-        </div>
-      </div>
+};
 
-      {/* ===== HEADER ===== */}
-      <div className="card shadow mb-4">
-        <div className="card-body d-flex justify-content-between align-items-center">
-          <h4 className="fw-bold mb-0">Kitchen</h4>
-          <div className="d-flex align-items-center gap-2">
-            <button className="btn btn-outline-dark btn-sm" onClick={() => changeDate(-1)}>◀</button>
-            <strong>{selectedDate}</strong>
-            <button className="btn btn-outline-dark btn-sm" onClick={() => changeDate(1)} disabled={selectedDate === today}>▶</button>
-            <button className="btn btn-success ms-3" onClick={handleAdd}>+ Add Food</button>
-          </div>
-        </div>
-      </div>
+useEffect(()=>{
 
-      {/* ===== TABLE ===== */}
-      <div className="card shadow">
-        <div className="table-responsive">
-          <table className="table table-bordered table-hover text-center mb-0">
-            <thead className="table-dark">
-              <tr>
-                <th>#</th>
-                <th>Food</th>
-                <th>Cost</th>
-                <th>Selling</th>
-                <th>Opening</th>
-                <th>Stock In</th>
-                <th>Total</th>
-                <th>Sold</th>
-                <th>Closing</th>
-                <th>Sales</th>
-                <th>Momo</th>
-                <th>Cash</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan="12">Loading...</td></tr>
-              ) : foods.length === 0 ? (
-                <tr><td colSpan="12">No food items for this date</td></tr>
-              ) : (
-                foods.map((f, i) => {
-                  const opening = Number(f.opening_stock || 0);
-                  const entree = Number(f.entree || 0);
-                  const sold = Number(f.sold || 0);
-                  const price = Number(f.price || 0);
-                  const cost = Number(f.initial_price || 0);
+fetchFoods(selectedDate);
 
-                  const total = opening + entree;
-                  const totalSold = sold * price;
-                  const closing = total - sold;
-                  const isLow = closing < 5;
+},[selectedDate]);
 
-                  return (
-                    <tr key={f.id}>
-                      <td>{i + 1}</td>
-                      <td>{f.name}{isLow && <span className="badge bg-danger ms-2">Low</span>}</td>
-                      <td>{formatNumber(cost)}</td>
-                      <td>{formatNumber(price)}</td>
-                      <td>{opening}</td>
-                      <td>
-                        <input
-                          type="number"
-                          className="form-control form-control-sm"
-                          value={entree}
-                          onChange={(e) => handleEntreeChange(f.id, e.target.value)}
-                        />
-                      </td>
-                      <td>{total}</td>
-                      <td>
-                        <input
-                          type="number"
-                          className="form-control form-control-sm"
-                          value={sold}
-                          onChange={(e) => handleSoldChange(f.id, e.target.value)}
-                        />
-                      </td>
-                      <td className={isLow ? "text-danger fw-bold" : ""}>{closing}</td>
-                      <td className="text-success fw-bold">{formatNumber(totalSold)}</td>
-                      <td>{formatNumber(f.momo)}</td>
-                      <td>{formatNumber(f.cash)}</td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
+const changeDate=(days)=>{
+
+const newDate=new Date(selectedDate);
+
+newDate.setDate(newDate.getDate()+days);
+
+const formatted=newDate.toISOString().split("T")[0];
+
+if(formatted>today)return;
+
+setSelectedDate(formatted);
+
+};
+
+const handleAdd=async()=>{
+
+const name=prompt("Food name");
+if(!name)return;
+
+const initial_price=Number(prompt("Cost"));
+const price=Number(prompt("Selling price"));
+const opening_stock=Number(prompt("Opening stock"));
+
+await axios.post(API_URL,{
+name,
+initial_price,
+price,
+opening_stock,
+date:selectedDate
+});
+
+fetchFoods(selectedDate);
+
+};
+
+const handleEntreeChange=async(id,value)=>{
+
+await axios.put(`${API_URL}/entree/${id}`,{
+entree:Number(value),
+date:selectedDate
+});
+
+fetchFoods(selectedDate);
+
+};
+
+const handleSoldChange=async(id,value)=>{
+
+await axios.put(`${API_URL}/sold/${id}`,{
+sold:Number(value),
+date:selectedDate
+});
+
+fetchFoods(selectedDate);
+
+};
+
+const formatNumber=(v)=>Number(v||0).toLocaleString();
+
+return(
+
+<div className="container-fluid mt-4">
+
+{/* DASHBOARD */}
+
+<div className="row g-4 mb-4">
+
+<div className="col-md-3">
+<div className="card shadow border-0 text-white" style={{background:"#0B3D2E"}}>
+<div className="card-body text-center">
+<h6>Total Sales</h6>
+<h3>RWF {formatNumber(totalSales)}</h3>
+</div>
+</div>
+</div>
+
+<div className="col-md-3">
+<div className="card shadow border-0" style={{background:"#D4AF37"}}>
+<div className="card-body text-center">
+<h6>Total Profit</h6>
+<h3>RWF {formatNumber(totalProfit)}</h3>
+</div>
+</div>
+</div>
+
+<div className="col-md-3">
+<div className="card shadow border-0 text-white" style={{background:"#0E6251"}}>
+<div className="card-body text-center">
+<h6>Stock Value</h6>
+<h3>RWF {formatNumber(totalStockValue)}</h3>
+</div>
+</div>
+</div>
+
+<div className="col-md-3" style={{cursor:"pointer"}} onClick={()=>setShowLowStock(!showLowStock)}>
+<div className="card shadow border-0 text-white" style={{background:"#C0392B"}}>
+<div className="card-body text-center">
+<h6>Low Stock</h6>
+<h3>{lowStockFoods.length}</h3>
+</div>
+</div>
+</div>
+
+</div>
+
+{/* LOW STOCK TABLE */}
+
+{showLowStock &&(
+
+<div className="card shadow mb-4">
+
+<div className="card-header bg-danger text-white">
+Low Stock Foods
+</div>
+
+<table className="table table-bordered text-center mb-0">
+
+<thead className="table-dark">
+<tr>
+<th>#</th>
+<th>Food</th>
+<th>Remaining</th>
+</tr>
+</thead>
+
+<tbody>
+
+{lowStockFoods.map((f,i)=>(
+<tr key={f.id}>
+<td>{i+1}</td>
+<td>{f.name}</td>
+<td className="text-danger fw-bold">{f.closing_stock}</td>
+</tr>
+))}
+
+</tbody>
+
+</table>
+
+</div>
+
+)}
+
+{/* HEADER */}
+
+<div className="card shadow mb-4">
+
+<div className="card-body d-flex justify-content-between align-items-center">
+
+<h4 className="fw-bold">Kitchen</h4>
+
+<div className="d-flex align-items-center gap-2">
+
+<button className="btn btn-outline-dark btn-sm" onClick={()=>changeDate(-1)}>◀</button>
+
+<strong>{selectedDate}</strong>
+
+<button className="btn btn-outline-dark btn-sm" disabled={selectedDate===today} onClick={()=>changeDate(1)}>▶</button>
+
+<button
+className="btn ms-3 d-flex align-items-center gap-2 px-4 py-2 shadow"
+onClick={handleAdd}
+style={{
+background:"#0B3D2E",
+color:"white",
+borderRadius:"50px",
+fontWeight:"600"
+}}
+>
+➕ Add Food
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+{/* TABLE */}
+
+<div className="card shadow">
+
+<div className="table-responsive">
+
+<table className="table table-bordered table-hover text-center">
+
+<thead className="table-dark">
+
+<tr>
+<th>#</th>
+<th>Food</th>
+<th>Cost</th>
+<th>Price</th>
+<th>Opening</th>
+<th>Stock In</th>
+<th>Total</th>
+<th>Sold</th>
+<th>Closing</th>
+<th>Sales</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{loading?(
+<tr><td colSpan="10">Loading...</td></tr>
+):foods.length===0?(
+<tr><td colSpan="10">No foods</td></tr>
+):(foods.map((f,i)=>{
+
+const opening=Number(f.opening_stock||0);
+const entree=Number(f.entree||0);
+const sold=Number(f.sold||0);
+const price=Number(f.price||0);
+const cost=Number(f.initial_price||0);
+
+const total=opening+entree;
+const closing=total-sold;
+const sales=sold*price;
+
+const isLow=closing<5;
+
+return(
+
+<tr key={f.id} style={{background:isLow?"#ffcccc":"white"}}>
+
+<td>{i+1}</td>
+<td>{f.name}</td>
+<td>{formatNumber(cost)}</td>
+<td>{formatNumber(price)}</td>
+<td>{opening}</td>
+
+<td>
+
+<input
+type="number"
+className="form-control form-control-sm"
+value={entree}
+onChange={(e)=>handleEntreeChange(f.id,e.target.value)}
+/>
+
+</td>
+
+<td>{total}</td>
+
+<td>
+
+<input
+type="number"
+className="form-control form-control-sm"
+value={sold}
+onChange={(e)=>handleSoldChange(f.id,e.target.value)}
+/>
+
+</td>
+
+<td className={isLow?"text-danger fw-bold":""}>{closing}</td>
+
+<td className="text-success fw-bold">{formatNumber(sales)}</td>
+
+</tr>
+
+)
+
+}))}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+);
+
 }
 
 export default Kitchen;

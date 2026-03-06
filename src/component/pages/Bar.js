@@ -3,436 +3,380 @@ import axios from "axios";
 
 function Bar() {
 
-  const today = new Date().toISOString().split("T")[0];
+const today = new Date().toISOString().split("T")[0];
 
-  const [products, setProducts] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(today);
+const [products,setProducts] = useState([]);
+const [selectedDate,setSelectedDate] = useState(today);
+const [loading,setLoading] = useState(false);
 
-  const [totalEarned, setTotalEarned] = useState(0);
-  const [totalProfit, setTotalProfit] = useState(0);
-  const [totalStockValue, setTotalStockValue] = useState(0);
+const [totalSales,setTotalSales] = useState(0);
+const [totalProfit,setTotalProfit] = useState(0);
+const [totalStockValue,setTotalStockValue] = useState(0);
 
-  const [lowStockProducts, setLowStockProducts] = useState([]);
-  const [showLowStock, setShowLowStock] = useState(false);
+const [lowStockProducts,setLowStockProducts] = useState([]);
+const [showLowStock,setShowLowStock] = useState(false);
 
-  const [loading, setLoading] = useState(false);
+const API_URL="https://backend-vitq.onrender.com/api/bar";
 
-  const API_URL = "https://backend-vitq.onrender.com/api/drinks";
+const fetchProducts = async(date)=>{
 
+try{
 
+setLoading(true);
 
-  // FETCH PRODUCTS
-  const fetchProducts = async (date) => {
-    try {
+const res = await axios.get(API_URL,{params:{date}});
 
-      setLoading(true);
+const list = res.data.products || [];
 
-      const res = await axios.get(API_URL, { params: { date } });
+setProducts(list);
 
-      const prods = res.data.products || [];
+let sales=0;
+let profit=0;
+let stockValue=0;
 
-      setProducts(prods);
+const lowProducts=[];
 
-      let sales = 0;
-      let profit = 0;
+list.forEach((p)=>{
 
-      prods.forEach((p) => {
+const opening = Number(p.opening_stock||0);
+const entree = Number(p.entree||0);
+const sold = Number(p.sold||0);
+const price = Number(p.price||0);
+const cost = Number(p.initial_price||0);
 
-        const soldMoney = Number(p.total_sold || 0);
-        const soldQty = Number(p.sold || 0);
+const closing = opening + entree - sold;
 
-        sales += soldMoney;
+sales += sold*price;
+profit += sold*(price-cost);
+stockValue += closing*cost;
 
-        profit += (Number(p.price) - Number(p.initial_price)) * soldQty;
+if(closing < 5){
 
-      });
+lowProducts.push({...p,closing_stock:closing});
 
-      setTotalEarned(sales);
-      setTotalProfit(profit);
+}
 
-      const stockValue = prods.reduce(
-        (sum, p) =>
-          sum + Number(p.closing_stock || 0) * Number(p.initial_price || 0),
-        0
-      );
+});
 
-      setTotalStockValue(stockValue);
+setTotalSales(sales);
+setTotalProfit(profit);
+setTotalStockValue(stockValue);
+setLowStockProducts(lowProducts);
 
-      const low = prods.filter((p) => Number(p.closing_stock) < 5);
+}catch(err){
 
-      setLowStockProducts(low);
+console.error(err);
+setProducts([]);
 
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+}finally{
 
+setLoading(false);
 
+}
 
-  useEffect(() => {
-    fetchProducts(selectedDate);
-  }, [selectedDate]);
+};
 
+useEffect(()=>{
 
+fetchProducts(selectedDate);
 
-  const changeDate = (days) => {
+},[selectedDate]);
 
-    const newDate = new Date(selectedDate);
+const changeDate=(days)=>{
 
-    newDate.setDate(newDate.getDate() + days);
+const newDate=new Date(selectedDate);
 
-    const formatted = newDate.toISOString().split("T")[0];
+newDate.setDate(newDate.getDate()+days);
 
-    if (formatted > today) return;
+const formatted=newDate.toISOString().split("T")[0];
 
-    setSelectedDate(formatted);
-  };
+if(formatted>today)return;
 
+setSelectedDate(formatted);
 
+};
 
-  const handleAdd = async () => {
+const handleAdd=async()=>{
 
-    const name = prompt("Product name:");
-    if (!name) return alert("Name required");
+const name=prompt("Product name");
+if(!name)return;
 
-    const initial_price = Number(prompt("Cost price:")) || 0;
-    const price = Number(prompt("Selling price:")) || 0;
-    const opening_stock = Number(prompt("Opening stock:")) || 0;
+const initial_price=Number(prompt("Cost price"));
+const price=Number(prompt("Selling price"));
+const opening_stock=Number(prompt("Opening stock"));
 
-    await axios.post(API_URL, {
-      name,
-      initial_price,
-      price,
-      opening_stock,
-      date: selectedDate,
-    });
+try{
 
-    fetchProducts(selectedDate);
-  };
+await axios.post(API_URL,{
+name,
+initial_price,
+price,
+opening_stock,
+date:selectedDate
+});
 
+fetchProducts(selectedDate);
 
+}catch(err){
 
-  const handleEdit = async (product) => {
+console.error(err);
 
-    const newName = prompt("Edit name:", product.name);
-    if (!newName) return;
+}
 
-    const newCost = Number(prompt("Edit cost:", product.initial_price));
-    const newSell = Number(prompt("Edit selling:", product.price));
-    const newOpen = Number(prompt("Edit opening:", product.opening_stock));
+};
 
-    await axios.put(`${API_URL}/edit/${product.id}`, {
-      name: newName,
-      initial_price: newCost,
-      price: newSell,
-      opening_stock: newOpen,
-      date: selectedDate,
-    });
+const handleEntreeChange=async(id,value)=>{
 
-    fetchProducts(selectedDate);
-  };
+await axios.put(`${API_URL}/entree/${id}`,{
+entree:Number(value),
+date:selectedDate
+});
 
+fetchProducts(selectedDate);
 
+};
 
-  const handleLocalChange = (id, field, value) => {
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.id === id ? { ...p, [field]: value } : p
-      )
-    );
-  };
+const handleSoldChange=async(id,value)=>{
 
+await axios.put(`${API_URL}/sold/${id}`,{
+sold:Number(value),
+date:selectedDate
+});
 
+fetchProducts(selectedDate);
 
-  const saveStock = async (product) => {
+};
 
-    await axios.put(`${API_URL}/stock/${product.id}`, {
-      entree: Number(product.entree) || 0,
-      sold: Number(product.sold) || 0,
-      date: selectedDate,
-    });
+const formatNumber=(v)=>Number(v||0).toLocaleString();
 
-    fetchProducts(selectedDate);
-  };
+return(
 
+<div className="container-fluid mt-4">
 
+{/* DASHBOARD */}
 
-  const formatNumber = (value) =>
-    Number(value || 0).toLocaleString();
+<div className="row g-4 mb-4">
 
+<div className="col-md-3">
+<div className="card shadow border-0 text-white" style={{background:"#0B3D2E"}}>
+<div className="card-body text-center">
+<h6>Total Sales</h6>
+<h3>RWF {formatNumber(totalSales)}</h3>
+</div>
+</div>
+</div>
 
+<div className="col-md-3">
+<div className="card shadow border-0" style={{background:"#D4AF37"}}>
+<div className="card-body text-center">
+<h6>Total Profit</h6>
+<h3>RWF {formatNumber(totalProfit)}</h3>
+</div>
+</div>
+</div>
 
-  return (
-    <div className="container mt-4">
+<div className="col-md-3">
+<div className="card shadow border-0 text-white" style={{background:"#0E6251"}}>
+<div className="card-body text-center">
+<h6>Stock Value</h6>
+<h3>RWF {formatNumber(totalStockValue)}</h3>
+</div>
+</div>
+</div>
 
-      {/* HEADER */}
-      <div className="card shadow-lg mb-4 border-0" style={{borderRadius:"15px"}}>
+<div className="col-md-3" style={{cursor:"pointer"}} onClick={()=>setShowLowStock(!showLowStock)}>
+<div className="card shadow border-0 text-white" style={{background:"#C0392B"}}>
+<div className="card-body text-center">
+<h6>Low Stock</h6>
+<h3>{lowStockProducts.length}</h3>
+</div>
+</div>
+</div>
 
-        <div className="card-body d-flex justify-content-between align-items-center">
+</div>
 
-          <h4 className="fw-bold mb-0">Bar</h4>
+{/* LOW STOCK TABLE */}
 
-          <div>
+{showLowStock &&(
 
-            <button
-              className="btn btn-outline-dark btn-sm me-2"
-              onClick={() => changeDate(-1)}
-            >
-              ◀
-            </button>
+<div className="card shadow mb-4">
 
-            <strong>{selectedDate}</strong>
+<div className="card-header bg-danger text-white">
+Low Stock Drinks
+</div>
 
-            <button
-              className="btn btn-outline-dark btn-sm ms-2"
-              disabled={selectedDate === today}
-              onClick={() => changeDate(1)}
-            >
-              ▶
-            </button>
+<table className="table table-bordered text-center mb-0">
 
-            <button
-              className="btn btn-success ms-3"
-              onClick={handleAdd}
-            >
-              + Add Product
-            </button>
+<thead className="table-dark">
+<tr>
+<th>#</th>
+<th>Drink</th>
+<th>Remaining</th>
+</tr>
+</thead>
 
-          </div>
+<tbody>
 
-        </div>
+{lowStockProducts.map((p,i)=>(
+<tr key={p.id}>
+<td>{i+1}</td>
+<td>{p.name}</td>
+<td className="text-danger fw-bold">{p.closing_stock}</td>
+</tr>
+))}
 
-      </div>
+</tbody>
 
+</table>
 
+</div>
 
-      {/* SUMMARY CARDS */}
+)}
 
-      <div className="row g-4 mb-4">
+{/* HEADER */}
 
-        <div className="col-md-3">
-          <div className="card shadow border-0 rounded-3" style={{background:"#0B3D2E",color:"#fff"}}>
-            <div className="card-body text-center">
-              <h6>Total Sales</h6>
-              <h3>RWF {formatNumber(totalEarned)}</h3>
-            </div>
-          </div>
-        </div>
+<div className="card shadow mb-4">
 
-        <div className="col-md-3">
-          <div className="card shadow border-0 rounded-3" style={{background:"#D4AF37"}}>
-            <div className="card-body text-center">
-              <h6>Total Profit</h6>
-              <h3>RWF {formatNumber(totalProfit)}</h3>
-            </div>
-          </div>
-        </div>
+<div className="card-body d-flex justify-content-between align-items-center">
 
-        <div className="col-md-3">
-          <div className="card shadow border-0 rounded-3" style={{background:"#0E6251",color:"#fff"}}>
-            <div className="card-body text-center">
-              <h6>Stock Value</h6>
-              <h3>RWF {formatNumber(totalStockValue)}</h3>
-            </div>
-          </div>
-        </div>
+<h4 className="fw-bold">Bar</h4>
 
-        <div
-          className="col-md-3"
-          style={{cursor:"pointer"}}
-          onClick={() => setShowLowStock(!showLowStock)}
-        >
-          <div className="card shadow border-0 rounded-3" style={{background:"#C0392B",color:"#fff"}}>
-            <div className="card-body text-center">
-              <h6>Low Stock</h6>
-              <h3>{lowStockProducts.length}</h3>
-            </div>
-          </div>
-        </div>
+<div className="d-flex align-items-center gap-2">
 
-      </div>
+<button className="btn btn-outline-dark btn-sm" onClick={()=>changeDate(-1)}>◀</button>
 
+<strong>{selectedDate}</strong>
 
+<button className="btn btn-outline-dark btn-sm" disabled={selectedDate===today} onClick={()=>changeDate(1)}>▶</button>
 
-      {/* LOW STOCK TABLE */}
+<button
+className="btn ms-3 d-flex align-items-center gap-2 px-4 py-2 shadow"
+onClick={handleAdd}
+style={{
+background:"#0B3D2E",
+color:"white",
+borderRadius:"50px",
+fontWeight:"600"
+}}
+>
+➕ Add Drink
+</button>
 
-      {showLowStock && (
+</div>
 
-        <div className="card shadow mb-4">
+</div>
 
-          <div className="card-body">
+</div>
 
-            <h5 className="fw-bold mb-3">Low Stock Products</h5>
+{/* TABLE */}
 
-            <table className="table table-hover text-center">
+<div className="card shadow">
 
-              <thead style={{background:"#1C1C1C",color:"#fff"}}>
+<div className="table-responsive">
 
-                <tr>
-                  <th>#</th>
-                  <th>Name</th>
-                  <th>Closing Stock</th>
-                </tr>
+<table className="table table-bordered table-hover text-center">
 
-              </thead>
+<thead className="table-dark">
 
-              <tbody>
+<tr>
+<th>#</th>
+<th>Drink</th>
+<th>Cost</th>
+<th>Price</th>
+<th>Opening</th>
+<th>Stock In</th>
+<th>Total</th>
+<th>Sold</th>
+<th>Closing</th>
+<th>Sales</th>
+</tr>
 
-                {lowStockProducts.map((p,i)=>(
-                  <tr key={p.id}>
-                    <td>{i+1}</td>
-                    <td>{p.name}</td>
-                    <td>{p.closing_stock}</td>
-                  </tr>
-                ))}
+</thead>
 
-              </tbody>
+<tbody>
 
-            </table>
+{loading?(
+<tr><td colSpan="10">Loading...</td></tr>
+):products.length===0?(
+<tr><td colSpan="10">No drinks</td></tr>
+):(
 
-          </div>
+products.map((p,i)=>{
 
-        </div>
+const opening=Number(p.opening_stock||0);
+const entree=Number(p.entree||0);
+const sold=Number(p.sold||0);
+const price=Number(p.price||0);
+const cost=Number(p.initial_price||0);
 
-      )}
+const total=opening+entree;
+const closing=total-sold;
+const sales=sold*price;
 
+const isLow=closing<5;
 
+return(
 
-      {/* MAIN TABLE */}
+<tr key={p.id} style={{background:isLow?"#ffcccc":"white"}}>
 
-      <div className="card shadow-lg border-0 rounded-4">
+<td>{i+1}</td>
 
-        <div className="table-responsive">
+<td>{p.name}</td>
 
-          <table className="table table-hover text-center mb-0">
+<td>{formatNumber(cost)}</td>
 
-            <thead style={{background:"#1C1C1C",color:"#fff"}}>
+<td>{formatNumber(price)}</td>
 
-              <tr>
+<td>{opening}</td>
 
-                <th>#</th>
-                <th>Product</th>
-                <th>Cost</th>
-                <th>Selling</th>
-                <th>Opening</th>
-                <th>Stock In</th>
-                <th>Total</th>
-                <th>Sold</th>
-                <th>Closing</th>
-                <th>Sales</th>
-                <th>Action</th>
+<td>
 
-              </tr>
+<input
+type="number"
+className="form-control form-control-sm"
+value={entree}
+onChange={(e)=>handleEntreeChange(p.id,e.target.value)}
+/>
 
-            </thead>
+</td>
 
-            <tbody>
+<td>{total}</td>
 
-              {loading ? (
-                <tr>
-                  <td colSpan="11">Loading...</td>
-                </tr>
-              ) : products.length === 0 ? (
-                <tr>
-                  <td colSpan="11">No products</td>
-                </tr>
-              ) : (
+<td>
 
-                products.map((p,i)=>{
+<input
+type="number"
+className="form-control form-control-sm"
+value={sold}
+onChange={(e)=>handleSoldChange(p.id,e.target.value)}
+/>
 
-                  const low = Number(p.closing_stock) < 5;
+</td>
 
-                  return (
+<td className={isLow?"text-danger fw-bold":""}>{closing}</td>
 
-                    <tr
-                      key={p.id}
-                      style={{
-                        background: low ? "#ffcccc" : "#F9F9F9"
-                      }}
-                      className="shadow-sm"
-                    >
+<td className="text-success fw-bold">{formatNumber(sales)}</td>
 
-                      <td>{i+1}</td>
+</tr>
 
-                      <td className="fw-bold text-start ps-3">
-                        {p.name}
-                      </td>
+)
 
-                      <td>RWF {formatNumber(p.initial_price)}</td>
+})
 
-                      <td>RWF {formatNumber(p.price)}</td>
+)}
 
-                      <td>{p.opening_stock}</td>
+</tbody>
 
-                      <td>
+</table>
 
-                        <input
-                          type="number"
-                          className="form-control form-control-sm text-center"
-                          value={p.entree || ""}
-                          onChange={(e)=>
-                            handleLocalChange(p.id,"entree",e.target.value)
-                          }
-                          onBlur={()=>saveStock(p)}
-                        />
+</div>
 
-                      </td>
+</div>
 
-                      <td>{p.total_stock}</td>
+</div>
 
-                      <td>
+);
 
-                        <input
-                          type="number"
-                          className="form-control form-control-sm text-center"
-                          value={p.sold || ""}
-                          onChange={(e)=>
-                            handleLocalChange(p.id,"sold",e.target.value)
-                          }
-                          onBlur={()=>saveStock(p)}
-                        />
-
-                      </td>
-
-                      <td className="fw-bold">
-                        {p.closing_stock}
-                      </td>
-
-                      <td className="text-success fw-bold">
-                        RWF {formatNumber(p.total_sold)}
-                      </td>
-
-                      <td>
-
-                        <button
-                          className="btn btn-warning btn-sm"
-                          onClick={()=>handleEdit(p)}
-                        >
-                          Edit
-                        </button>
-
-                      </td>
-
-                    </tr>
-
-                  );
-
-                })
-
-              )}
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-      </div>
-
-    </div>
-  );
 }
 
 export default Bar;
