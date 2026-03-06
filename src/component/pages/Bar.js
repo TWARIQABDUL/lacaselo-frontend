@@ -11,9 +11,10 @@ function Bar() {
   const [totalEarned, setTotalEarned] = useState(0);
   const [totalProfit, setTotalProfit] = useState(0);
   const [totalStockValue, setTotalStockValue] = useState(0);
-  const [lowStockCount, setLowStockCount] = useState(0);
+  const [lowStockProducts, setLowStockProducts] = useState([]);
 
   const [loading, setLoading] = useState(false);
+  const [showLowStock, setShowLowStock] = useState(false);
 
   const API_URL = "https://backend-vitq.onrender.com/api/drinks";
 
@@ -36,11 +37,11 @@ function Bar() {
         0
       );
 
-      const lowStock = prods.filter((p) => Number(p.closing_stock) < 5).length;
+      const lowStock = prods.filter((p) => Number(p.closing_stock) < 5);
 
       setTotalProfit(profitSum);
       setTotalStockValue(stockValue);
-      setLowStockCount(lowStock);
+      setLowStockProducts(lowStock);
 
     } catch (err) {
       console.error(err);
@@ -56,7 +57,6 @@ function Bar() {
   const changeDate = (days) => {
     const newDate = new Date(selectedDate);
     newDate.setDate(newDate.getDate() + days);
-
     const formatted = newDate.toISOString().split("T")[0];
 
     if (formatted > today) return;
@@ -67,7 +67,7 @@ function Bar() {
   const handleAdd = async () => {
 
     const name = prompt("Product name:");
-    if (!name) return alert("Name is required");
+    if (!name) return;
 
     const initial_price = Number(prompt("Cost price:")) || 0;
     const price = Number(prompt("Selling price:")) || 0;
@@ -84,6 +84,26 @@ function Bar() {
     fetchProducts(selectedDate);
   };
 
+  const handleEdit = async (product) => {
+
+    const newName = prompt("Edit product name:", product.name);
+    if (!newName) return;
+
+    const newCost = Number(prompt("Edit cost price:", product.initial_price));
+    const newSelling = Number(prompt("Edit selling price:", product.price));
+    const newOpening = Number(prompt("Edit opening stock:", product.opening_stock));
+
+    await axios.put(`${API_URL}/edit/${product.id}`, {
+      name: newName,
+      initial_price: newCost || 0,
+      price: newSelling || 0,
+      opening_stock: newOpening || 0,
+      date: selectedDate,
+    });
+
+    fetchProducts(selectedDate);
+  };
+
   const handleLocalChange = (id, field, value) => {
     setProducts((prev) =>
       prev.map((p) => (p.id === id ? { ...p, [field]: value } : p))
@@ -91,6 +111,7 @@ function Bar() {
   };
 
   const saveStock = async (product) => {
+
     await axios.put(`${API_URL}/stock/${product.id}`, {
       entree: Number(product.entree) || 0,
       sold: Number(product.sold) || 0,
@@ -105,22 +126,61 @@ function Bar() {
   return (
     <div className="container mt-4">
 
-      {/* HEADER */}
-      <div className="card shadow-lg mb-4 border-0" style={{ borderRadius: "15px" }}>
-        <div className="card-body d-flex justify-content-between align-items-center">
+      {/* DASHBOARD */}
+      <div className="row g-4 mb-4">
 
-          <h4 className="fw-bold mb-0" style={{ letterSpacing: "1px" }}>
-            Bar
-          </h4>
+        <div className="col-md-3">
+          <div className="card shadow border-0 rounded-3" style={{background:"#0B3D2E",color:"#fff"}}>
+            <div className="card-body text-center">
+              <h6>Total Sales</h6>
+              <h4>RWF {formatNumber(totalEarned)}</h4>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-3">
+          <div className="card shadow border-0 rounded-3" style={{background:"#D4AF37"}}>
+            <div className="card-body text-center">
+              <h6>Total Profit</h6>
+              <h4>RWF {formatNumber(totalProfit)}</h4>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-3">
+          <div className="card shadow border-0 rounded-3" style={{background:"#0E6251",color:"#fff"}}>
+            <div className="card-body text-center">
+              <h6>Total Stock Value</h6>
+              <h4>RWF {formatNumber(totalStockValue)}</h4>
+            </div>
+          </div>
+        </div>
+
+        {/* LOW STOCK LINK */}
+        <div className="col-md-3">
+          <div
+            className="card shadow border-0 rounded-3"
+            style={{background:"#C0392B",color:"#fff",cursor:"pointer"}}
+            onClick={() => setShowLowStock(!showLowStock)}
+          >
+            <div className="card-body text-center">
+              <h6>Low Stock</h6>
+              <h4>{lowStockProducts.length}</h4>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+
+      {/* HEADER */}
+      <div className="card shadow-lg mb-4 border-0">
+        <div className="card-body d-flex justify-content-between align-items-center">
+          <h4 className="fw-bold">Bar</h4>
 
           <div className="d-flex align-items-center gap-2">
 
-            <button
-              className="btn btn-outline-dark btn-sm"
-              onClick={() => changeDate(-1)}
-            >
-              ◀
-            </button>
+            <button className="btn btn-outline-dark btn-sm" onClick={() => changeDate(-1)}>◀</button>
 
             <strong>{selectedDate}</strong>
 
@@ -132,16 +192,7 @@ function Bar() {
               ▶
             </button>
 
-            <button
-              className="btn shadow-sm ms-3"
-              onClick={handleAdd}
-              style={{
-                background: "linear-gradient(90deg,#0F2027,#203A43,#2C5364)",
-                color: "#fff",
-                borderRadius: "10px",
-                fontWeight: "600",
-              }}
-            >
+            <button className="btn btn-success ms-3" onClick={handleAdd}>
               + Add Product
             </button>
 
@@ -149,57 +200,55 @@ function Bar() {
         </div>
       </div>
 
-      {/* DASHBOARD */}
-      <div className="row g-4 mb-4">
 
-        <div className="col-md-3">
-          <div className="card shadow border-0 rounded-3" style={{ backgroundColor: "#0B3D2E", color: "#fff" }}>
-            <div className="card-body text-center">
-              <h6>Total Sales</h6>
-              <h4>RWF {formatNumber(totalEarned)}</h4>
-            </div>
+
+      {/* LOW STOCK TABLE */}
+      {showLowStock && (
+        <div className="card shadow-lg border-0 mb-4">
+          <div className="card-body">
+
+            <h5 className="fw-bold mb-3">Low Stock Products</h5>
+
+            <table className="table table-hover text-center">
+
+              <thead style={{background:"#1C1C1C",color:"#fff"}}>
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Remaining</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {lowStockProducts.map((p,i)=>(
+                  <tr key={p.id} style={{background:"#ffe6e6"}}>
+                    <td>{i+1}</td>
+                    <td>{p.name}</td>
+                    <td>{p.closing_stock}</td>
+                  </tr>
+                ))}
+              </tbody>
+
+            </table>
+
           </div>
         </div>
+      )}
 
-        <div className="col-md-3">
-          <div className="card shadow border-0 rounded-3" style={{ backgroundColor: "#D4AF37" }}>
-            <div className="card-body text-center">
-              <h6>Total Profit</h6>
-              <h4>RWF {formatNumber(totalProfit)}</h4>
-            </div>
-          </div>
-        </div>
 
-        <div className="col-md-3">
-          <div className="card shadow border-0 rounded-3" style={{ backgroundColor: "#0E6251", color: "#fff" }}>
-            <div className="card-body text-center">
-              <h6>Total Stock Value</h6>
-              <h4>RWF {formatNumber(totalStockValue)}</h4>
-            </div>
-          </div>
-        </div>
 
-        <div className="col-md-3">
-          <div className="card shadow border-0 rounded-3" style={{ backgroundColor: "#C0392B", color: "#fff" }}>
-            <div className="card-body text-center">
-              <h6>Low Stock</h6>
-              <h4>{lowStockCount}</h4>
-            </div>
-          </div>
-        </div>
+      {/* MAIN BAR TABLE */}
+      <div className="card shadow-lg border-0 rounded-4">
 
-      </div>
-
-      {/* TABLE */}
-      <div className="card shadow-lg border-0 rounded-4" style={{ overflow: "hidden" }}>
         <div className="table-responsive">
 
           <table
             className="table table-hover text-center mb-0"
-            style={{ borderCollapse: "separate", borderSpacing: "0 8px" }}
+            style={{borderCollapse:"separate",borderSpacing:"0 8px"}}
           >
 
-            <thead style={{ backgroundColor: "#1C1C1C", color: "#fff" }}>
+            <thead style={{background:"#1C1C1C",color:"#fff"}}>
+
               <tr>
                 <th>#</th>
                 <th>Product</th>
@@ -211,90 +260,95 @@ function Bar() {
                 <th>Sold</th>
                 <th>Closing</th>
                 <th>Sales</th>
+                <th></th>
               </tr>
+
             </thead>
 
             <tbody>
 
               {loading ? (
                 <tr>
-                  <td colSpan="10">Loading...</td>
+                  <td colSpan="11">Loading...</td>
                 </tr>
               ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan="10">No report for this date</td>
+                  <td colSpan="11">No data</td>
                 </tr>
               ) : (
-                products.map((p, i) => (
+                products.map((p,i)=>{
 
-                  <tr
-                    key={p.id}
-                    className="shadow-sm"
-                    style={{
-                      backgroundColor: "#F9F9F9",
-                      borderRadius: "10px"
-                    }}
-                  >
+                  const isLow = Number(p.closing_stock) < 5;
 
-                    <td>{i + 1}</td>
+                  return(
+                    <tr
+                      key={p.id}
+                      className="shadow-sm"
+                      style={{
+                        background:isLow ? "#ffcccc" : "#F9F9F9",
+                        borderRadius:"10px"
+                      }}
+                    >
 
-                    <td className="fw-bold text-start ps-3">
-                      {p.name}
-                    </td>
+                      <td>{i+1}</td>
 
-                    <td>RWF {formatNumber(p.initial_price)}</td>
+                      <td className="fw-bold">{p.name}</td>
 
-                    <td>RWF {formatNumber(p.price)}</td>
+                      <td>RWF {formatNumber(p.initial_price)}</td>
 
-                    <td>{p.opening_stock}</td>
+                      <td>RWF {formatNumber(p.price)}</td>
 
-                    <td>
+                      <td>{p.opening_stock}</td>
 
-                      <input
-                        type="number"
-                        className="form-control form-control-sm text-center"
-                        value={p.entree || ""}
-                        onChange={(e) =>
-                          handleLocalChange(p.id, "entree", e.target.value)
-                        }
-                        onBlur={() => saveStock(p)}
-                      />
+                      <td>
+                        <input
+                          type="number"
+                          className="form-control form-control-sm text-center"
+                          value={p.entree || ""}
+                          onChange={(e)=>handleLocalChange(p.id,"entree",e.target.value)}
+                          onBlur={()=>saveStock(p)}
+                        />
+                      </td>
 
-                    </td>
+                      <td>{p.total_stock}</td>
 
-                    <td>{p.total_stock}</td>
+                      <td>
+                        <input
+                          type="number"
+                          className="form-control form-control-sm text-center"
+                          value={p.sold || ""}
+                          onChange={(e)=>handleLocalChange(p.id,"sold",e.target.value)}
+                          onBlur={()=>saveStock(p)}
+                        />
+                      </td>
 
-                    <td>
+                      <td className="fw-bold">{p.closing_stock}</td>
 
-                      <input
-                        type="number"
-                        className="form-control form-control-sm text-center"
-                        value={p.sold || ""}
-                        onChange={(e) =>
-                          handleLocalChange(p.id, "sold", e.target.value)
-                        }
-                        onBlur={() => saveStock(p)}
-                      />
+                      <td className="text-success fw-bold">
+                        RWF {formatNumber(p.total_sold)}
+                      </td>
 
-                    </td>
+                      <td>
+                        <button
+                          className="btn btn-warning btn-sm"
+                          onClick={()=>handleEdit(p)}
+                        >
+                          Edit
+                        </button>
+                      </td>
 
-                    <td className="fw-bold">
-                      {p.closing_stock}
-                    </td>
+                    </tr>
+                  )
 
-                    <td className="text-success fw-bold">
-                      RWF {formatNumber(p.total_sold)}
-                    </td>
-
-                  </tr>
-
-                ))
+                })
               )}
 
             </tbody>
+
           </table>
 
         </div>
+
       </div>
 
     </div>
