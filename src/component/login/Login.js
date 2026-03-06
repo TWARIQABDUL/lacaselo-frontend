@@ -25,7 +25,7 @@ function Login({ show, handleClose }) {
           onClick={handleClose}
           style={{
             position: "absolute",
-            top: "15px",
+            top: "25px",
             right: "20px",
             fontSize: "22px",
             fontWeight: "bold",
@@ -49,7 +49,7 @@ function Login({ show, handleClose }) {
         <input
           type="email"
           className="form-control rounded-pill mb-3"
-          placeholder="Email address"
+          placeholder="Username "
         />
 
         <input

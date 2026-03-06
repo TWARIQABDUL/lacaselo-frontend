@@ -45,12 +45,12 @@ function Guesthouse() {
     roomList.forEach((r) => {
       const vip = Number(r.vip || 0);
       const normal = Number(r.normal || 0);
-      const price = Number(r.price || 0);
 
-      const totalRooms = vip + normal;
+      const vipPrice = Number(r.vip_price || 0);
+      const normalPrice = Number(r.normal_price || 0);
 
-      incomeSum += totalRooms * price;
-      soldSum += totalRooms;
+      incomeSum += (vip * vipPrice) + (normal * normalPrice);
+      soldSum += vip + normal;
     });
 
     setTotalIncome(incomeSum);
@@ -67,19 +67,22 @@ function Guesthouse() {
     setSelectedDate(formatted);
   };
 
-  // ================= ADD NEW ENTRY =================
+  // ================= ADD ROOM =================
   const handleAdd = async () => {
     const date = prompt("Date (YYYY-MM-DD):") || selectedDate;
     const vip = Number(prompt("VIP Rooms:")) || 0;
     const normal = Number(prompt("Normal Rooms:")) || 0;
-    const price = Number(prompt("Room Price:")) || 0;
+
+    const vip_price = Number(prompt("VIP Room Price:")) || 0;
+    const normal_price = Number(prompt("Normal Room Price:")) || 0;
 
     try {
       await axios.post(API_URL, {
         date,
         vip,
         normal,
-        price,
+        vip_price,
+        normal_price
       });
       fetchRooms(selectedDate);
     } catch (err) {
@@ -145,9 +148,11 @@ function Guesthouse() {
       <div className="card shadow mb-4">
         <div className="card-body d-flex justify-content-between align-items-center">
           <h4 className="fw-bold mb-0">Guesthouse</h4>
+
           <div className="d-flex align-items-center gap-2">
             <button className="btn btn-outline-dark btn-sm" onClick={() => changeDate(-1)}>◀</button>
             <strong>{selectedDate}</strong>
+
             <button
               className="btn btn-outline-dark btn-sm"
               onClick={() => changeDate(1)}
@@ -155,6 +160,7 @@ function Guesthouse() {
             >
               ▶
             </button>
+
             <button className="btn btn-success ms-3" onClick={handleAdd}>
               + Add Room
             </button>
@@ -165,24 +171,32 @@ function Guesthouse() {
       {/* ===== TABLE ===== */}
       <div className="card shadow">
         <div className="table-responsive">
+
           <table className="table table-bordered table-hover text-center mb-0">
+
             <thead className="table-dark">
               <tr>
                 <th>#</th>
                 <th>Date</th>
                 <th>VIP</th>
                 <th>Normal</th>
-                <th>Room Price</th>
+                <th>VIP Price</th>
+                <th>Normal Price</th>
               </tr>
             </thead>
+
             <tbody>
+
               {loading ? (
-                <tr><td colSpan="5">Loading...</td></tr>
+                <tr><td colSpan="6">Loading...</td></tr>
+
               ) : rooms.length === 0 ? (
-                <tr><td colSpan="5">No room entries for this date</td></tr>
+                <tr><td colSpan="6">No room entries for this date</td></tr>
+
               ) : (
                 rooms.map((r, i) => (
                   <tr key={r.id}>
+
                     <td>{i + 1}</td>
                     <td>{r.date}</td>
 
@@ -212,9 +226,20 @@ function Guesthouse() {
                       <input
                         type="number"
                         className="form-control form-control-sm"
-                        value={r.price || 0}
+                        value={r.vip_price || 0}
                         onChange={(e) =>
-                          handleRoomChange(r.id, "price", e.target.value)
+                          handleRoomChange(r.id, "vip_price", e.target.value)
+                        }
+                      />
+                    </td>
+
+                    <td>
+                      <input
+                        type="number"
+                        className="form-control form-control-sm"
+                        value={r.normal_price || 0}
+                        onChange={(e) =>
+                          handleRoomChange(r.id, "normal_price", e.target.value)
                         }
                       />
                     </td>
@@ -222,8 +247,11 @@ function Guesthouse() {
                   </tr>
                 ))
               )}
+
             </tbody>
+
           </table>
+
         </div>
       </div>
 
