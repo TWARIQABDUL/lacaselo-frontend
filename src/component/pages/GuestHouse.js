@@ -191,7 +191,7 @@ function Guesthouse() {
                 <tr><td colSpan="6">Loading...</td></tr>
 
               ) : rooms.length === 0 ? (
-                <tr><td colSpan="6">No room entries for this date</td></tr>
+                <tr><td colSpan="6">Ntamakuru ahari y' izi tariki</td></tr>
 
               ) : (
                 rooms.map((r, i) => (
