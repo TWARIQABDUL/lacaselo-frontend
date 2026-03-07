@@ -7,127 +7,76 @@ function Login({ show, handleClose }) {
     <div
       className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
       style={{
-        backgroundColor: "rgba(0, 0, 0, 0.6)",
-        backdropFilter: "blur(12px)",
+        backgroundColor: "rgba(0,0,0,0.5)",
+        backdropFilter: "blur(6px)",
         zIndex: 1050,
       }}
     >
       <div
-        className="p-5 position-relative shadow-xl"
+        className="bg-white p-4 position-relative shadow"
         style={{
-          width: "440px",
-          borderRadius: "28px",
-          background: "rgba(255, 255, 255, 0.05)",
-          border: "1px solid rgba(255, 255, 255, 0.15)",
-          backdropFilter: "blur(20px)",
-          color: "#FFFFFF",
-          boxShadow: "0 15px 50px rgba(0, 0, 0, 0.5)",
-          animation: "fadeInScale 0.4s ease",
+          width: "400px",
+          borderRadius: "20px",
+          animation: "fadeIn 0.3s ease",
         }}
       >
-        {/* Close Icon */}
+        {/* 🔥 Close Icon */}
         <span
           onClick={handleClose}
           style={{
             position: "absolute",
-            top: "20px",
+            top: "25px",
             right: "20px",
-            fontSize: "24px",
+            fontSize: "22px",
             fontWeight: "bold",
             cursor: "pointer",
-            color: "#FFDC73",
-            transition: "color 0.3s",
+            color: "#145C43",
+            transition: "0.3s",
           }}
           className="login-close"
         >
           &times;
         </span>
 
-        <h2
-          className="text-center fw-bold mb-2"
-          style={{ letterSpacing: "1px", fontSize: "1.8rem" }}
-        >
+        <h4 className="text-center fw-semibold mb-3">
           Welcome Back
-        </h2>
+        </h4>
 
-        <p
-          className="text-center small mb-4"
-          style={{ color: "rgba(255,255,255,0.7)" }}
-        >
-          Login to access <span style={{ color: "#FFDC73" }}>La Cielo Management</span>
+        <p className="text-center text-muted small mb-4">
+          Login to access La Cielo Management
         </p>
 
         <input
           type="email"
-          className="form-control mb-3 px-4 py-3"
-          placeholder="Username"
-          style={{
-            borderRadius: "50px",
-            border: "none",
-            background: "rgba(255,255,255,0.08)",
-            color: "#FFFFFF",
-            fontWeight: "500",
-            boxShadow: "inset 0 2px 6px rgba(0,0,0,0.2)",
-            transition: "0.3s",
-          }}
+          className="form-control rounded-pill mb-3"
+          placeholder="Username "
         />
 
         <input
           type="password"
-          className="form-control mb-4 px-4 py-3"
+          className="form-control rounded-pill mb-3"
           placeholder="Password"
-          style={{
-            borderRadius: "50px",
-            border: "none",
-            background: "rgba(255,255,255,0.08)",
-            color: "#FFFFFF",
-            fontWeight: "500",
-            boxShadow: "inset 0 2px 6px rgba(0,0,0,0.2)",
-            transition: "0.3s",
-          }}
         />
 
-        <button
-          className="btn w-100 mb-3"
-          style={{
-            borderRadius: "50px",
-            background: "linear-gradient(90deg, #FFD166, #F4A261)",
-            color: "#111827",
-            fontWeight: "600",
-            padding: "12px 0",
-            fontSize: "1rem",
-            boxShadow: "0 8px 20px rgba(255, 209, 102, 0.4)",
-            transition: "0.3s",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.9")}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-        >
+        <button className="btn btn-dark rounded-pill w-100 mb-3">
           Login
         </button>
 
-        <div
-          className="text-center small"
-          style={{ color: "rgba(255,255,255,0.6)", cursor: "pointer" }}
-        >
+        <div className="text-center small text-muted">
           Forgot password?
         </div>
 
         <style>
           {`
-            .login-close:hover {
-              color: #FFD166;
-            }
+          .login-close:hover {
+            color: #FFD700;
+            transform: rotate(90deg);
+          }
 
-            input:focus {
-              outline: none;
-              box-shadow: 0 0 10px rgba(255, 209, 102, 0.6);
-              background: rgba(255,255,255,0.12);
-            }
-
-            @keyframes fadeInScale {
-              from { transform: scale(0.95); opacity: 0; }
-              to { transform: scale(1); opacity: 1; }
-            }
+          @keyframes fadeIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+          }
           `}
         </style>
       </div>
