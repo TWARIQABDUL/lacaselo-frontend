@@ -22,17 +22,17 @@ function Navbar() {
 
   return (
     <>
-      <nav className="elite-navbar">
+      <nav className="world-navbar">
 
-        <div className="elite-container">
+        <div className="world-container">
 
           {/* LOGO */}
-          <Link className="elite-logo" to="/">
+          <Link className="world-logo" to="/">
             <img src={logo} alt="La Cielo"/>
             <span>LA CIELO</span>
           </Link>
 
-          {/* MOBILE MENU BUTTON */}
+          {/* MOBILE BUTTON */}
           <div
             className={`menu-toggle ${menuOpen ? "active" : ""}`}
             onClick={() => setMenuOpen(!menuOpen)}
@@ -42,14 +42,14 @@ function Navbar() {
             <span></span>
           </div>
 
-          {/* LINKS */}
-          <ul className={`elite-menu ${menuOpen ? "show" : ""}`}>
+          {/* MENU */}
+          <ul className={`world-menu ${menuOpen ? "show" : ""}`}>
 
             {navLinks.map((item,index)=>(
               <li key={index}>
                 <Link
                   to={item.path}
-                  className={`elite-link ${
+                  className={`world-link ${
                     location.pathname === item.path ? "active" : ""
                   }`}
                   onClick={()=>setMenuOpen(false)}
@@ -62,7 +62,7 @@ function Navbar() {
             {/* LOGIN BUTTON */}
             <li>
               <button
-                className="elite-login-btn"
+                className="world-login-btn"
                 onClick={() => setShowLogin(true)}
               >
                 Login
@@ -75,29 +75,28 @@ function Navbar() {
 
       </nav>
 
-      {/* LOGIN MODAL */}
       <Login show={showLogin} handleClose={() => setShowLogin(false)} />
 
-      <style>{`
+<style>{`
 
 /* NAVBAR */
 
-.elite-navbar{
+.world-navbar{
 position:sticky;
 top:0;
 width:100%;
 z-index:1000;
 
-background:linear-gradient(120deg,#041C18,#0A3B31,#0E5A47);
+background:linear-gradient(120deg,#0F172A,#111827);
 backdrop-filter:blur(12px);
 
-border-bottom:1px solid rgba(255,215,0,0.25);
-box-shadow:0 10px 35px rgba(0,0,0,0.6);
+border-bottom:1px solid rgba(255,255,255,0.08);
+box-shadow:0 10px 30px rgba(0,0,0,0.6);
 }
 
 /* CONTAINER */
 
-.elite-container{
+.world-container{
 max-width:1400px;
 margin:auto;
 
@@ -110,42 +109,38 @@ padding:16px 40px;
 
 /* LOGO */
 
-.elite-logo{
+.world-logo{
 display:flex;
 align-items:center;
-
 text-decoration:none;
 }
 
-.elite-logo img{
-height:65px;
-margin-right:12px;
+.world-logo img{
+height:60px;
+margin-right:10px;
 
-filter:drop-shadow(0 0 10px gold);
+filter:drop-shadow(0 0 6px #22D3EE);
 transition:.4s;
 }
 
-.elite-logo:hover img{
+.world-logo:hover img{
 transform:scale(1.08);
 }
 
-.elite-logo span{
-color:#FFD700;
+.world-logo span{
+color:#F8FAFC;
 
 font-weight:700;
-letter-spacing:3px;
-font-size:19px;
-
-text-shadow:0 0 10px gold;
+letter-spacing:2px;
+font-size:18px;
 }
 
 /* MENU */
 
-.elite-menu{
+.world-menu{
 display:flex;
 align-items:center;
-
-gap:20px;
+gap:18px;
 
 list-style:none;
 margin:0;
@@ -154,96 +149,65 @@ padding:0;
 
 /* LINKS */
 
-.elite-link{
-color:#f5f5f5;
+.world-link{
+color:#CBD5F5;
 
 text-decoration:none;
 
-padding:9px 20px;
+padding:9px 18px;
+
 border-radius:30px;
 
 font-weight:500;
 
-position:relative;
-
 transition:.35s;
 }
 
-/* HOVER BUBBLE */
+/* HOVER */
 
-.elite-link:hover{
-color:#FFD700;
+.world-link:hover{
+color:#22D3EE;
 
-transform:translateY(-3px);
+background:rgba(34,211,238,0.08);
 
-text-shadow:0 0 10px gold;
+transform:translateY(-2px);
 }
 
-/* ACTIVE PAGE */
+/* ACTIVE */
 
-.elite-link.active{
-background:rgba(255,215,0,0.15);
-color:#FFD700;
-
-box-shadow:0 0 10px rgba(255,215,0,0.5);
+.world-link.active{
+background:rgba(37,99,235,0.2);
+color:#60A5FA;
 }
 
 /* LOGIN BUTTON */
 
-.elite-login-btn{
+.world-login-btn{
 
-background:linear-gradient(45deg,#FFD700,#E5C15C,#FFD700);
+background:linear-gradient(135deg,#2563EB,#22D3EE);
 
 border:none;
 
-padding:9px 26px;
+padding:9px 24px;
 
 border-radius:30px;
 
 font-weight:600;
-letter-spacing:.5px;
 
-color:#06221A;
+color:white;
 
 cursor:pointer;
 
-position:relative;
-overflow:hidden;
-
-box-shadow:0 0 15px rgba(255,215,0,0.6);
+box-shadow:0 8px 18px rgba(37,99,235,0.45);
 
 transition:.35s;
 }
 
-/* SHINE EFFECT */
+.world-login-btn:hover{
 
-.elite-login-btn::before{
+transform:translateY(-2px) scale(1.05);
 
-content:"";
-
-position:absolute;
-top:0;
-left:-80%;
-
-width:50%;
-height:100%;
-
-background:rgba(255,255,255,0.6);
-
-transform:skewX(-25deg);
-
-transition:.6s;
-}
-
-.elite-login-btn:hover::before{
-left:130%;
-}
-
-.elite-login-btn:hover{
-
-transform:scale(1.08);
-
-box-shadow:0 0 25px rgba(255,215,0,0.9);
+box-shadow:0 12px 28px rgba(34,211,238,0.6);
 }
 
 /* MOBILE MENU BUTTON */
@@ -258,11 +222,11 @@ cursor:pointer;
 width:28px;
 height:3px;
 
-background:white;
+background:#F8FAFC;
 
 margin:4px 0;
 
-transition:.4s;
+transition:.3s;
 }
 
 /* MOBILE */
@@ -273,36 +237,38 @@ transition:.4s;
 display:flex;
 }
 
-.elite-menu{
+.world-menu{
 
 position:absolute;
+
 top:75px;
 right:20px;
 
 flex-direction:column;
 
-background:#06221A;
+background:#0F172A;
 
 padding:25px;
 
-border-radius:15px;
+border-radius:12px;
 
 box-shadow:0 10px 25px rgba(0,0,0,0.6);
 
 display:none;
 }
 
-.elite-menu.show{
+.world-menu.show{
 display:flex;
 }
 
-.elite-link{
+.world-link{
 padding:12px 20px;
 }
 
 }
 
-      `}</style>
+`}</style>
+
     </>
   );
 }
