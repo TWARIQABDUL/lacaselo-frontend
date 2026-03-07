@@ -51,9 +51,7 @@ profit += sold*(price-cost);
 stockValue += closing*cost;
 
 if(closing < 5){
-
 lowProducts.push({...p,closing_stock:closing});
-
 }
 
 });
@@ -69,17 +67,13 @@ console.error(err);
 setProducts([]);
 
 }finally{
-
 setLoading(false);
-
 }
 
 };
 
 useEffect(()=>{
-
 fetchProducts(selectedDate);
-
 },[selectedDate]);
 
 const changeDate=(days)=>{
@@ -118,9 +112,7 @@ date:selectedDate
 fetchProducts(selectedDate);
 
 }catch(err){
-
 console.error(err);
-
 }
 
 };
@@ -151,63 +143,63 @@ const formatNumber=(v)=>Number(v||0).toLocaleString();
 
 return(
 
-<div className="container-fluid mt-4">
+<div className="container-fluid py-4">
 
 {/* DASHBOARD */}
 
 <div className="row g-4 mb-4">
 
 <div className="col-md-3">
-<div className="card shadow border-0 text-white" style={{background:"#0B3D2E"}}>
+<div className="card border-0 shadow-lg h-100" style={{borderRadius:"14px"}}>
 <div className="card-body text-center">
-<h6>Total Sales</h6>
-<h3>RWF {formatNumber(totalSales)}</h3>
+<h6 className="text-muted mb-2">Total Sales</h6>
+<h3 className="fw-bold text-success">RWF {formatNumber(totalSales)}</h3>
 </div>
 </div>
 </div>
 
 <div className="col-md-3">
-<div className="card shadow border-0" style={{background:"#D4AF37"}}>
+<div className="card border-0 shadow-lg h-100" style={{borderRadius:"14px"}}>
 <div className="card-body text-center">
-<h6>Total Profit</h6>
-<h3>RWF {formatNumber(totalProfit)}</h3>
+<h6 className="text-muted mb-2">Total Profit</h6>
+<h3 className="fw-bold text-warning">RWF {formatNumber(totalProfit)}</h3>
 </div>
 </div>
 </div>
 
 <div className="col-md-3">
-<div className="card shadow border-0 text-white" style={{background:"#0E6251"}}>
+<div className="card border-0 shadow-lg h-100" style={{borderRadius:"14px"}}>
 <div className="card-body text-center">
-<h6>Stock Value</h6>
-<h3>RWF {formatNumber(totalStockValue)}</h3>
+<h6 className="text-muted mb-2">Stock Value</h6>
+<h3 className="fw-bold text-primary">RWF {formatNumber(totalStockValue)}</h3>
 </div>
 </div>
 </div>
 
 <div className="col-md-3" style={{cursor:"pointer"}} onClick={()=>setShowLowStock(!showLowStock)}>
-<div className="card shadow border-0 text-white" style={{background:"#C0392B"}}>
+<div className="card border-0 shadow-lg h-100 bg-danger text-white" style={{borderRadius:"14px"}}>
 <div className="card-body text-center">
-<h6>Low Stock</h6>
-<h3>{lowStockProducts.length}</h3>
+<h6 className="mb-2">Low Stock</h6>
+<h3 className="fw-bold">{lowStockProducts.length}</h3>
 </div>
 </div>
 </div>
 
 </div>
 
-{/* LOW STOCK TABLE */}
+{/* LOW STOCK */}
 
 {showLowStock &&(
 
-<div className="card shadow mb-4">
+<div className="card shadow-lg border-0 mb-4" style={{borderRadius:"14px"}}>
 
-<div className="card-header bg-danger text-white">
+<div className="card-header bg-danger text-white fw-bold">
 Low Stock Drinks
 </div>
 
-<table className="table table-bordered text-center mb-0">
+<table className="table table-hover text-center mb-0">
 
-<thead className="table-dark">
+<thead className="table-light">
 <tr>
 <th>#</th>
 <th>Drink</th>
@@ -220,7 +212,7 @@ Low Stock Drinks
 {lowStockProducts.map((p,i)=>(
 <tr key={p.id}>
 <td>{i+1}</td>
-<td>{p.name}</td>
+<td className="fw-semibold">{p.name}</td>
 <td className="text-danger fw-bold">{p.closing_stock}</td>
 </tr>
 ))}
@@ -235,26 +227,25 @@ Low Stock Drinks
 
 {/* HEADER */}
 
-<div className="card shadow mb-4">
+<div className="card shadow-lg border-0 mb-4" style={{borderRadius:"14px"}}>
 
-<div className="card-body d-flex justify-content-between align-items-center">
+<div className="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
 
-<h4 className="fw-bold">Bar</h4>
+<h4 className="fw-bold mb-0">🍷 Bar Inventory</h4>
 
-<div className="d-flex align-items-center gap-2">
+<div className="d-flex align-items-center gap-3">
 
-<button className="btn btn-outline-dark btn-sm" onClick={()=>changeDate(-1)}>◀</button>
+<button className="btn btn-light shadow-sm" onClick={()=>changeDate(-1)}>◀</button>
 
-<strong>{selectedDate}</strong>
+<div className="fw-bold fs-6">{selectedDate}</div>
 
-<button className="btn btn-outline-dark btn-sm" disabled={selectedDate===today} onClick={()=>changeDate(1)}>▶</button>
+<button className="btn btn-light shadow-sm" disabled={selectedDate===today} onClick={()=>changeDate(1)}>▶</button>
 
 <button
-className="btn ms-3 d-flex align-items-center gap-2 px-4 py-2 shadow"
+className="btn text-white px-4 shadow"
 onClick={handleAdd}
 style={{
 background:"#0B3D2E",
-color:"white",
 borderRadius:"50px",
 fontWeight:"600"
 }}
@@ -270,13 +261,13 @@ fontWeight:"600"
 
 {/* TABLE */}
 
-<div className="card shadow">
+<div className="card border-0 shadow-lg" style={{borderRadius:"14px"}}>
 
 <div className="table-responsive">
 
-<table className="table table-bordered table-hover text-center">
+<table className="table align-middle table-hover text-center mb-0">
 
-<thead className="table-dark">
+<thead style={{background:"#111",color:"white"}}>
 
 <tr>
 <th>#</th>
@@ -296,9 +287,9 @@ fontWeight:"600"
 <tbody>
 
 {loading?(
-<tr><td colSpan="10">Loading...</td></tr>
+<tr><td colSpan="10" className="py-4">Loading...</td></tr>
 ):products.length===0?(
-<tr><td colSpan="10">No drinks</td></tr>
+<tr><td colSpan="10" className="py-4">No drinks available</td></tr>
 ):(
 
 products.map((p,i)=>{
@@ -317,11 +308,11 @@ const isLow=closing<5;
 
 return(
 
-<tr key={p.id} style={{background:isLow?"#ffcccc":"white"}}>
+<tr key={p.id} style={{background:isLow?"#ffe6e6":"white"}}>
 
 <td>{i+1}</td>
 
-<td>{p.name}</td>
+<td className="fw-semibold">{p.name}</td>
 
 <td>{formatNumber(cost)}</td>
 
@@ -333,20 +324,20 @@ return(
 
 <input
 type="number"
-className="form-control form-control-sm"
+className="form-control form-control-sm text-center shadow-sm"
 value={entree}
 onChange={(e)=>handleEntreeChange(p.id,e.target.value)}
 />
 
 </td>
 
-<td>{total}</td>
+<td className="fw-semibold">{total}</td>
 
 <td>
 
 <input
 type="number"
-className="form-control form-control-sm"
+className="form-control form-control-sm text-center shadow-sm"
 value={sold}
 onChange={(e)=>handleSoldChange(p.id,e.target.value)}
 />
