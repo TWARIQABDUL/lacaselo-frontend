@@ -79,7 +79,7 @@ function Login({ show, handleClose }) {
           className="btn w-100 mb-3"
           style={{
             borderRadius: "50px",
-            background: "linear-gradient(90deg, #FBBF24, #F59E0B)",
+            background: "linear-gradient(90deg, #fefefd, #0b9ff5)",
             color: "#111827",
             fontWeight: "600",
             padding: "10px 0",
