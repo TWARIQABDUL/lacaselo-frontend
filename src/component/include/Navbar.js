@@ -29,7 +29,7 @@ function Navbar() {
           {/* LOGO */}
           <Link className="world-logo" to="/">
             <img src={logo} alt="La Cielo"/>
-            <span>LA CIELO</span>
+            <span></span>
           </Link>
 
           {/* MOBILE BUTTON */}

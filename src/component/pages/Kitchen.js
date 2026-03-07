@@ -51,9 +51,7 @@ profit+=sold*(price-cost);
 stock+=closing*cost;
 
 if(closing<5){
-
 low.push({...f,closing_stock:closing});
-
 }
 
 });
@@ -77,15 +75,12 @@ setLoading(false);
 };
 
 useEffect(()=>{
-
 fetchFoods(selectedDate);
-
 },[selectedDate]);
 
 const changeDate=(days)=>{
 
 const newDate=new Date(selectedDate);
-
 newDate.setDate(newDate.getDate()+days);
 
 const formatted=newDate.toISOString().split("T")[0];
@@ -143,63 +138,63 @@ const formatNumber=(v)=>Number(v||0).toLocaleString();
 
 return(
 
-<div className="container-fluid mt-4">
+<div className="container-fluid py-4" style={{background:"#0F172A",minHeight:"100vh"}}>
 
 {/* DASHBOARD */}
 
 <div className="row g-4 mb-4">
 
 <div className="col-md-3">
-<div className="card shadow border-0 text-white" style={{background:"#0B3D2E"}}>
+<div className="card border-0 shadow-lg dashboard-card text-white" style={{background:"linear-gradient(135deg,#10B981,#065F46)"}}>
 <div className="card-body text-center">
 <h6>Total Sales</h6>
-<h3>RWF {formatNumber(totalSales)}</h3>
+<h2>RWF {formatNumber(totalSales)}</h2>
 </div>
 </div>
 </div>
 
 <div className="col-md-3">
-<div className="card shadow border-0" style={{background:"#D4AF37"}}>
+<div className="card border-0 shadow-lg dashboard-card text-dark" style={{background:"linear-gradient(135deg,#F59E0B,#B45309)"}}>
 <div className="card-body text-center">
 <h6>Total Profit</h6>
-<h3>RWF {formatNumber(totalProfit)}</h3>
+<h2>RWF {formatNumber(totalProfit)}</h2>
 </div>
 </div>
 </div>
 
 <div className="col-md-3">
-<div className="card shadow border-0 text-white" style={{background:"#0E6251"}}>
+<div className="card border-0 shadow-lg dashboard-card text-white" style={{background:"linear-gradient(135deg,#2563EB,#1E3A8A)"}}>
 <div className="card-body text-center">
 <h6>Stock Value</h6>
-<h3>RWF {formatNumber(totalStockValue)}</h3>
+<h2>RWF {formatNumber(totalStockValue)}</h2>
 </div>
 </div>
 </div>
 
 <div className="col-md-3" style={{cursor:"pointer"}} onClick={()=>setShowLowStock(!showLowStock)}>
-<div className="card shadow border-0 text-white" style={{background:"#C0392B"}}>
+<div className="card border-0 shadow-lg dashboard-card text-white" style={{background:"linear-gradient(135deg,#EF4444,#7F1D1D)"}}>
 <div className="card-body text-center">
 <h6>Low Stock</h6>
-<h3>{lowStockFoods.length}</h3>
+<h2>{lowStockFoods.length}</h2>
 </div>
 </div>
 </div>
 
 </div>
 
-{/* LOW STOCK TABLE */}
+{/* LOW STOCK */}
 
 {showLowStock &&(
 
-<div className="card shadow mb-4">
+<div className="card border-0 shadow-lg mb-4">
 
-<div className="card-header bg-danger text-white">
+<div className="card-header text-white fw-bold" style={{background:"#EF4444"}}>
 Low Stock Foods
 </div>
 
-<table className="table table-bordered text-center mb-0">
+<table className="table table-hover text-center mb-0">
 
-<thead className="table-dark">
+<thead style={{background:"#1E293B",color:"white"}}>
 <tr>
 <th>#</th>
 <th>Food</th>
@@ -227,13 +222,13 @@ Low Stock Foods
 
 {/* HEADER */}
 
-<div className="card shadow mb-4">
+<div className="card border-0 shadow-lg mb-4">
 
 <div className="card-body d-flex justify-content-between align-items-center">
 
-<h4 className="fw-bold">Kitchen</h4>
+<h3 className="fw-bold text-dark">Kitchen Management</h3>
 
-<div className="d-flex align-items-center gap-2">
+<div className="d-flex align-items-center gap-3">
 
 <button className="btn btn-outline-dark btn-sm" onClick={()=>changeDate(-1)}>◀</button>
 
@@ -242,12 +237,13 @@ Low Stock Foods
 <button className="btn btn-outline-dark btn-sm" disabled={selectedDate===today} onClick={()=>changeDate(1)}>▶</button>
 
 <button
-className="btn ms-3 d-flex align-items-center gap-2 px-4 py-2 shadow"
+className="btn shadow"
 onClick={handleAdd}
 style={{
-background:"#0B3D2E",
+background:"linear-gradient(135deg,#10B981,#065F46)",
 color:"white",
-borderRadius:"50px",
+borderRadius:"30px",
+padding:"8px 22px",
 fontWeight:"600"
 }}
 >
@@ -262,13 +258,13 @@ fontWeight:"600"
 
 {/* TABLE */}
 
-<div className="card shadow">
+<div className="card border-0 shadow-lg">
 
 <div className="table-responsive">
 
-<table className="table table-bordered table-hover text-center">
+<table className="table table-hover text-center align-middle">
 
-<thead className="table-dark">
+<thead style={{background:"#1E293B",color:"white"}}>
 
 <tr>
 <th>#</th>
@@ -307,10 +303,10 @@ const isLow=closing<5;
 
 return(
 
-<tr key={f.id} style={{background:isLow?"#ffcccc":"white"}}>
+<tr key={f.id} style={{background:isLow?"#FEE2E2":"white"}}>
 
 <td>{i+1}</td>
-<td>{f.name}</td>
+<td className="fw-semibold">{f.name}</td>
 <td>{formatNumber(cost)}</td>
 <td>{formatNumber(price)}</td>
 <td>{opening}</td>
@@ -319,9 +315,10 @@ return(
 
 <input
 type="number"
-className="form-control form-control-sm"
+className="form-control form-control-sm text-center"
 value={entree}
 onChange={(e)=>handleEntreeChange(f.id,e.target.value)}
+style={{borderRadius:"10px"}}
 />
 
 </td>
@@ -332,9 +329,10 @@ onChange={(e)=>handleEntreeChange(f.id,e.target.value)}
 
 <input
 type="number"
-className="form-control form-control-sm"
+className="form-control form-control-sm text-center"
 value={sold}
 onChange={(e)=>handleSoldChange(f.id,e.target.value)}
+style={{borderRadius:"10px"}}
 />
 
 </td>
