@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-function Bar() {
+function Bar(){
 
 const today = new Date().toISOString().split("T")[0];
 
@@ -9,12 +9,23 @@ const [products,setProducts] = useState([]);
 const [selectedDate,setSelectedDate] = useState(today);
 const [loading,setLoading] = useState(false);
 
+const [search,setSearch] = useState("");
+
 const [totalSales,setTotalSales] = useState(0);
 const [totalProfit,setTotalProfit] = useState(0);
 const [totalStockValue,setTotalStockValue] = useState(0);
 
 const [lowStockProducts,setLowStockProducts] = useState([]);
 const [showLowStock,setShowLowStock] = useState(false);
+
+const [showModal,setShowModal] = useState(false);
+
+const [newProduct,setNewProduct] = useState({
+name:"",
+initial_price:"",
+price:"",
+opening_stock:""
+});
 
 const API_URL="https://backend-vitq.onrender.com/api/bar";
 
@@ -62,10 +73,8 @@ setTotalStockValue(stockValue);
 setLowStockProducts(lowProducts);
 
 }catch(err){
-
 console.error(err);
 setProducts([]);
-
 }finally{
 setLoading(false);
 }
@@ -79,7 +88,6 @@ fetchProducts(selectedDate);
 const changeDate=(days)=>{
 
 const newDate=new Date(selectedDate);
-
 newDate.setDate(newDate.getDate()+days);
 
 const formatted=newDate.toISOString().split("T")[0];
@@ -92,21 +100,20 @@ setSelectedDate(formatted);
 
 const handleAdd=async()=>{
 
-const name=prompt("Product name");
-if(!name)return;
-
-const initial_price=Number(prompt("Cost price"));
-const price=Number(prompt("Selling price"));
-const opening_stock=Number(prompt("Opening stock"));
-
 try{
 
 await axios.post(API_URL,{
-name,
-initial_price,
-price,
-opening_stock,
+...newProduct,
 date:selectedDate
+});
+
+setShowModal(false);
+
+setNewProduct({
+name:"",
+initial_price:"",
+price:"",
+opening_stock:""
 });
 
 fetchProducts(selectedDate);
@@ -141,6 +148,10 @@ fetchProducts(selectedDate);
 
 const formatNumber=(v)=>Number(v||0).toLocaleString();
 
+const filteredProducts = products.filter(p =>
+p.name.toLowerCase().includes(search.toLowerCase())
+);
+
 return(
 
 <div className="container-fluid py-4">
@@ -150,37 +161,37 @@ return(
 <div className="row g-4 mb-4">
 
 <div className="col-md-3">
-<div className="card border-0 shadow-lg h-100" style={{borderRadius:"14px"}}>
+<div className="card shadow border-0 h-100">
 <div className="card-body text-center">
-<h6 className="text-muted mb-2">Total Sales</h6>
-<h3 className="fw-bold text-success">RWF {formatNumber(totalSales)}</h3>
+<h6 className="text-muted">Total Sales</h6>
+<h3 className="text-success fw-bold">RWF {formatNumber(totalSales)}</h3>
 </div>
 </div>
 </div>
 
 <div className="col-md-3">
-<div className="card border-0 shadow-lg h-100" style={{borderRadius:"14px"}}>
+<div className="card shadow border-0 h-100">
 <div className="card-body text-center">
-<h6 className="text-muted mb-2">Total Profit</h6>
-<h3 className="fw-bold text-warning">RWF {formatNumber(totalProfit)}</h3>
+<h6 className="text-muted">Total Profit</h6>
+<h3 className="text-warning fw-bold">RWF {formatNumber(totalProfit)}</h3>
 </div>
 </div>
 </div>
 
 <div className="col-md-3">
-<div className="card border-0 shadow-lg h-100" style={{borderRadius:"14px"}}>
+<div className="card shadow border-0 h-100">
 <div className="card-body text-center">
-<h6 className="text-muted mb-2">Stock Value</h6>
-<h3 className="fw-bold text-primary">RWF {formatNumber(totalStockValue)}</h3>
+<h6 className="text-muted">Stock Value</h6>
+<h3 className="text-primary fw-bold">RWF {formatNumber(totalStockValue)}</h3>
 </div>
 </div>
 </div>
 
 <div className="col-md-3" style={{cursor:"pointer"}} onClick={()=>setShowLowStock(!showLowStock)}>
-<div className="card border-0 shadow-lg h-100 bg-danger text-white" style={{borderRadius:"14px"}}>
+<div className="card shadow border-0 bg-danger text-white h-100">
 <div className="card-body text-center">
-<h6 className="mb-2">Low Stock</h6>
-<h3 className="fw-bold">{lowStockProducts.length}</h3>
+<h6>Low Stock</h6>
+<h3>{lowStockProducts.length}</h3>
 </div>
 </div>
 </div>
@@ -191,15 +202,15 @@ return(
 
 {showLowStock &&(
 
-<div className="card shadow-lg border-0 mb-4" style={{borderRadius:"14px"}}>
+<div className="card shadow mb-4">
 
-<div className="card-header bg-danger text-white fw-bold">
+<div className="card-header bg-danger text-white">
 Low Stock Drinks
 </div>
 
-<table className="table table-hover text-center mb-0">
+<table className="table text-center mb-0">
 
-<thead className="table-light">
+<thead className="table-dark">
 <tr>
 <th>#</th>
 <th>Drink</th>
@@ -212,7 +223,7 @@ Low Stock Drinks
 {lowStockProducts.map((p,i)=>(
 <tr key={p.id}>
 <td>{i+1}</td>
-<td className="fw-semibold">{p.name}</td>
+<td>{p.name}</td>
 <td className="text-danger fw-bold">{p.closing_stock}</td>
 </tr>
 ))}
@@ -227,28 +238,33 @@ Low Stock Drinks
 
 {/* HEADER */}
 
-<div className="card shadow-lg border-0 mb-4" style={{borderRadius:"14px"}}>
+<div className="card shadow mb-4">
 
 <div className="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
 
-<h4 className="fw-bold mb-0">🍷 Bar Inventory</h4>
+<h4 className="fw-bold">🍷 Bar Inventory</h4>
 
-<div className="d-flex align-items-center gap-3">
+<div className="d-flex gap-3 align-items-center">
 
-<button className="btn btn-light shadow-sm" onClick={()=>changeDate(-1)}>◀</button>
+<input
+type="text"
+placeholder="Search drink..."
+className="form-control"
+style={{width:"200px"}}
+value={search}
+onChange={(e)=>setSearch(e.target.value)}
+/>
 
-<div className="fw-bold fs-6">{selectedDate}</div>
+<button className="btn btn-light" onClick={()=>changeDate(-1)}>◀</button>
 
-<button className="btn btn-light shadow-sm" disabled={selectedDate===today} onClick={()=>changeDate(1)}>▶</button>
+<strong>{selectedDate}</strong>
+
+<button className="btn btn-light" disabled={selectedDate===today} onClick={()=>changeDate(1)}>▶</button>
 
 <button
-className="btn text-white px-4 shadow"
-onClick={handleAdd}
-style={{
-background:"#0B3D2E",
-borderRadius:"50px",
-fontWeight:"600"
-}}
+className="btn text-white"
+style={{background:"#0B3D2E"}}
+onClick={()=>setShowModal(true)}
 >
 ➕ Add Drink
 </button>
@@ -261,13 +277,13 @@ fontWeight:"600"
 
 {/* TABLE */}
 
-<div className="card border-0 shadow-lg" style={{borderRadius:"14px"}}>
+<div className="card shadow">
 
-<div className="table-responsive">
+<div className="table-responsive" style={{maxHeight:"600px"}}>
 
-<table className="table align-middle table-hover text-center mb-0">
+<table className="table table-hover text-center">
 
-<thead style={{background:"#111",color:"white"}}>
+<thead className="table-dark" style={{position:"sticky",top:0}}>
 
 <tr>
 <th>#</th>
@@ -287,12 +303,10 @@ fontWeight:"600"
 <tbody>
 
 {loading?(
-<tr><td colSpan="10" className="py-4">Loading...</td></tr>
-):products.length===0?(
-<tr><td colSpan="10" className="py-4">No drinks available</td></tr>
-):(
-
-products.map((p,i)=>{
+<tr><td colSpan="10">Loading...</td></tr>
+):filteredProducts.length===0?(
+<tr><td colSpan="10">No drinks</td></tr>
+):(filteredProducts.map((p,i)=>{
 
 const opening=Number(p.opening_stock||0);
 const entree=Number(p.entree||0);
@@ -308,40 +322,32 @@ const isLow=closing<5;
 
 return(
 
-<tr key={p.id} style={{background:isLow?"#ffe6e6":"white"}}>
+<tr key={p.id} style={{background:isLow?"#ffe5e5":""}}>
 
 <td>{i+1}</td>
-
-<td className="fw-semibold">{p.name}</td>
-
+<td className="fw-bold">{p.name}</td>
 <td>{formatNumber(cost)}</td>
-
 <td>{formatNumber(price)}</td>
-
 <td>{opening}</td>
 
 <td>
-
 <input
 type="number"
-className="form-control form-control-sm text-center shadow-sm"
+className="form-control form-control-sm"
 value={entree}
 onChange={(e)=>handleEntreeChange(p.id,e.target.value)}
 />
-
 </td>
 
-<td className="fw-semibold">{total}</td>
+<td>{total}</td>
 
 <td>
-
 <input
 type="number"
-className="form-control form-control-sm text-center shadow-sm"
+className="form-control form-control-sm"
 value={sold}
 onChange={(e)=>handleSoldChange(p.id,e.target.value)}
 />
-
 </td>
 
 <td className={isLow?"text-danger fw-bold":""}>{closing}</td>
@@ -352,9 +358,7 @@ onChange={(e)=>handleSoldChange(p.id,e.target.value)}
 
 )
 
-})
-
-)}
+}))}
 
 </tbody>
 
@@ -363,6 +367,79 @@ onChange={(e)=>handleSoldChange(p.id,e.target.value)}
 </div>
 
 </div>
+
+{/* ADD MODAL */}
+
+{showModal &&(
+
+<div className="modal d-block" style={{background:"rgba(0,0,0,0.5)"}}>
+
+<div className="modal-dialog">
+
+<div className="modal-content">
+
+<div className="modal-header">
+
+<h5>Add Drink</h5>
+
+<button className="btn-close" onClick={()=>setShowModal(false)}></button>
+
+</div>
+
+<div className="modal-body">
+
+<input
+className="form-control mb-3"
+placeholder="Drink name"
+value={newProduct.name}
+onChange={(e)=>setNewProduct({...newProduct,name:e.target.value})}
+/>
+
+<input
+className="form-control mb-3"
+placeholder="Cost price"
+type="number"
+value={newProduct.initial_price}
+onChange={(e)=>setNewProduct({...newProduct,initial_price:e.target.value})}
+/>
+
+<input
+className="form-control mb-3"
+placeholder="Selling price"
+type="number"
+value={newProduct.price}
+onChange={(e)=>setNewProduct({...newProduct,price:e.target.value})}
+/>
+
+<input
+className="form-control"
+placeholder="Opening stock"
+type="number"
+value={newProduct.opening_stock}
+onChange={(e)=>setNewProduct({...newProduct,opening_stock:e.target.value})}
+/>
+
+</div>
+
+<div className="modal-footer">
+
+<button className="btn btn-secondary" onClick={()=>setShowModal(false)}>
+Cancel
+</button>
+
+<button className="btn btn-success" onClick={handleAdd}>
+Add Drink
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+)}
 
 </div>
 
