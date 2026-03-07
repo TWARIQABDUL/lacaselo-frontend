@@ -51,7 +51,9 @@ profit += sold*(price-cost);
 stockValue += closing*cost;
 
 if(closing < 5){
+
 lowProducts.push({...p,closing_stock:closing});
+
 }
 
 });
@@ -75,7 +77,9 @@ setLoading(false);
 };
 
 useEffect(()=>{
+
 fetchProducts(selectedDate);
+
 },[selectedDate]);
 
 const changeDate=(days)=>{
@@ -114,7 +118,9 @@ date:selectedDate
 fetchProducts(selectedDate);
 
 }catch(err){
+
 console.error(err);
+
 }
 
 };
@@ -145,44 +151,44 @@ const formatNumber=(v)=>Number(v||0).toLocaleString();
 
 return(
 
-<div style={{background:"#F7F9FC",minHeight:"100vh",padding:"25px"}}>
+<div className="container-fluid mt-4">
 
 {/* DASHBOARD */}
 
 <div className="row g-4 mb-4">
 
 <div className="col-md-3">
-<div className="card border-0 shadow-lg" style={{borderRadius:"16px"}}>
+<div className="card shadow border-0 text-white" style={{background:"#0B3D2E"}}>
 <div className="card-body text-center">
-<p style={{color:"#6B7280"}}>Total Sales</p>
-<h2 style={{color:"#2563EB",fontWeight:"700"}}>RWF {formatNumber(totalSales)}</h2>
+<h6>Total Sales</h6>
+<h3>RWF {formatNumber(totalSales)}</h3>
 </div>
 </div>
 </div>
 
 <div className="col-md-3">
-<div className="card border-0 shadow-lg" style={{borderRadius:"16px"}}>
+<div className="card shadow border-0" style={{background:"#D4AF37"}}>
 <div className="card-body text-center">
-<p style={{color:"#6B7280"}}>Total Profit</p>
-<h2 style={{color:"#16A34A",fontWeight:"700"}}>RWF {formatNumber(totalProfit)}</h2>
+<h6>Total Profit</h6>
+<h3>RWF {formatNumber(totalProfit)}</h3>
 </div>
 </div>
 </div>
 
 <div className="col-md-3">
-<div className="card border-0 shadow-lg" style={{borderRadius:"16px"}}>
+<div className="card shadow border-0 text-white" style={{background:"#0E6251"}}>
 <div className="card-body text-center">
-<p style={{color:"#6B7280"}}>Stock Value</p>
-<h2 style={{color:"#0EA5A4",fontWeight:"700"}}>RWF {formatNumber(totalStockValue)}</h2>
+<h6>Stock Value</h6>
+<h3>RWF {formatNumber(totalStockValue)}</h3>
 </div>
 </div>
 </div>
 
 <div className="col-md-3" style={{cursor:"pointer"}} onClick={()=>setShowLowStock(!showLowStock)}>
-<div className="card border-0 shadow-lg" style={{borderRadius:"16px"}}>
+<div className="card shadow border-0 text-white" style={{background:"#C0392B"}}>
 <div className="card-body text-center">
-<p style={{color:"#6B7280"}}>Low Stock</p>
-<h2 style={{color:"#DC2626",fontWeight:"700"}}>{lowStockProducts.length}</h2>
+<h6>Low Stock</h6>
+<h3>{lowStockProducts.length}</h3>
 </div>
 </div>
 </div>
@@ -193,15 +199,15 @@ return(
 
 {showLowStock &&(
 
-<div className="card shadow-lg mb-4 border-0" style={{borderRadius:"16px"}}>
+<div className="card shadow mb-4">
 
-<div style={{background:"#DC2626",color:"white",padding:"12px",borderRadius:"16px 16px 0 0"}}>
+<div className="card-header bg-danger text-white">
 Low Stock Drinks
 </div>
 
-<table className="table text-center mb-0">
+<table className="table table-bordered text-center mb-0">
 
-<thead style={{background:"#1A2238",color:"white"}}>
+<thead className="table-dark">
 <tr>
 <th>#</th>
 <th>Drink</th>
@@ -215,7 +221,7 @@ Low Stock Drinks
 <tr key={p.id}>
 <td>{i+1}</td>
 <td>{p.name}</td>
-<td style={{color:"#DC2626",fontWeight:"600"}}>{p.closing_stock}</td>
+<td className="text-danger fw-bold">{p.closing_stock}</td>
 </tr>
 ))}
 
@@ -229,31 +235,28 @@ Low Stock Drinks
 
 {/* HEADER */}
 
-<div className="card shadow-lg mb-4 border-0" style={{borderRadius:"16px"}}>
+<div className="card shadow mb-4">
 
 <div className="card-body d-flex justify-content-between align-items-center">
 
-<h4 style={{fontWeight:"700",color:"#1A2238"}}>Bar Management</h4>
+<h4 className="fw-bold">Bar</h4>
 
 <div className="d-flex align-items-center gap-2">
 
-<button className="btn btn-dark btn-sm" onClick={()=>changeDate(-1)}>◀</button>
+<button className="btn btn-outline-dark btn-sm" onClick={()=>changeDate(-1)}>◀</button>
 
 <strong>{selectedDate}</strong>
 
-<button className="btn btn-dark btn-sm" disabled={selectedDate===today} onClick={()=>changeDate(1)}>▶</button>
+<button className="btn btn-outline-dark btn-sm" disabled={selectedDate===today} onClick={()=>changeDate(1)}>▶</button>
 
 <button
+className="btn ms-3 d-flex align-items-center gap-2 px-4 py-2 shadow"
 onClick={handleAdd}
 style={{
-marginLeft:"10px",
-background:"#2563EB",
+background:"#0B3D2E",
 color:"white",
-border:"none",
-padding:"8px 20px",
-borderRadius:"25px",
-fontWeight:"600",
-boxShadow:"0 6px 15px rgba(0,0,0,0.2)"
+borderRadius:"50px",
+fontWeight:"600"
 }}
 >
 ➕ Add Drink
@@ -267,13 +270,13 @@ boxShadow:"0 6px 15px rgba(0,0,0,0.2)"
 
 {/* TABLE */}
 
-<div className="card shadow-lg border-0" style={{borderRadius:"16px"}}>
+<div className="card shadow">
 
 <div className="table-responsive">
 
-<table className="table table-hover text-center align-middle">
+<table className="table table-bordered table-hover text-center">
 
-<thead style={{background:"#1A2238",color:"white"}}>
+<thead className="table-dark">
 
 <tr>
 <th>#</th>
@@ -296,7 +299,9 @@ boxShadow:"0 6px 15px rgba(0,0,0,0.2)"
 <tr><td colSpan="10">Loading...</td></tr>
 ):products.length===0?(
 <tr><td colSpan="10">No drinks</td></tr>
-):(products.map((p,i)=>{
+):(
+
+products.map((p,i)=>{
 
 const opening=Number(p.opening_stock||0);
 const entree=Number(p.entree||0);
@@ -312,11 +317,11 @@ const isLow=closing<5;
 
 return(
 
-<tr key={p.id} style={{background:isLow?"#FEE2E2":"white"}}>
+<tr key={p.id} style={{background:isLow?"#ffcccc":"white"}}>
 
 <td>{i+1}</td>
 
-<td style={{fontWeight:"600"}}>{p.name}</td>
+<td>{p.name}</td>
 
 <td>{formatNumber(cost)}</td>
 
@@ -325,34 +330,40 @@ return(
 <td>{opening}</td>
 
 <td>
+
 <input
 type="number"
-className="form-control form-control-sm text-center"
+className="form-control form-control-sm"
 value={entree}
 onChange={(e)=>handleEntreeChange(p.id,e.target.value)}
 />
+
 </td>
 
-<td style={{fontWeight:"600"}}>{total}</td>
+<td>{total}</td>
 
 <td>
+
 <input
 type="number"
-className="form-control form-control-sm text-center"
+className="form-control form-control-sm"
 value={sold}
 onChange={(e)=>handleSoldChange(p.id,e.target.value)}
 />
+
 </td>
 
 <td className={isLow?"text-danger fw-bold":""}>{closing}</td>
 
-<td style={{color:"#16A34A",fontWeight:"700"}}>{formatNumber(sales)}</td>
+<td className="text-success fw-bold">{formatNumber(sales)}</td>
 
 </tr>
 
 )
 
-}))}
+})
+
+)}
 
 </tbody>
 
