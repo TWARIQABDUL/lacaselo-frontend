@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // ===== Layout & Navigation =====
@@ -14,27 +14,114 @@ import GuestHouse from "./component/pages/GuestHouse";
 import GYM from "./component/pages/GYM";
 import Billiard from "./component/pages/Billiard";
 import Expenses from "./component/pages/Expenses";
-import Credits from "./component/pages/Credits"; // Employees/Credits page
-import EmployeeLoans from "./component/pages/EmployeeLoans"; // ✅ Employee Loans page
+import Credits from "./component/pages/Credits";
+import EmployeeLoans from "./component/pages/EmployeeLoans";
+
+// ===== Security =====
+import ProtectedRoute from "./component/auth/ProtectedRoute";
+import { checkToken } from "./utils/checkToken";
 
 function App() {
+
+  // 🔐 Check if token expired
+  useEffect(() => {
+    checkToken();
+  }, []);
+
   return (
     <Router>
+
       {/* ===== Navbar ===== */}
       <Navbar />
 
-      {/* ===== Main Routes ===== */}
+      {/* ===== Routes ===== */}
       <Routes>
+
+        {/* ===== Public Page ===== */}
         <Route path="/" element={<Home />} />
-        <Route path="/Bar" element={<Bar />} />
-        <Route path="/Kitchen" element={<Kitchen />} />
-        <Route path="/GuestHouse" element={<GuestHouse />} />
-        <Route path="/GYM" element={<GYM />} />
-        <Route path="/Billiard" element={<Billiard />} />
-        <Route path="/Expenses" element={<Expenses />} />
-        <Route path="/credits" element={<Credits />} /> {/* Employees/Credits */}
-        <Route path="/employees/:id/loans" element={<EmployeeLoans />} /> {/* Employee Loans */}
+
+        {/* ===== BAR PAGE ===== */}
+        <Route
+          path="/Bar"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN", "BAR_MAN"]}>
+              <Bar />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ===== KITCHEN PAGE ===== */}
+        <Route
+          path="/Kitchen"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN", "CHIEF_KITCHEN"]}>
+              <Kitchen />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ===== GUESTHOUSE ===== */}
+        <Route
+          path="/GuestHouse"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN", "LAND_LORD"]}>
+              <GuestHouse />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ===== GYM ===== */}
+        <Route
+          path="/GYM"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN", "GYM"]}>
+              <GYM />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ===== BILLIARD ===== */}
+        <Route
+          path="/Billiard"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN"]}>
+              <Billiard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ===== EXPENSES ===== */}
+        <Route
+          path="/Expenses"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN"]}>
+              <Expenses />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ===== EMPLOYEES / CREDITS ===== */}
+        <Route
+          path="/credits"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN", "MANAGER"]}>
+              <Credits />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ===== EMPLOYEE LOANS ===== */}
+        <Route
+          path="/employees/:id/loans"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN", "MANAGER"]}>
+              <EmployeeLoans />
+            </ProtectedRoute>
+          }
+        />
+
       </Routes>
+
     </Router>
   );
 }
