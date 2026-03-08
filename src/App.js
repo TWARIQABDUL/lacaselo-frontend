@@ -19,8 +19,8 @@ import Credits from "./component/pages/Credits";
 import EmployeeLoans from "./component/pages/EmployeeLoans";
 
 // ===== Security =====
-import ProtectedRoute from "./component/auth/ProtectedRoutes";
-import { checkToken } from "./component/utils/CheckTokens";
+import ProtectedRoute from "./component/auth/ProtectedRoutes.js";
+import { checkToken } from "./component/utils/CheckTokens.js";
 
 function App() {
 
@@ -43,7 +43,7 @@ function App() {
         {/* ===== PROTECTED SYSTEM PAGES ===== */}
 
         <Route
-          path="/Bar"
+          path="/bar"
           element={
             <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN", "BAR_MAN"]}>
               <Layout>
@@ -54,7 +54,7 @@ function App() {
         />
 
         <Route
-          path="/Kitchen"
+          path="/kitchen"
           element={
             <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN", "CHIEF_KITCHEN"]}>
               <Layout>
@@ -65,7 +65,7 @@ function App() {
         />
 
         <Route
-          path="/GuestHouse"
+          path="/guesthouse"
           element={
             <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN", "LAND_LORD"]}>
               <Layout>
@@ -76,7 +76,7 @@ function App() {
         />
 
         <Route
-          path="/GYM"
+          path="/gym"
           element={
             <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN", "GYM"]}>
               <Layout>
@@ -87,7 +87,7 @@ function App() {
         />
 
         <Route
-          path="/Billiard"
+          path="/billiard"
           element={
             <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN"]}>
               <Layout>
@@ -98,7 +98,7 @@ function App() {
         />
 
         <Route
-          path="/Expenses"
+          path="/expenses"
           element={
             <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN"]}>
               <Layout>
