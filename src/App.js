@@ -20,7 +20,7 @@ import EmployeeLoans from "./component/pages/EmployeeLoans";
 
 // ===== Security =====
 import ProtectedRoute from "./component/auth/ProtectedRoute";
-import { checkToken } from "./utils/CheckToken";
+import { checkToken } from "./component/utils/CheckTokens";
 
 function App() {
 
