@@ -8,17 +8,20 @@ import reportWebVitals from "./reportWebVitals";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
-// ✅ IMPORT GLOBAL PROVIDER
+// ✅ IMPORT PROVIDERS
 import { BusinessProvider } from "./context/BusinessContext";
+import { AuthProvider } from "./context/Authcontext.js";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(
   <React.StrictMode>
-    {/* ✅ WRAP APP HERE */}
-    <BusinessProvider>
-      <App />
-    </BusinessProvider>
+    {/* ✅ WRAP WITH PROVIDERS */}
+    <AuthProvider>
+      <BusinessProvider>
+        <App />
+      </BusinessProvider>
+    </AuthProvider>
   </React.StrictMode>
 );
 
