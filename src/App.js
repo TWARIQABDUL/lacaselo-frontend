@@ -1,10 +1,11 @@
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-// ===== Layout & Navigation =====
+// ===== Navigation =====
 import Navbar from "./component/include/Navbar";
+
+// ===== Layout =====
 import Layout from "./component/layout/Layout";
-import Sidebar from "./component/layout/Sidebar";
 
 // ===== Pages =====
 import Home from "./component/pages/Home";
@@ -23,7 +24,7 @@ import { checkToken } from "./utils/checkToken";
 
 function App() {
 
-  // 🔐 Check if token expired
+  // 🔐 Auto logout if token expired
   useEffect(() => {
     checkToken();
   }, []);
@@ -34,88 +35,97 @@ function App() {
       {/* ===== Navbar ===== */}
       <Navbar />
 
-      {/* ===== Routes ===== */}
       <Routes>
 
-        {/* ===== Public Page ===== */}
+        {/* ===== PUBLIC PAGE ===== */}
         <Route path="/" element={<Home />} />
 
-        {/* ===== BAR PAGE ===== */}
+        {/* ===== PROTECTED SYSTEM PAGES ===== */}
+
         <Route
           path="/Bar"
           element={
             <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN", "BAR_MAN"]}>
-              <Bar />
+              <Layout>
+                <Bar />
+              </Layout>
             </ProtectedRoute>
           }
         />
 
-        {/* ===== KITCHEN PAGE ===== */}
         <Route
           path="/Kitchen"
           element={
             <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN", "CHIEF_KITCHEN"]}>
-              <Kitchen />
+              <Layout>
+                <Kitchen />
+              </Layout>
             </ProtectedRoute>
           }
         />
 
-        {/* ===== GUESTHOUSE ===== */}
         <Route
           path="/GuestHouse"
           element={
             <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN", "LAND_LORD"]}>
-              <GuestHouse />
+              <Layout>
+                <GuestHouse />
+              </Layout>
             </ProtectedRoute>
           }
         />
 
-        {/* ===== GYM ===== */}
         <Route
           path="/GYM"
           element={
             <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN", "GYM"]}>
-              <GYM />
+              <Layout>
+                <GYM />
+              </Layout>
             </ProtectedRoute>
           }
         />
 
-        {/* ===== BILLIARD ===== */}
         <Route
           path="/Billiard"
           element={
             <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN"]}>
-              <Billiard />
+              <Layout>
+                <Billiard />
+              </Layout>
             </ProtectedRoute>
           }
         />
 
-        {/* ===== EXPENSES ===== */}
         <Route
           path="/Expenses"
           element={
             <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN"]}>
-              <Expenses />
+              <Layout>
+                <Expenses />
+              </Layout>
             </ProtectedRoute>
           }
         />
 
-        {/* ===== EMPLOYEES / CREDITS ===== */}
         <Route
           path="/credits"
           element={
             <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN", "MANAGER"]}>
-              <Credits />
+              <Layout>
+                <Credits />
+              </Layout>
             </ProtectedRoute>
           }
         />
 
-        {/* ===== EMPLOYEE LOANS ===== */}
         <Route
           path="/employees/:id/loans"
           element={
             <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN", "MANAGER"]}>
-              <EmployeeLoans />
+              <Layout>
+                <EmployeeLoans />
+              </Layout>
             </ProtectedRoute>
           }
         />
