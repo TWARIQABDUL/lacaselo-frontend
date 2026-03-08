@@ -13,8 +13,7 @@ fetchLogs();
 
 const fetchLogs = async()=>{
 
-const res = await axios.get(
-"http://localhost:5000/api/logs",
+const res = await axios.get("http://localhost:5000/api/logs",
 {
 headers:{
 Authorization:`Bearer ${localStorage.getItem("token")}`
