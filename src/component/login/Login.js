@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from '../context/Authcontext';
+import { AuthContext } from '../context/AuthContext';
 
 function Login({ show, handleClose }) {
   if (!show) return null;
