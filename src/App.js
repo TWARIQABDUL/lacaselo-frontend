@@ -19,7 +19,7 @@ import Credits from "./component/pages/Credits";
 import EmployeeLoans from "./component/pages/EmployeeLoans";
 
 // ===== Security =====
-import ProtectedRoute from "./component/auth/Protectedroutes";
+import ProtectedRoute from "./component/auth/ProtectedRoutes";
 import { checkToken } from "./component/utils/CheckTokens";
 
 function App() {
