@@ -1,7 +1,43 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useAuth } from "../../context/Authcontext";
 
 function Login({ show, handleClose }) {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await axios.post(
+        "https://backend-vitq.onrender.com/api/login",
+        { username, password }
+      );
+
+      if (res.data.token) {
+        login({
+          token: res.data.token,
+          user: res.data.user,
+        });
+        handleClose();
+        navigate("/bar");
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!show) return null;
 
   return (
@@ -49,10 +85,19 @@ function Login({ show, handleClose }) {
           Login to access <span style={{ color: "#DAA520", fontWeight: "600" }}>La Cielo Management</span>
         </p>
 
+        {error && (
+          <div className="alert alert-danger small mb-3" style={{ borderRadius: "8px" }}>
+            {error}
+          </div>
+        )}
+
         <input
-          type="email"
+          type="text"
           className="form-control rounded-pill mb-3 py-2 px-3"
           placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          disabled={loading}
           style={{
             border: "1px solid #145C43",
             boxShadow: "inset 0 2px 6px rgba(0,0,0,0.1)",
@@ -64,6 +109,9 @@ function Login({ show, handleClose }) {
           type="password"
           className="form-control rounded-pill mb-3 py-2 px-3"
           placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          disabled={loading}
           style={{
             border: "1px solid #145C43",
             boxShadow: "inset 0 2px 6px rgba(0,0,0,0.1)",
@@ -72,6 +120,8 @@ function Login({ show, handleClose }) {
         />
 
         <button
+          onClick={handleLogin}
+          disabled={loading}
           className="btn w-100 rounded-pill mb-3"
           style={{
             background: "linear-gradient(90deg, #145C43, #1ABC9C)",
@@ -80,9 +130,11 @@ function Login({ show, handleClose }) {
             padding: "10px 0",
             boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
             transition: "0.3s",
+            opacity: loading ? 0.6 : 1,
+            cursor: loading ? "not-allowed" : "pointer",
           }}
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
 
         <div className="text-center small text-muted">
