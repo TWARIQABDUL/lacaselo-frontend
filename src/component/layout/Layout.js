@@ -14,11 +14,13 @@ function Layout({ children }) {
 
         <ul style={styles.menu}>
           <li><Link style={styles.link} to="/">Dashboard</Link></li>
-          <li><Link style={styles.link} to="/Bar">Sales</Link></li>
-          <li><Link style={styles.link} to="/Stock">Stock</Link></li>
-          <li><Link style={styles.link} to="/Expenses">Expenses</Link></li>
-          <li><Link style={styles.link} to="/Reports">Reports</Link></li>
-          <li><Link style={styles.link} to="/Settings">Settings</Link></li>
+          <li><Link style={styles.link} to="/bar">Sales</Link></li>
+          <li><Link style={styles.link} to="/kitchen">Kitchen</Link></li>
+          <li><Link style={styles.link} to="/guesthouse">Guest House</Link></li>
+          <li><Link style={styles.link} to="/gym">GYM</Link></li>
+          <li><Link style={styles.link} to="/billiard">Billiard</Link></li>
+          <li><Link style={styles.link} to="/expenses">Expenses</Link></li>
+          <li><Link style={styles.link} to="/credits">Credits</Link></li>
         </ul>
       </div>
 

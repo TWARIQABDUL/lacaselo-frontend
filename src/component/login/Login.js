@@ -32,7 +32,9 @@ function Login({ show, handleClose }) {
         navigate("/bar");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      const errorMsg = err.response?.data?.message || err.message || "Login failed";
+      console.error("Login error:", err);
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
