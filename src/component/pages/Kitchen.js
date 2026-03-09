@@ -152,6 +152,38 @@ fetchFoods(selectedDate);
 
 };
 
+const handleEdit = async (f) => {
+  const name = prompt("Edit Food Name:", f.name) || f.name;
+  const initial_price = prompt("Edit Cost Price:", f.initial_price) || f.initial_price;
+  const price = prompt("Edit Selling Price:", f.price) || f.price;
+  const opening_stock = prompt("Edit Opening Stock:", f.opening_stock) || f.opening_stock;
+
+  try {
+    await axios.put(`${API_URL}/edit/${f.id}`, {
+      name,
+      initial_price: Number(initial_price),
+      price: Number(price),
+      opening_stock: Number(opening_stock),
+      date: selectedDate
+    });
+    fetchFoods(selectedDate);
+  } catch(err) {
+    console.error(err);
+    alert("Error editing food");
+  }
+};
+
+const handleDelete = async (id) => {
+  if (!window.confirm("Are you sure you want to delete this food entirely?")) return;
+  try {
+    await axios.delete(`${API_URL}/${id}`);
+    fetchFoods(selectedDate);
+  } catch (err) {
+    console.error(err);
+    alert("Error deleting food");
+  }
+};
+
 const formatNumber=(v)=>Number(v||0).toLocaleString();
 
 return(
@@ -330,6 +362,7 @@ fontWeight:"600"
 <th>Sold</th>
 <th>Closing</th>
 <th>Sales</th>
+<th>Action</th>
 </tr>
 
 </thead>
@@ -393,6 +426,11 @@ style={{borderRadius:"10px"}}
 <td className={isLow?"text-danger fw-bold":""}>{closing}</td>
 
 <td className="text-success fw-bold">{formatNumber(sales)}</td>
+
+<td>
+<button className="btn btn-sm btn-outline-primary me-2 mb-1" onClick={() => handleEdit(f)}>Edit</button>
+<button className="btn btn-sm btn-outline-danger mb-1" onClick={() => handleDelete(f.id)}>Delete</button>
+</td>
 
 </tr>
 

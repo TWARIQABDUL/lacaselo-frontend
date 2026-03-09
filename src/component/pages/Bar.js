@@ -231,6 +231,50 @@ const handleSoldChange = async (id, value) => {
 };
 
 /* =============================
+   EDIT PRODUCT
+============================= */
+
+const handleEdit = async (p) => {
+  const name = prompt("Edit Drink Name:", p.name) || p.name;
+  const initial_price = prompt("Edit Cost Price:", p.initial_price) || p.initial_price;
+  const price = prompt("Edit Selling Price:", p.price) || p.price;
+  const opening_stock = prompt("Edit Opening Stock:", p.opening_stock) || p.opening_stock;
+
+  try {
+    await axios.put(
+      `${API_URL}/edit/${p.id}`,
+      {
+        name,
+        initial_price: Number(initial_price),
+        price: Number(price),
+        opening_stock: Number(opening_stock),
+        date: selectedDate,
+      },
+      authHeader
+    );
+    fetchProducts(selectedDate);
+  } catch (err) {
+    console.error(err);
+    alert("Error editing product");
+  }
+};
+
+/* =============================
+   DELETE PRODUCT
+============================= */
+
+const handleDelete = async (id) => {
+  if (!window.confirm("Are you sure you want to delete this drink entirely?")) return;
+  try {
+    await axios.delete(`${API_URL}/${id}`, authHeader);
+    fetchProducts(selectedDate);
+  } catch (err) {
+    console.error(err);
+    alert("Error deleting product");
+  }
+};
+
+/* =============================
    FORMAT NUMBERS
 ============================= */
 
@@ -439,6 +483,7 @@ fontWeight: "600"
 <th>Sold</th>
 <th>Closing</th>
 <th>Sales</th>
+<th>Action</th>
 </tr>
 
 </thead>
@@ -532,6 +577,11 @@ handleSoldChange(p.id, e.target.value)
 
 <td style={{ color: "#16A34A", fontWeight: "700" }}>
 {formatNumber(sales)}
+</td>
+
+<td>
+<button className="btn btn-sm btn-outline-primary me-2 mb-1" onClick={() => handleEdit(p)}>Edit</button>
+<button className="btn btn-sm btn-outline-danger mb-1" onClick={() => handleDelete(p.id)}>Delete</button>
 </td>
 
 </tr>

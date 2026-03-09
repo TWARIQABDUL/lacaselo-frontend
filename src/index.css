@@ -11,3 +11,66 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* =============================
+   MOBILE-RESPONSIVE STYLES
+============================= */
+
+@media (max-width: 768px) {
+  /* Make all container paddings smaller on mobile */
+  .container, .container-fluid, [style*="padding: 25px"] {
+    padding: 10px !important;
+  }
+
+  /* Grid Stack for summary cards */
+  .col-md-3, .col-12.col-md-4 {
+    width: 100% !important;
+    margin-bottom: 15px;
+  }
+
+  /* Adjust typography for smaller screens */
+  h1 { font-size: 1.8rem !important; }
+  h2 { font-size: 1.5rem !important; }
+  h3 { font-size: 1.3rem !important; }
+  h4 { font-size: 1.2rem !important; }
+  h5 { font-size: 1.1rem !important; }
+
+  /* Make tables horizontally scrollable without breaking the layout */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    margin-bottom: 15px;
+  }
+
+  table {
+    white-space: nowrap;
+    font-size: 0.85rem;
+  }
+  
+  th, td {
+    padding: 8px 4px !important;
+  }
+
+  input.form-control-sm {
+    width: 60px !important;
+    font-size: 0.85rem;
+  }
+
+  /* Adjust action headers (date picker, add button, etc.) */
+  .d-flex.justify-content-between.align-items-center {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px;
+  }
+  
+  .d-flex.align-items-center.gap-2 {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .btn {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+  }
+}
