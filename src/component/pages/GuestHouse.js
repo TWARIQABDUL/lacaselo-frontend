@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import API_BASE_URL from "../../config";
 
 function Guesthouse() {
   const today = new Date().toISOString().split("T")[0];
@@ -12,7 +13,14 @@ function Guesthouse() {
   const [totalRoomsSold, setTotalRoomsSold] = useState(0);
   const [totalSales, setTotalSales] = useState(0);
 
-  const API_URL = "https://backend-vitq.onrender.com/api/guesthouse";
+  const [stats, setStats] = useState({
+    day: 0,
+    week: 0,
+    month: 0,
+    year: 0,
+  });
+
+  const API_URL = `${API_BASE_URL}/guesthouse`;
 
   // ================= FETCH ROOMS =================
   const fetchRooms = async (date) => {
@@ -35,7 +43,18 @@ function Guesthouse() {
 
   useEffect(() => {
     fetchRooms(selectedDate);
+    fetchStats();
   }, [selectedDate]);
+
+  // ===== FETCH STATS =====
+  const fetchStats = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/stats/timePeriods`);
+      setStats(res.data);
+    } catch (err) {
+      console.error("Failed to fetch stats:", err);
+    }
+  };
 
   // ================= RECALCULATE TOTALS =================
   const recalcTotals = (roomList) => {
@@ -167,7 +186,26 @@ function Guesthouse() {
           </div>
         </div>
       </div>
-
+      {/* ===== TIME PERIOD STATS ===== */}
+      <div className="row g-4 mb-4">
+        {[
+          { label: "Today", value: stats.day },
+          { label: "This Week", value: stats.week },
+          { label: "This Month", value: stats.month },
+          { label: "This Year", value: stats.year }
+        ].map((stat, i) => (
+          <div key={i} className="col-md-3">
+            <div className="card border-0 shadow-sm" style={{ borderRadius: "12px", background: "#FFFFFF" }}>
+              <div className="card-body text-center">
+                <p style={{ color: "#9CA3AF", fontSize: "12px", fontWeight: "600", textTransform: "uppercase" }}>{stat.label}</p>
+                <h3 style={{ color: "#1F2937", fontWeight: "700" }}>
+                  RWF {formatNumber(stat.value)}
+                </h3>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
       {/* ===== TABLE ===== */}
       <div className="card shadow">
         <div className="table-responsive">

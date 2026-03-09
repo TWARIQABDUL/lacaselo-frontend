@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
+import API_BASE_URL from "../../config";
 
 function Employees() {
   const navigate = useNavigate();
@@ -10,7 +11,7 @@ function Employees() {
 
   const [totalPayment, setTotalPayment] = useState(0);
 
-  const API_URL = "https://backend-vitq.onrender.com/api/credits";
+  const API_URL = `${API_BASE_URL}/credits`;
 
   const fetchEmployees = async () => {
     try {
@@ -52,7 +53,7 @@ function Employees() {
   };
 
   const handleViewEmployee = (employeeId) => {
-    navigate(`/employees/${employeeId}`);
+    navigate(`/employees/${employeeId}/loans`);
   };
 
   const formatNumber = (value) => Number(value || 0).toLocaleString();

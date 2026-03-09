@@ -46,7 +46,7 @@ function Login({ show, handleClose }) {
     <div
       className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
       style={{
-        background: "linear-gradient(135deg, rgba(10,25,47,0.85), rgba(36,59,85,0.85))",
+        background: "rgba(0, 0, 0, 0.3)",
         backdropFilter: "blur(8px)",
         zIndex: 1050,
       }}

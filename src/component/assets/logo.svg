@@ -1,0 +1,90 @@
+<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Premium Gradients -->
+    <linearGradient id="premiumGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1ABC9C;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#16A085;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0E6251;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#DAA520;stop-opacity:1" />
+    </linearGradient>
+    
+    <filter id="premiumShadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.25"/>
+    </filter>
+    
+    <filter id="innerShadow">
+      <feInset in="SourceGraphic" stdDeviation="2" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Outer Ring (Premium) -->
+  <circle cx="120" cy="120" r="115" fill="none" stroke="#1ABC9C" stroke-width="1" opacity="0.6"/>
+  <circle cx="120" cy="120" r="110" fill="none" stroke="#0E6251" stroke-width="0.5" opacity="0.4"/>
+  
+  <!-- Main Background Circle -->
+  <circle cx="120" cy="120" r="105" fill="url(#premiumGradient1)" filter="url(#premiumShadow)"/>
+  
+  <!-- Inner Premium Border -->
+  <circle cx="120" cy="120" r="105" fill="none" stroke="#FFD700" stroke-width="1" opacity="0.4"/>
+  
+  <!-- Central Ornamental Circle -->
+  <circle cx="120" cy="120" r="85" fill="none" stroke="#1ABC9C" stroke-width="0.5" opacity="0.5"/>
+  
+  <!-- Premium Leaf Design - Left -->
+  <g>
+    <path d="M 120 70 Q 95 75 90 95" fill="none" stroke="url(#goldGradient)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 88 93 Q 85 92 84 99 Q 85 105 90 104 Q 93 103 95 98" fill="#DAA520" opacity="0.9"/>
+  </g>
+  
+  <!-- Premium Leaf Design - Right -->
+  <g>
+    <path d="M 120 70 Q 145 75 150 95" fill="none" stroke="url(#goldGradient)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 152 93 Q 155 92 156 99 Q 155 105 150 104 Q 147 103 145 98" fill="#DAA520" opacity="0.9"/>
+  </g>
+  
+  <!-- Bottom Left Leaf -->
+  <g>
+    <path d="M 100 140 Q 80 145 75 165" fill="none" stroke="url(#goldGradient)" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M 74 163 Q 72 162 71 169 Q 72 175 78 174 Q 82 173 83 168" fill="#DAA520" opacity="0.9"/>
+  </g>
+  
+  <!-- Bottom Right Leaf -->
+  <g>
+    <path d="M 140 140 Q 160 145 165 165" fill="none" stroke="url(#goldGradient)" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M 166 163 Q 168 162 169 169 Q 168 175 162 174 Q 158 173 157 168" fill="#DAA520" opacity="0.9"/>
+  </g>
+  
+  <!-- Central Premium Icon - Stylized Plant/Growth -->
+  <g>
+    <!-- Main stem -->
+    <line x1="120" y1="85" x2="120" y2="155" stroke="#FFD700" stroke-width="1.5" opacity="0.6"/>
+    
+    <!-- Central leaf (larger) -->
+    <ellipse cx="120" cy="115" rx="8" ry="16" fill="#1ABC9C" opacity="0.8" transform="rotate(0 120 115)"/>
+    <path d="M 120 99 Q 115 107 120 123" fill="none" stroke="#FFD700" stroke-width="0.8"/>
+    
+    <!-- Side leaves -->
+    <ellipse cx="105" cy="105" rx="6" ry="13" fill="#16A085" opacity="0.7" transform="rotate(-40 105 105)"/>
+    <ellipse cx="135" cy="105" rx="6" ry="13" fill="#16A085" opacity="0.7" transform="rotate(40 135 105)"/>
+    
+    <ellipse cx="105" cy="125" rx="6" ry="13" fill="#16A085" opacity="0.7" transform="rotate(40 105 125)"/>
+    <ellipse cx="135" cy="125" rx="6" ry="13" fill="#16A085" opacity="0.7" transform="rotate(-40 135 125)"/>
+    
+    <!-- Vein details on center leaf -->
+    <path d="M 120 99 Q 122 110 120 123" fill="none" stroke="#FFD700" stroke-width="0.6" opacity="0.5"/>
+  </g>
+  
+  <!-- Decorative Corner Elements -->
+  <circle cx="65" cy="65" r="3" fill="#FFD700" opacity="0.6"/>
+  <circle cx="175" cy="65" r="3" fill="#FFD700" opacity="0.6"/>
+  <circle cx="65" cy="175" r="3" fill="#FFD700" opacity="0.6"/>
+  <circle cx="175" cy="175" r="3" fill="#FFD700" opacity="0.6"/>
+  
+  <!-- Premium Text -->
+  <text x="120" y="195" font-family="'Georgia', 'Palatino', serif" font-size="18" font-weight="300" text-anchor="middle" fill="#FFD700" letter-spacing="3">LA CIELO</text>
+  <text x="120" y="212" font-family="'Georgia', 'Palatino', serif" font-size="9" text-anchor="middle" fill="#1ABC9C" letter-spacing="2" font-style="italic" opacity="0.9">GARDEN PREMIUM</text>
+</svg>

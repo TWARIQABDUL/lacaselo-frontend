@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Login from "../login/Login";
-import logo from "../assets/logo.png";
+import { useAuth } from "../../context/Authcontext";
+import logo from "../assets/logo.svg";
 
 function Navbar() {
 
   const [showLogin, setShowLogin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   const navLinks = [
     { name: "Home", path: "/" },
@@ -59,14 +61,45 @@ function Navbar() {
               </li>
             ))}
 
-            {/* LOGIN BUTTON */}
+            {/* LOGIN/LOGOUT BUTTON */}
             <li>
-              <button
-                className="world-login-btn"
-                onClick={() => setShowLogin(true)}
-              >
-                Login
-              </button>
+              {user ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+                  <div style={{
+                    width: "50px",
+                    height: "50px",
+                    borderRadius: "50%",
+                    background: "linear-gradient(135deg, #145C43, #1ABC9C)",
+                    color: "#fff",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    textAlign: "center",
+                    padding: "5px",
+                    boxSizing: "border-box",
+                  }}>
+                    <div style={{ marginBottom: "2px", fontSize: "11px" }}>{user.username.substring(0, 8)}</div>
+                    <div style={{ fontSize: "10px", opacity: "0.9" }}>{user.role.substring(0, 5)}</div>
+                  </div>
+                  <button
+                    className="world-login-btn"
+                    onClick={logout}
+                    style={{ background: "linear-gradient(135deg, #EF4444, #DC2626)", padding: "8px 16px" }}
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className="world-login-btn"
+                  onClick={() => setShowLogin(true)}
+                >
+                  Login
+                </button>
+              )}
             </li>
 
           </ul>
@@ -116,15 +149,17 @@ text-decoration:none;
 }
 
 .world-logo img{
-height:60px;
-margin-right:10px;
+height:70px;
+width:auto;
+margin-right:15px;
 
-filter:drop-shadow(0 0 6px #22D3EE);
-transition:.4s;
+filter:drop-shadow(0 2px 8px rgba(26, 188, 156, 0.3));
+transition:.3s ease;
 }
 
 .world-logo:hover img{
-transform:scale(1.08);
+transform:scale(1.1) rotate(2deg);
+filter:drop-shadow(0 4px 12px rgba(26, 188, 156, 0.6));
 }
 
 .world-logo span{

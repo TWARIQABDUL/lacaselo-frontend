@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import API_BASE_URL from "../../config";
 
 function EmployeeLoans() {
   const { id } = useParams();
@@ -12,7 +13,7 @@ function EmployeeLoans() {
   const [totalLoan, setTotalLoan] = useState(0);
   const [totalRemaining, setTotalRemaining] = useState(0);
 
-  const API_URL = "https://backend-vitq.onrender.com/api/credits"; // your backend URL
+  const API_URL = `${API_BASE_URL}/credits`;
 
   // ===== Fetch employee loans =====
   const fetchLoans = async () => {

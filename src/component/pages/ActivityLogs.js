@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import API_BASE_URL from "../../config";
 
 function ActivityLogs() {
 
@@ -13,7 +14,7 @@ fetchLogs();
 
 const fetchLogs = async()=>{
 
-const res = await axios.get("http://localhost:5000/api/logs",
+const res = await axios.get(`${API_BASE_URL}/logs`,
 {
 headers:{
 Authorization:`Bearer ${localStorage.getItem("token")}`
