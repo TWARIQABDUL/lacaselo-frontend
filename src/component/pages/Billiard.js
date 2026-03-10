@@ -20,13 +20,20 @@ function Billiard() {
     year: 0,
   });
 
+  // Get user role from localStorage
+  const userStr = localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const isAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
+  const token = localStorage.getItem("token");
+  const authHeader = { headers: { Authorization: `Bearer ${token}` } };
+
   const API_URL = `${API_BASE_URL}/billiard`;
 
   // ===== FETCH DATA =====
   const fetchBilliards = async (date) => {
     try {
       setLoading(true);
-      const res = await axios.get(API_URL, { params: { date } });
+      const res = await axios.get(API_URL, { params: { date }, ...authHeader });
       const data = res.data || [];
       setBilliards(data);
       recalcTotals(data);
@@ -50,7 +57,7 @@ function Billiard() {
   // ===== FETCH STATS =====
   const fetchStats = async () => {
     try {
-      const res = await axios.get(`${API_URL}/stats/timePeriods`);
+      const res = await axios.get(`${API_URL}/stats/timePeriods`, authHeader);
       setStats(res.data);
     } catch (err) {
       console.error("Failed to fetch stats:", err);
@@ -79,12 +86,12 @@ function Billiard() {
 
   // ===== ADD NEW RECORD =====
   const handleAdd = async () => {
-    const token = Number(prompt("Number of tokens:")) || 0;
+    const tokenVal = Number(prompt("Number of tokens:")) || 0;
     const cash = Number(prompt("Cash amount:")) || 0;
     const cash_momo = Number(prompt("Momo amount:")) || 0;
 
     try {
-      const res = await axios.post(API_URL, { date: selectedDate, token, cash, cash_momo });
+      const res = await axios.post(API_URL, { date: selectedDate, token: tokenVal, cash, cash_momo }, authHeader);
       const newData = [res.data, ...billiards];
       setBilliards(newData);
       recalcTotals(newData);
@@ -92,15 +99,20 @@ function Billiard() {
       console.error("Error adding billiard record:", err);
     }
   };
+   
 
   // ===== EDIT FIELDS =====
-  const handleChange = (id, field, value) => {
+  const handleChange = (b, field, value) => {
+    if (b.is_locked && !isAdmin) {
+      alert("This record is locked and cannot be edited by staff.");
+      return;
+    }
     const numValue = Number(value);
-    const updatedData = billiards.map((b) => (b.id === id ? { ...b, [field]: numValue } : b));
+    const updatedData = billiards.map((item) => (item.id === b.id ? { ...item, [field]: numValue } : item));
     setBilliards(updatedData);
     recalcTotals(updatedData);
 
-    axios.put(`${API_URL}/${id}`, { [field]: numValue }).catch((err) => console.error(err));
+    axios.put(`${API_URL}/${b.id}`, { [field]: numValue }, authHeader).catch((err) => console.error(err));
   };
 
   const formatNumber = (value) => Number(value || 0).toLocaleString();
@@ -218,7 +230,8 @@ function Billiard() {
                         type="number"
                         className="form-control form-control-sm"
                         value={b.token}
-                        onChange={(e) => handleChange(b.id, "token", e.target.value)}
+                        disabled={b.is_locked && !isAdmin}
+                        onChange={(e) => handleChange(b, "token", e.target.value)}
                       />
                     </td>
                     <td>
@@ -226,7 +239,8 @@ function Billiard() {
                         type="number"
                         className="form-control form-control-sm"
                         value={b.cash}
-                        onChange={(e) => handleChange(b.id, "cash", e.target.value)}
+                        disabled={b.is_locked && !isAdmin}
+                        onChange={(e) => handleChange(b, "cash", e.target.value)}
                       />
                     </td>
                     <td>
@@ -234,10 +248,11 @@ function Billiard() {
                         type="number"
                         className="form-control form-control-sm"
                         value={b.cash_momo}
-                        onChange={(e) => handleChange(b.id, "cash_momo", e.target.value)}
+                        disabled={b.is_locked && !isAdmin}
+                        onChange={(e) => handleChange(b, "cash_momo", e.target.value)}
                       />
                     </td>
-                    <td>{formatNumber(b.total)}</td>
+                    <td>{formatNumber(b.total)} {b.is_locked && !isAdmin && <i className="bi bi-lock-fill text-muted ms-1" title="Locked"></i>}</td>
                   </tr>
                 ))
               )}

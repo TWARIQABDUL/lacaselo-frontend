@@ -15,10 +15,17 @@ function Employees() {
 
   const API_URL = `${API_BASE_URL}/credits`;
 
+  // Get user role from localStorage
+  const userStr = localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const isAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
+  const token = localStorage.getItem("token");
+  const authHeader = { headers: { Authorization: `Bearer ${token}` } };
+
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(API_URL);
+      const res = await axios.get(API_URL, authHeader);
       setEmployees(res.data);
       recalcTotals(res.data);
     } catch (err) {
@@ -50,7 +57,7 @@ function Employees() {
     if (!name || !name.trim()) return alert("Name is required");
 
     try {
-      const res = await axios.post(API_URL, { name, payment });
+      const res = await axios.post(API_URL, { name, payment }, authHeader);
       const newEmployees = [res.data, ...employees];
       setEmployees(newEmployees);
       recalcTotals(newEmployees);
@@ -67,7 +74,7 @@ function Employees() {
   const handleDeleteEmployee = async (id) => {
     if (!window.confirm("Are you sure you want to delete this employee?")) return;
     try {
-      await axios.delete(`${API_URL}/${id}`);
+      await axios.delete(`${API_URL}/${id}`, authHeader);
       const newEmployees = employees.filter((e) => e.id !== id);
       setEmployees(newEmployees);
       recalcTotals(newEmployees);
@@ -193,12 +200,14 @@ function Employees() {
                       RWF {formatNumber(e.payment - e.total_loan)}
                     </td>
                     <td>
-                      <button 
-                        className="btn btn-sm btn-outline-danger" 
-                        onClick={() => handleDeleteEmployee(e.id)}
-                      >
-                        Delete
-                      </button>
+                      {isAdmin && (
+                        <button 
+                          className="btn btn-sm btn-outline-danger" 
+                          onClick={() => handleDeleteEmployee(e.id)}
+                        >
+                          Delete
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))

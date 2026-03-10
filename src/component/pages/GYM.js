@@ -31,6 +31,11 @@ function Gym() {
     year: 0,
   });
 
+  // Get user role from localStorage
+  const userStr = localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const isAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
+
   const API_URL = `${API_BASE_URL}/gym`;
 
   // ===== FETCH GYM DATA =====
@@ -263,8 +268,20 @@ function Gym() {
                     <td>RWF {formatNumber(e.cash)}</td>
                     <td>RWF {formatNumber(e.cash_momo)}</td>
                     <td>
-                      <button className="btn btn-sm btn-info me-2" onClick={() => handleOpenEdit(e)}>Edit</button>
-                      <button className="btn btn-sm btn-danger" onClick={() => handleDelete(e.id)}>Delete</button>
+                      {/* Only show Edit if not locked OR if user is Admin */}
+                      {(!e.is_locked || isAdmin) && (
+                        <button className="btn btn-sm btn-info me-2" onClick={() => handleOpenEdit(e)}>Edit</button>
+                      )}
+                      
+                      {/* Show Lock icon if locked for non-admins */}
+                      {e.is_locked && !isAdmin && (
+                        <span className="badge bg-secondary me-2"><i className="bi bi-lock-fill"></i> Locked</span>
+                      )}
+
+                      {/* Only Admin can Delete */}
+                      {isAdmin && (
+                        <button className="btn btn-sm btn-danger" onClick={() => handleDelete(e.id)}>Delete</button>
+                      )}
                     </td>
                   </tr>
                 ))

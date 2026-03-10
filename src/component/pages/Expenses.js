@@ -20,13 +20,20 @@ function Expenses() {
     year: 0,
   });
 
+  // Get user role from localStorage
+  const userStr = localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const isAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
+  const token = localStorage.getItem("token");
+  const authHeader = { headers: { Authorization: `Bearer ${token}` } };
+
   const API_URL = `${API_BASE_URL}/expenses`;
 
   // ===== FETCH DATA =====
   const fetchExpenses = async (date) => {
     try {
       setLoading(true);
-      const res = await axios.get(API_URL, { params: { date } });
+      const res = await axios.get(API_URL, { params: { date }, ...authHeader });
       const data = res.data || [];
       setExpenses(data);
       recalcTotals(data);
@@ -50,7 +57,7 @@ function Expenses() {
   // ===== FETCH STATS =====
   const fetchStats = async () => {
     try {
-      const res = await axios.get(`${API_URL}/stats/timePeriods`);
+      const res = await axios.get(`${API_URL}/stats/timePeriods`, authHeader);
       setStats(res.data);
     } catch (err) {
       console.error("Failed to fetch stats:", err);
@@ -82,7 +89,7 @@ function Expenses() {
     const category = prompt("Category (bar/kitchen/unprofitable):") || "unprofitable";
 
     try {
-      const res = await axios.post(API_URL, { date: selectedDate, expense_name: name, amount, category, is_profit: 0 });
+      const res = await axios.post(API_URL, { date: selectedDate, expense_name: name, amount, category, is_profit: 0 }, authHeader);
       const newData = [res.data, ...expenses];
       setExpenses(newData);
       recalcTotals(newData);
@@ -90,14 +97,19 @@ function Expenses() {
       console.error("Error adding expense:", err);
     }
   };
+   
 
   // ===== EDIT FIELD =====
-  const handleChange = (id, field, value) => {
-    const updatedData = expenses.map((e) => (e.id === id ? { ...e, [field]: value } : e));
+  const handleChange = (item, field, value) => {
+    if (item.is_locked && !isAdmin) {
+      alert("This record is locked and cannot be edited by staff.");
+      return;
+    }
+    const updatedData = expenses.map((e) => (e.id === item.id ? { ...e, [field]: value } : e));
     setExpenses(updatedData);
     recalcTotals(updatedData);
 
-    axios.put(`${API_URL}/${id}`, { [field]: value }).catch((err) => console.error(err));
+    axios.put(`${API_URL}/${item.id}`, { [field]: value }, authHeader).catch((err) => console.error(err));
   };
 
   const formatNumber = (value) => Number(value || 0).toLocaleString();
@@ -214,7 +226,8 @@ function Expenses() {
                         type="text"
                         className="form-control form-control-sm"
                         value={e.expense_name}
-                        onChange={(ev) => handleChange(e.id, "expense_name", ev.target.value)}
+                        disabled={e.is_locked && !isAdmin}
+                        onChange={(ev) => handleChange(e, "expense_name", ev.target.value)}
                       />
                     </td>
                     <td>
@@ -222,10 +235,11 @@ function Expenses() {
                         type="number"
                         className="form-control form-control-sm"
                         value={e.amount}
-                        onChange={(ev) => handleChange(e.id, "amount", ev.target.value)}
+                        disabled={e.is_locked && !isAdmin}
+                        onChange={(ev) => handleChange(e, "amount", ev.target.value)}
                       />
                     </td>
-                    <td>{e.category}</td>
+                    <td>{e.category} {e.is_locked && !isAdmin && <i className="bi bi-lock-fill text-muted ms-1" title="Locked"></i>}</td>
                   </tr>
                 ))
               )}

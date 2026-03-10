@@ -15,13 +15,20 @@ function EmployeeLoans() {
 
   const API_URL = `${API_BASE_URL}/credits`;
 
+  // Get user role from localStorage
+  const userStr = localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const isAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
+  const token = localStorage.getItem("token");
+  const authHeader = { headers: { Authorization: `Bearer ${token}` } };
+
   // ===== Fetch employee loans =====
   const fetchLoans = async () => {
     try {
       setLoading(true);
       const [employeeRes, loansRes] = await Promise.all([
-        axios.get(`${API_URL}`), // fetch all employees
-        axios.get(`${API_URL}/${id}/loans`), // fetch this employee's loans
+        axios.get(`${API_URL}`, authHeader), // fetch all employees
+        axios.get(`${API_URL}/${id}/loans`, authHeader), // fetch this employee's loans
       ]);
 
       // Find current employee
@@ -70,7 +77,7 @@ function EmployeeLoans() {
         amount,
         reason,
         loan_date: date,
-      });
+      }, authHeader);
       const newLoans = [res.data, ...loans];
       setLoans(newLoans);
       recalcTotals(newLoans);
@@ -84,7 +91,7 @@ function EmployeeLoans() {
   const handleDeleteLoan = async (loanId) => {
     if (!window.confirm("Are you sure you want to delete this loan?")) return;
     try {
-      await axios.delete(`${API_URL}/${id}/loans/${loanId}`);
+      await axios.delete(`${API_URL}/${id}/loans/${loanId}`, authHeader);
       const newLoans = loans.filter((l) => l.id !== loanId);
       setLoans(newLoans);
       recalcTotals(newLoans);
@@ -106,7 +113,7 @@ function EmployeeLoans() {
     try {
       const res = await axios.put(`${API_URL}/${id}/loans/${loanId}/pay`, {
         paymentAmount: amount
-      });
+      }, authHeader);
       // Replace old loan with updated loan from API
       const updatedLoans = loans.map((l) => l.id === loanId ? res.data : l);
       setLoans(updatedLoans);
@@ -128,9 +135,11 @@ function EmployeeLoans() {
           <h4 className="fw-bold mb-0" style={{ fontFamily: "Poppins, sans-serif" }}>
             {employee.name || "Employee"} - Loans
           </h4>
-          <button className="btn btn-success shadow-sm" onClick={handleAddLoan}>
-            + Add Loan
-          </button>
+          {isAdmin && (
+            <button className="btn btn-success shadow-sm" onClick={handleAddLoan}>
+              + Add Loan
+            </button>
+          )}
         </div>
       </div>
 
@@ -196,19 +205,22 @@ function EmployeeLoans() {
                           e.stopPropagation();
                           handlePayLoan(l.id, l.remaining);
                         }}
-                        disabled={l.remaining <= 0}
+                        disabled={l.remaining <= 0 || (l.is_locked && !isAdmin)}
                       >
                         Pay
                       </button>
-                      <button 
-                        className="btn btn-sm btn-outline-danger" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteLoan(l.id);
-                        }}
-                      >
-                        Delete
-                      </button>
+                      {isAdmin && (
+                        <button 
+                          className="btn btn-sm btn-outline-danger" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteLoan(l.id);
+                          }}
+                        >
+                          Delete
+                        </button>
+                      )}
+                      {l.is_locked && !isAdmin && <i className="bi bi-lock-fill text-muted ms-1" title="Locked"></i>}
                     </td>
                   </tr>
                 ))

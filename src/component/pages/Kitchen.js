@@ -16,13 +16,19 @@ const [totalStockValue,setTotalStockValue]=useState(0);
 
 const [lowStockFoods,setLowStockFoods]=useState([]);
 const [showLowStock,setShowLowStock]=useState(false);
-
 const [stats, setStats] = useState({
   day: 0,
   week: 0,
   month: 0,
   year: 0,
 });
+
+// Get user role from localStorage
+const userStr = localStorage.getItem("user");
+const user = userStr ? JSON.parse(userStr) : null;
+const isAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
+const token = localStorage.getItem("token");
+const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
 const API_URL=`${API_BASE_URL}/kitchen`;
 
@@ -130,26 +136,32 @@ fetchFoods(selectedDate);
 
 };
 
-const handleEntreeChange=async(id,value)=>{
+const handleEntreeChange=async(f,value)=>{
+  if(f.is_locked && !isAdmin){
+    alert("This record is locked and cannot be edited by staff.");
+    return;
+  }
 
-await axios.put(`${API_URL}/entree/${id}`,{
-entree:Number(value),
-date:selectedDate
-});
+  await axios.put(`${API_URL}/entree/${f.id}`,{
+    entree:Number(value),
+    date:selectedDate
+  }, authHeader);
 
-fetchFoods(selectedDate);
-
+  fetchFoods(selectedDate);
 };
 
-const handleSoldChange=async(id,value)=>{
+const handleSoldChange=async(f,value)=>{
+  if(f.is_locked && !isAdmin){
+    alert("This record is locked and cannot be edited by staff.");
+    return;
+  }
 
-await axios.put(`${API_URL}/sold/${id}`,{
-sold:Number(value),
-date:selectedDate
-});
+  await axios.put(`${API_URL}/sold/${f.id}`,{
+    sold:Number(value),
+    date:selectedDate
+  }, authHeader);
 
-fetchFoods(selectedDate);
-
+  fetchFoods(selectedDate);
 };
 
 const handleEdit = async (f) => {
@@ -403,7 +415,8 @@ return(
 type="number"
 className="form-control form-control-sm text-center"
 value={entree}
-onChange={(e)=>handleEntreeChange(f.id,e.target.value)}
+disabled={f.is_locked && !isAdmin}
+onChange={(e)=>handleEntreeChange(f,e.target.value)}
 style={{borderRadius:"10px"}}
 />
 
@@ -417,7 +430,8 @@ style={{borderRadius:"10px"}}
 type="number"
 className="form-control form-control-sm text-center"
 value={sold}
-onChange={(e)=>handleSoldChange(f.id,e.target.value)}
+disabled={f.is_locked && !isAdmin}
+onChange={(e)=>handleSoldChange(f,e.target.value)}
 style={{borderRadius:"10px"}}
 />
 
@@ -428,8 +442,15 @@ style={{borderRadius:"10px"}}
 <td className="text-success fw-bold">{formatNumber(sales)}</td>
 
 <td>
-<button className="btn btn-sm btn-outline-primary me-2 mb-1" onClick={() => handleEdit(f)}>Edit</button>
-<button className="btn btn-sm btn-outline-danger mb-1" onClick={() => handleDelete(f.id)}>Delete</button>
+  {(!f.is_locked || isAdmin) && (
+    <button className="btn btn-sm btn-outline-primary me-2 mb-1" onClick={() => handleEdit(f)}>Edit</button>
+  )}
+  {f.is_locked && !isAdmin && (
+    <span className="badge bg-secondary me-2"><i className="bi bi-lock-fill"></i> Locked</span>
+  )}
+  {isAdmin && (
+    <button className="btn btn-sm btn-outline-danger mb-1" onClick={() => handleDelete(f.id)}>Delete</button>
+  )}
 </td>
 
 </tr>

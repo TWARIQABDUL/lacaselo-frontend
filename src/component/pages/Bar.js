@@ -24,6 +24,11 @@ const [stats, setStats] = useState({
   year: 0,
 });
 
+// Get user role from localStorage
+const userStr = localStorage.getItem("user");
+const user = userStr ? JSON.parse(userStr) : null;
+const isAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
+
 const API_URL = `${API_BASE_URL}/bar`;
 
 /* =============================
@@ -182,25 +187,24 @@ const handleAdd = async () => {
    UPDATE STOCK IN
 ============================= */
 
-const handleEntreeChange = async (id, value) => {
+const handleEntreeChange = async (p, value) => {
+  if (p.is_locked && !isAdmin) {
+    alert("This record is locked and cannot be edited by staff.");
+    return;
+  }
 
   try {
-
     await axios.put(
-      `${API_URL}/entree/${id}`,
+      `${API_URL}/entree/${p.id}`,
       {
         entree: Number(value),
         date: selectedDate,
       },
       authHeader
     );
-
     fetchProducts(selectedDate);
-
   } catch (err) {
-
     console.error(err);
-
   }
 };
 
@@ -208,25 +212,24 @@ const handleEntreeChange = async (id, value) => {
    UPDATE SOLD
 ============================= */
 
-const handleSoldChange = async (id, value) => {
+const handleSoldChange = async (p, value) => {
+  if (p.is_locked && !isAdmin) {
+    alert("This record is locked and cannot be edited by staff.");
+    return;
+  }
 
   try {
-
     await axios.put(
-      `${API_URL}/sold/${id}`,
+      `${API_URL}/sold/${p.id}`,
       {
         sold: Number(value),
         date: selectedDate,
       },
       authHeader
     );
-
     fetchProducts(selectedDate);
-
   } catch (err) {
-
     console.error(err);
-
   }
 };
 
@@ -547,8 +550,9 @@ background: isLow ? "#FEE2E2" : "white"
 type="number"
 className="form-control form-control-sm text-center"
 value={entree}
+disabled={p.is_locked && !isAdmin}
 onChange={(e) =>
-handleEntreeChange(p.id, e.target.value)
+handleEntreeChange(p, e.target.value)
 }
 />
 
@@ -564,8 +568,9 @@ handleEntreeChange(p.id, e.target.value)
 type="number"
 className="form-control form-control-sm text-center"
 value={sold}
+disabled={p.is_locked && !isAdmin}
 onChange={(e) =>
-handleSoldChange(p.id, e.target.value)
+handleSoldChange(p, e.target.value)
 }
 />
 
@@ -580,8 +585,15 @@ handleSoldChange(p.id, e.target.value)
 </td>
 
 <td>
-<button className="btn btn-sm btn-outline-primary me-2 mb-1" onClick={() => handleEdit(p)}>Edit</button>
-<button className="btn btn-sm btn-outline-danger mb-1" onClick={() => handleDelete(p.id)}>Delete</button>
+  {(!p.is_locked || isAdmin) && (
+    <button className="btn btn-sm btn-outline-primary me-2 mb-1" onClick={() => handleEdit(p)}>Edit</button>
+  )}
+  {p.is_locked && !isAdmin && (
+    <span className="badge bg-secondary me-2"><i className="bi bi-lock-fill"></i> Locked</span>
+  )}
+  {isAdmin && (
+    <button className="btn btn-sm btn-outline-danger mb-1" onClick={() => handleDelete(p.id)}>Delete</button>
+  )}
 </td>
 
 </tr>

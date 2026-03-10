@@ -26,7 +26,7 @@ function Guesthouse() {
   const fetchRooms = async (date) => {
     try {
       setLoading(true);
-      const res = await axios.get(API_URL, { params: { date } });
+      const res = await axios.get(API_URL, { params: { date }, ...authHeader });
       const roomList = res.data.rooms || [];
       setRooms(roomList);
       recalcTotals(roomList);
@@ -49,7 +49,7 @@ function Guesthouse() {
   // ===== FETCH STATS =====
   const fetchStats = async () => {
     try {
-      const res = await axios.get(`${API_URL}/stats/timePeriods`);
+      const res = await axios.get(`${API_URL}/stats/timePeriods`, authHeader);
       setStats(res.data);
     } catch (err) {
       console.error("Failed to fetch stats:", err);
@@ -102,7 +102,7 @@ function Guesthouse() {
         normal,
         vip_price,
         normal_price
-      });
+      }, authHeader);
       fetchRooms(selectedDate);
     } catch (err) {
       console.error("Error adding room:", err);
@@ -110,18 +110,22 @@ function Guesthouse() {
   };
 
   // ================= UPDATE ROOM =================
-  const handleRoomChange = (id, field, value) => {
+  const handleRoomChange = (r, field, value) => {
+    if (r.is_locked && !isAdmin) {
+      alert("This record is locked and cannot be edited by staff.");
+      return;
+    }
     const numValue = Number(value);
 
-    const updatedRooms = rooms.map((r) =>
-      r.id === id ? { ...r, [field]: numValue } : r
+    const updatedRooms = rooms.map((item) =>
+      item.id === r.id ? { ...item, [field]: numValue } : item
     );
 
     setRooms(updatedRooms);
     recalcTotals(updatedRooms);
 
     axios
-      .put(`${API_URL}/${id}`, { [field]: numValue })
+      .put(`${API_URL}/${r.id}`, { [field]: numValue }, authHeader)
       .catch((err) => console.error(`Error updating ${field}:`, err));
   };
 
@@ -236,15 +240,16 @@ function Guesthouse() {
                   <tr key={r.id}>
 
                     <td>{i + 1}</td>
-                    <td>{r.date}</td>
+                    <td>{r.date} {r.is_locked && !isAdmin && <i className="bi bi-lock-fill text-muted ms-1" title="Locked"></i>}</td>
 
                     <td>
                       <input
                         type="number"
                         className="form-control form-control-sm"
                         value={r.vip || 0}
+                        disabled={r.is_locked && !isAdmin}
                         onChange={(e) =>
-                          handleRoomChange(r.id, "vip", e.target.value)
+                          handleRoomChange(r, "vip", e.target.value)
                         }
                       />
                     </td>
@@ -254,8 +259,9 @@ function Guesthouse() {
                         type="number"
                         className="form-control form-control-sm"
                         value={r.normal || 0}
+                        disabled={r.is_locked && !isAdmin}
                         onChange={(e) =>
-                          handleRoomChange(r.id, "normal", e.target.value)
+                          handleRoomChange(r, "normal", e.target.value)
                         }
                       />
                     </td>
@@ -265,8 +271,9 @@ function Guesthouse() {
                         type="number"
                         className="form-control form-control-sm"
                         value={r.vip_price || 0}
+                        disabled={r.is_locked && !isAdmin}
                         onChange={(e) =>
-                          handleRoomChange(r.id, "vip_price", e.target.value)
+                          handleRoomChange(r, "vip_price", e.target.value)
                         }
                       />
                     </td>
@@ -276,8 +283,9 @@ function Guesthouse() {
                         type="number"
                         className="form-control form-control-sm"
                         value={r.normal_price || 0}
+                        disabled={r.is_locked && !isAdmin}
                         onChange={(e) =>
-                          handleRoomChange(r.id, "normal_price", e.target.value)
+                          handleRoomChange(r, "normal_price", e.target.value)
                         }
                       />
                     </td>
