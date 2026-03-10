@@ -32,136 +32,120 @@ const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
 const API_URL=`${API_BASE_URL}/kitchen`;
 
-const fetchFoods=async(date)=>{
+const fetchFoods = async (date) => {
+  try {
+    setLoading(true);
+    const res = await axios.get(API_URL, { params: { date }, ...authHeader });
+    const list = res.data.foods || [];
+    setFoods(list);
 
-try{
+    let sales = 0, profit = 0, stock = 0;
+    const low = [];
 
-setLoading(true);
+    list.forEach((f) => {
+      const opening = Number(f.opening_stock || 0);
+      const entree = Number(f.entree || 0);
+      const sold = Number(f.sold || 0);
+      const price = Number(f.price || 0);
+      const cost = Number(f.initial_price || 0);
 
-const res=await axios.get(API_URL,{params:{date}});
+      const closing = opening + entree - sold;
+      sales += sold * price;
+      profit += sold * (price - cost);
+      stock += closing * cost;
 
-const list=res.data.foods||[];
+      if (closing < 5) {
+        low.push({ ...f, closing_stock: closing });
+      }
+    });
 
-setFoods(list);
-
-let sales=0;
-let profit=0;
-let stock=0;
-
-const low=[];
-
-list.forEach((f)=>{
-
-const opening=Number(f.opening_stock||0);
-const entree=Number(f.entree||0);
-const sold=Number(f.sold||0);
-const price=Number(f.price||0);
-const cost=Number(f.initial_price||0);
-
-const closing=opening+entree-sold;
-
-sales+=sold*price;
-profit+=sold*(price-cost);
-stock+=closing*cost;
-
-if(closing<5){
-low.push({...f,closing_stock:closing});
-}
-
-});
-
-setTotalSales(sales);
-setTotalProfit(profit);
-setTotalStockValue(stock);
-setLowStockFoods(low);
-
-}catch(err){
-
-console.error(err);
-setFoods([]);
-
-}finally{
-
-setLoading(false);
-
-}
-
+    setTotalSales(sales);
+    setTotalProfit(profit);
+    setTotalStockValue(stock);
+    setLowStockFoods(low);
+  } catch (err) {
+    console.error("Error fetching foods:", err);
+    setFoods([]);
+  } finally {
+    setLoading(false);
+  }
 };
 
 const fetchStats = async () => {
   try {
-    const res = await axios.get(`${API_URL}/stats/timePeriods`);
+    const res = await axios.get(`${API_URL}/stats/timePeriods`, authHeader);
     setStats(res.data);
   } catch (err) {
     console.error("Failed to fetch stats:", err);
   }
 };
 
-useEffect(()=>{
-fetchFoods(selectedDate);
-fetchStats();
-},[selectedDate]);
+useEffect(() => {
+  fetchFoods(selectedDate);
+  fetchStats();
+}, [selectedDate]);
 
-const changeDate=(days)=>{
-
-const newDate=new Date(selectedDate);
-newDate.setDate(newDate.getDate()+days);
-
-const formatted=newDate.toISOString().split("T")[0];
-
-if(formatted>today)return;
-
-setSelectedDate(formatted);
-
+const changeDate = (days) => {
+  const newDate = new Date(selectedDate);
+  newDate.setDate(newDate.getDate() + days);
+  const formatted = newDate.toISOString().split("T")[0];
+  if (formatted > today) return;
+  setSelectedDate(formatted);
 };
 
-const handleAdd=async()=>{
+const handleAdd = async () => {
+  const name = prompt("Food name");
+  if (!name) return;
 
-const name=prompt("Food name");
-if(!name)return;
+  const initial_price = Number(prompt("Cost"));
+  const price = Number(prompt("Selling price"));
+  const opening_stock = Number(prompt("Opening stock"));
 
-const initial_price=Number(prompt("Cost"));
-const price=Number(prompt("Selling price"));
-const opening_stock=Number(prompt("Opening stock"));
-
-await axios.post(API_URL,{
-name,
-initial_price,
-price,
-opening_stock,
-date:selectedDate
-});
-
-fetchFoods(selectedDate);
-
+  try {
+    await axios.post(
+      API_URL,
+      { name, initial_price, price, opening_stock, date: selectedDate },
+      authHeader
+    );
+    fetchFoods(selectedDate);
+  } catch (err) {
+    console.error("Error adding food:", err);
+    alert("Error adding food");
+  }
 };
 
-const handleEntreeChange=async(f,value)=>{
-  if(f.is_locked && !isAdmin){
+const handleEntreeChange = async (f, value) => {
+  if (f.is_locked && !isAdmin) {
     alert("This record is locked and cannot be edited by staff.");
     return;
   }
-
-  await axios.put(`${API_URL}/entree/${f.id}`,{
-    entree:Number(value),
-    date:selectedDate
-  }, authHeader);
-
-  fetchFoods(selectedDate);
+  try {
+    await axios.put(
+      `${API_URL}/entree/${f.id}`,
+      { entree: Number(value), date: selectedDate },
+      authHeader
+    );
+    fetchFoods(selectedDate);
+  } catch (err) {
+    console.error("Error updating entree:", err);
+  }
 };
 
-const handleSoldChange=async(f,value)=>{
-  if(f.is_locked && !isAdmin){
+const handleSoldChange = async (f, value) => {
+  if (f.is_locked && !isAdmin) {
     alert("This record is locked and cannot be edited by staff.");
     return;
   }
-
-  await axios.put(`${API_URL}/sold/${f.id}`,{
-    sold:Number(value),
-    date:selectedDate
-  }, authHeader);
-
-  fetchFoods(selectedDate);
+  try {
+    await axios.put(
+      `${API_URL}/sold/${f.id}`,
+      { sold: Number(value), date: selectedDate },
+      authHeader
+    );
+    fetchFoods(selectedDate);
+  } catch (err) {
+    console.error("Error updating sold:", err);
+  }
 };
 
 const handleEdit = async (f) => {
@@ -171,16 +155,20 @@ const handleEdit = async (f) => {
   const opening_stock = prompt("Edit Opening Stock:", f.opening_stock) || f.opening_stock;
 
   try {
-    await axios.put(`${API_URL}/edit/${f.id}`, {
-      name,
-      initial_price: Number(initial_price),
-      price: Number(price),
-      opening_stock: Number(opening_stock),
-      date: selectedDate
-    });
+    await axios.put(
+      `${API_URL}/edit/${f.id}`,
+      {
+        name,
+        initial_price: Number(initial_price),
+        price: Number(price),
+        opening_stock: Number(opening_stock),
+        date: selectedDate,
+      },
+      authHeader
+    );
     fetchFoods(selectedDate);
-  } catch(err) {
-    console.error(err);
+  } catch (err) {
+    console.error("Error editing food:", err);
     alert("Error editing food");
   }
 };
@@ -188,10 +176,10 @@ const handleEdit = async (f) => {
 const handleDelete = async (id) => {
   if (!window.confirm("Are you sure you want to delete this food entirely?")) return;
   try {
-    await axios.delete(`${API_URL}/${id}`);
+    await axios.delete(`${API_URL}/${id}`, authHeader);
     fetchFoods(selectedDate);
   } catch (err) {
-    console.error(err);
+    console.error("Error deleting food:", err);
     alert("Error deleting food");
   }
 };
