@@ -37,7 +37,7 @@ function Employees() {
     data.forEach((e) => {
       paymentSum += Number(e.payment || 0);
       loanSum += Number(e.total_loan || 0);
-      remainingSum += (Number(e.payment || 0) - Number(e.total_remaining || 0));
+      remainingSum += (Number(e.payment || 0) - Number(e.total_loan || 0));
     });
     setTotalPayment(paymentSum);
     setTotalLoanApp(loanSum);
@@ -189,8 +189,8 @@ function Employees() {
                     </td>
                     <td>RWF {formatNumber(e.payment)}</td>
                     <td className="text-danger fw-bold">RWF {formatNumber(e.total_loan)}</td>
-                    <td className={(e.payment - e.total_remaining) < 0 ? "text-danger fw-bold" : "text-success fw-bold"}>
-                      RWF {formatNumber(e.payment - e.total_remaining)}
+                    <td className={(e.payment - e.total_loan) < 0 ? "text-danger fw-bold" : "text-success fw-bold"}>
+                      RWF {formatNumber(e.payment - e.total_loan)}
                     </td>
                     <td>
                       <button 

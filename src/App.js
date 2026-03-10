@@ -17,6 +17,7 @@ import Billiard from "./component/pages/Billiard";
 import Expenses from "./component/pages/Expenses";
 import Credits from "./component/pages/Credits";
 import EmployeeLoans from "./component/pages/EmployeeLoans";
+import UserManagement from "./component/pages/UserManagement";
 
 // ===== Security =====
 import ProtectedRoute from "./component/auth/ProtectedRoutes.js";
@@ -125,6 +126,17 @@ function App() {
             <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN", "MANAGER"]}>
               <Layout>
                 <EmployeeLoans />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/users"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN"]}>
+              <Layout>
+                <UserManagement />
               </Layout>
             </ProtectedRoute>
           }
