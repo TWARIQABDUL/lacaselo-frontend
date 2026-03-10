@@ -1,8 +1,36 @@
 {
-  "name": "frontend",
-  "version": "0.1.0",
+  "name": "lacaselo",
+  "version": "1.0.0",
   "private": true,
+  "main": "public/electron.js",
+  "homepage": "./",
+  "build": {
+    "appId": "com.lacaselo.app",
+    "productName": "La Cielo",
+    "directories": {
+      "buildResources": "public"
+    },
+    "files": [
+      "build/**/*",
+      "node_modules/**/*",
+      "public/electron.js",
+      "public/preload.js"
+    ],
+    "win": {
+      "target": ["nsis", "portable"]
+    },
+    "mac": {
+      "target": ["dmg"]
+    },
+    "linux": {
+      "target": ["AppImage"]
+    }
+  },
   "dependencies": {
+    "@capacitor/android": "^8.2.0",
+    "@capacitor/cli": "^8.2.0",
+    "@capacitor/core": "^8.2.0",
+    "@capacitor/ios": "^8.2.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -21,7 +49,10 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "electron-start": "wait-on http://localhost:3000 && electron .",
+    "electron-dev": "concurrently \"npm start\" \"npm run electron-start\"",
+    "electron-build": "npm run build && electron-builder"
   },
   "eslintConfig": {
     "extends": [

@@ -44,7 +44,7 @@ function Home() {
       const res = await axios.get(`${API_BASE_URL}/total-money`);
       const { drinks, kitchen, billiard, gym, guesthouse, expenses } =
         res.data;
-      const grandTotal = drinks + kitchen + billiard + gym + guesthouse;
+      const grandTotal = drinks + kitchen + billiard + gym + guesthouse - expenses;
 
       setTotals({
         drinks,
@@ -153,7 +153,7 @@ function Home() {
                 }}
               >
                 <h3 className="fw-bold text-dark">
-                  Total Profit (Expenses Excluded)
+                  Net Profit (After Expenses)
                 </h3>
                 <h1 className="display-4 fw-bold mt-3 text-dark">
                   {loading ? "..." : totals.grandTotal.toLocaleString()} RWF

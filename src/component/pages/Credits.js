@@ -10,6 +10,8 @@ function Employees() {
   const [loading, setLoading] = useState(false);
 
   const [totalPayment, setTotalPayment] = useState(0);
+  const [totalLoanApp, setTotalLoanApp] = useState(0);
+  const [totalRemainingApp, setTotalRemainingApp] = useState(0);
 
   const API_URL = `${API_BASE_URL}/credits`;
 
@@ -30,10 +32,16 @@ function Employees() {
 
   const recalcTotals = (data) => {
     let paymentSum = 0;
+    let loanSum = 0;
+    let remainingSum = 0;
     data.forEach((e) => {
       paymentSum += Number(e.payment || 0);
+      loanSum += Number(e.total_loan || 0);
+      remainingSum += (Number(e.payment || 0) - Number(e.total_loan || 0));
     });
     setTotalPayment(paymentSum);
+    setTotalLoanApp(loanSum);
+    setTotalRemainingApp(remainingSum);
   };
 
   const handleAddEmployee = async () => {
@@ -54,6 +62,19 @@ function Employees() {
 
   const handleViewEmployee = (employeeId) => {
     navigate(`/employees/${employeeId}/loans`);
+  };
+
+  const handleDeleteEmployee = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this employee?")) return;
+    try {
+      await axios.delete(`${API_URL}/${id}`);
+      const newEmployees = employees.filter((e) => e.id !== id);
+      setEmployees(newEmployees);
+      recalcTotals(newEmployees);
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting employee");
+    }
   };
 
   const formatNumber = (value) => Number(value || 0).toLocaleString();
@@ -105,7 +126,7 @@ function Employees() {
           <div className="card shadow border-0 rounded-3" style={{ backgroundColor: "#F28B82", color: "#000" }}>
             <div className="card-body text-center">
               <h6 className="text-uppercase fw-semibold">Total Loan</h6>
-              <h4 className="fw-bold">RWF 0</h4>
+              <h4 className="fw-bold text-danger">RWF {formatNumber(totalLoanApp)}</h4>
             </div>
           </div>
         </div>
@@ -114,7 +135,7 @@ function Employees() {
           <div className="card shadow border-0 rounded-3" style={{ backgroundColor: "#0E6251", color: "#fff" }}>
             <div className="card-body text-center">
               <h6 className="text-uppercase fw-semibold">Total Remaining</h6>
-              <h4 className="fw-bold">RWF 0</h4>
+              <h4 className="fw-bold">RWF {formatNumber(totalRemainingApp)}</h4>
             </div>
           </div>
         </div>
@@ -131,6 +152,7 @@ function Employees() {
                 <th>Monthly Payment</th>
                 <th>Total Loan</th>
                 <th>Remaining</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -166,8 +188,18 @@ function Employees() {
                       </span>
                     </td>
                     <td>RWF {formatNumber(e.payment)}</td>
-                    <td>RWF 0</td>
-                    <td>RWF 0</td>
+                    <td className="text-danger fw-bold">RWF {formatNumber(e.total_loan)}</td>
+                    <td className={(e.payment - e.total_loan) < 0 ? "text-danger fw-bold" : "text-success fw-bold"}>
+                      RWF {formatNumber(e.payment - e.total_loan)}
+                    </td>
+                    <td>
+                      <button 
+                        className="btn btn-sm btn-outline-danger" 
+                        onClick={() => handleDeleteEmployee(e.id)}
+                      >
+                        Delete
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}

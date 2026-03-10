@@ -61,6 +61,19 @@ function Navbar() {
               </li>
             ))}
 
+            {/* ADMIN ONLY LINK */}
+            {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN") && (
+              <li>
+                <Link
+                  to="/users"
+                  className={`world-link ${location.pathname === "/users" ? "active" : ""}`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Users
+                </Link>
+              </li>
+            )}
+
             {/* LOGIN/LOGOUT BUTTON */}
             <li>
               {user ? (

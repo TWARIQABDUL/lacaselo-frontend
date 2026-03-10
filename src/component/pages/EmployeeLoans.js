@@ -80,6 +80,43 @@ function EmployeeLoans() {
     }
   };
 
+  // ===== Delete loan =====
+  const handleDeleteLoan = async (loanId) => {
+    if (!window.confirm("Are you sure you want to delete this loan?")) return;
+    try {
+      await axios.delete(`${API_URL}/${id}/loans/${loanId}`);
+      const newLoans = loans.filter((l) => l.id !== loanId);
+      setLoans(newLoans);
+      recalcTotals(newLoans);
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting loan");
+    }
+  };
+
+  // ===== Pay loan =====
+  const handlePayLoan = async (loanId, currentRemaining) => {
+    const amountStr = prompt(`Enter amount to pay (Remaining: RWF ${formatNumber(currentRemaining)}):`);
+    if (!amountStr) return;
+
+    const amount = Number(amountStr);
+    if (isNaN(amount) || amount <= 0) return alert("Invalid amount.");
+    if (amount > currentRemaining) return alert("Payment exceeds the remaining balance.");
+
+    try {
+      const res = await axios.put(`${API_URL}/${id}/loans/${loanId}/pay`, {
+        paymentAmount: amount
+      });
+      // Replace old loan with updated loan from API
+      const updatedLoans = loans.map((l) => l.id === loanId ? res.data : l);
+      setLoans(updatedLoans);
+      recalcTotals(updatedLoans);
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.error || "Error processing payment");
+    }
+  };
+
   const formatNumber = (value) => Number(value || 0).toLocaleString();
 
   return (
@@ -129,6 +166,7 @@ function EmployeeLoans() {
                 <th>Amount Taken</th>
                 <th>Reason</th>
                 <th>Remaining</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -150,6 +188,27 @@ function EmployeeLoans() {
                     <td>{l.reason}</td>
                     <td className={l.remaining >= 0 ? "text-success fw-bold" : "text-danger fw-bold"}>
                       RWF {formatNumber(l.remaining)}
+                    </td>
+                    <td>
+                      <button 
+                        className="btn btn-sm btn-outline-success me-2" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePayLoan(l.id, l.remaining);
+                        }}
+                        disabled={l.remaining <= 0}
+                      >
+                        Pay
+                      </button>
+                      <button 
+                        className="btn btn-sm btn-outline-danger" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteLoan(l.id);
+                        }}
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))
