@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../../context/Authcontext";
+import API_BASE_URL from "../../config";
 
 function Login({ show, handleClose }) {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ function Login({ show, handleClose }) {
 
     try {
       const res = await axios.post(
-        "https://backend-vitq.onrender.com/api/login",
+        `${API_BASE_URL}/login`,
         { username, password }
       );
 

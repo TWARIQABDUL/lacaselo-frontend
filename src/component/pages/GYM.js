@@ -13,8 +13,11 @@ function Gym() {
   const [totalDaily, setTotalDaily] = useState(0);
   const [totalMonthly, setTotalMonthly] = useState(0);
 
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newEntry, setNewEntry] = useState({
+  const [showModal, setShowModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentEntry, setCurrentEntry] = useState(null);
+
+  const [formData, setFormData] = useState({
     daily_people: 0,
     monthly_people: 0,
     cash: 0,
@@ -71,14 +74,9 @@ function Gym() {
     let monthlySum = 0;
 
     data.forEach((e) => {
-      const daily = Number(e.daily_people || 0);
-      const monthly = Number(e.monthly_people || 0);
-      const cash = Number(e.cash || 0);
-      const cash_momo = Number(e.cash_momo || 0);
-
-      incomeSum += cash + cash_momo;
-      dailySum += daily;
-      monthlySum += monthly;
+      incomeSum += (Number(e.cash) || 0) + (Number(e.cash_momo) || 0);
+      dailySum += Number(e.daily_people) || 0;
+      monthlySum += Number(e.monthly_people) || 0;
     });
 
     setTotalIncome(incomeSum);
@@ -95,50 +93,72 @@ function Gym() {
     setSelectedDate(formatted);
   };
 
-  // ===== ADD NEW ENTRY =====
-  const handleAddEntry = async () => {
-    const { daily_people, monthly_people, cash, cash_momo } = newEntry;
+  // ===== OPEN MODAL (ADD) =====
+  const handleOpenAdd = () => {
+    setIsEditing(false);
+    setCurrentEntry(null);
+    setFormData({ daily_people: 0, monthly_people: 0, cash: 0, cash_momo: 0 });
+    setShowModal(true);
+  };
+
+  // ===== OPEN MODAL (EDIT) =====
+  const handleOpenEdit = (entry) => {
+    setIsEditing(true);
+    setCurrentEntry(entry);
+    setFormData({
+      daily_people: entry.daily_people,
+      monthly_people: entry.monthly_people,
+      cash: entry.cash,
+      cash_momo: entry.cash_momo,
+    });
+    setShowModal(true);
+  };
+
+  // ===== HANDLE SUBMIT (ADD/EDIT) =====
+  const handleSubmit = async () => {
+    const { daily_people, monthly_people, cash, cash_momo } = formData;
     const total_people = Number(daily_people) + Number(monthly_people);
 
     try {
-      await axios.post(API_URL, {
-        date: selectedDate,
-        daily_people: Number(daily_people),
-        monthly_people: Number(monthly_people),
-        total_people,
-        cash: Number(cash),
-        cash_momo: Number(cash_momo),
-      });
+      if (isEditing) {
+        await axios.put(`${API_URL}/${currentEntry.id}`, {
+          ...currentEntry,
+          daily_people: Number(daily_people),
+          monthly_people: Number(monthly_people),
+          total_people,
+          cash: Number(cash),
+          cash_momo: Number(cash_momo),
+        });
+      } else {
+        await axios.post(API_URL, {
+          date: selectedDate,
+          daily_people: Number(daily_people),
+          monthly_people: Number(monthly_people),
+          total_people,
+          cash: Number(cash),
+          cash_momo: Number(cash_momo),
+        });
+      }
       fetchEntries(selectedDate);
-      setShowAddModal(false);
-      setNewEntry({ daily_people: 0, monthly_people: 0, cash: 0, cash_momo: 0 });
+      fetchStats();
+      setShowModal(false);
     } catch (err) {
-      console.error("Error adding entry:", err);
+      console.error("Error saving entry:", err);
+      alert("Failed to save entry");
     }
   };
 
-  // ===== HANDLE EDIT =====
-  const handleChange = (id, field, value) => {
-    const numValue = Number(value || 0);
-
-    const updatedEntries = entries.map((e) => {
-      if (e.id === id) {
-        const updated = { ...e, [field]: numValue };
-        if (field === "daily_people" || field === "monthly_people") {
-          updated.total_people =
-            field === "daily_people" ? numValue + e.monthly_people : e.daily_people + numValue;
-        }
-        return updated;
-      }
-      return e;
-    });
-
-    setEntries(updatedEntries);
-    recalcTotals(updatedEntries);
-
-    axios
-      .put(`${API_URL}/${id}`, updatedEntries.find((e) => e.id === id))
-      .catch((err) => console.error(`Error updating ${field}:`, err));
+  // ===== DELETE ENTRY =====
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this entry?")) return;
+    try {
+      await axios.delete(`${API_URL}/${id}`);
+      fetchEntries(selectedDate);
+      fetchStats();
+    } catch (err) {
+      console.error("Error deleting entry:", err);
+      alert("Failed to delete entry");
+    }
   };
 
   const formatNumber = (value) => Number(value || 0).toLocaleString();
@@ -199,18 +219,14 @@ function Gym() {
         <div className="card-body d-flex justify-content-between align-items-center">
           <h4 className="fw-bold mb-0">Gym</h4>
           <div className="d-flex align-items-center gap-2">
-            <button className="btn btn-outline-dark btn-sm" onClick={() => changeDate(-1)}>
-              ◀
-            </button>
+            <button className="btn btn-outline-dark btn-sm" onClick={() => changeDate(-1)}>◀</button>
             <strong>{selectedDate}</strong>
             <button
               className="btn btn-outline-dark btn-sm"
               onClick={() => changeDate(1)}
               disabled={selectedDate === today}
-            >
-              ▶
-            </button>
-            <button className="btn btn-success ms-3" onClick={() => setShowAddModal(true)}>
+            >▶</button>
+            <button className="btn btn-success ms-3" onClick={handleOpenAdd}>
               + Add Entry
             </button>
           </div>
@@ -229,53 +245,26 @@ function Gym() {
                 <th>Total People</th>
                 <th>Cash</th>
                 <th>Cash Momo</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr>
-                  <td colSpan="6">Loading...</td>
-                </tr>
+                <tr><td colSpan="7">Loading...</td></tr>
               ) : entries.length === 0 ? (
-                <tr>
-                  <td colSpan="6">No gym entries for this date</td>
-                </tr>
+                <tr><td colSpan="7">No gym entries for this date</td></tr>
               ) : (
                 entries.map((e, i) => (
                   <tr key={e.id}>
                     <td>{i + 1}</td>
-                    <td>
-                      <input
-                        type="number"
-                        className="form-control form-control-sm"
-                        value={e.daily_people}
-                        onChange={(ev) => handleChange(e.id, "daily_people", ev.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        className="form-control form-control-sm"
-                        value={e.monthly_people}
-                        onChange={(ev) => handleChange(e.id, "monthly_people", ev.target.value)}
-                      />
-                    </td>
+                    <td>{e.daily_people}</td>
+                    <td>{e.monthly_people}</td>
                     <td>{e.total_people}</td>
+                    <td>RWF {formatNumber(e.cash)}</td>
+                    <td>RWF {formatNumber(e.cash_momo)}</td>
                     <td>
-                      <input
-                        type="number"
-                        className="form-control form-control-sm"
-                        value={e.cash}
-                        onChange={(ev) => handleChange(e.id, "cash", ev.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        className="form-control form-control-sm"
-                        value={e.cash_momo}
-                        onChange={(ev) => handleChange(e.id, "cash_momo", ev.target.value)}
-                      />
+                      <button className="btn btn-sm btn-info me-2" onClick={() => handleOpenEdit(e)}>Edit</button>
+                      <button className="btn btn-sm btn-danger" onClick={() => handleDelete(e.id)}>Delete</button>
                     </td>
                   </tr>
                 ))
@@ -285,63 +274,57 @@ function Gym() {
         </div>
       </div>
 
-      {/* ===== ADD ENTRY MODAL ===== */}
-      {showAddModal && (
-        <div className="modal show d-block" tabIndex="-1">
-          <div className="modal-dialog">
+      {/* ===== ADD/EDIT MODAL ===== */}
+      {showModal && (
+        <div className="modal show d-block" tabIndex="-1" style={{ background: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Add Gym Entry</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setShowAddModal(false)}
-                ></button>
+                <h5 className="modal-title">{isEditing ? "Edit Gym Entry" : "Add Gym Entry"}</h5>
+                <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
               </div>
               <div className="modal-body">
-                <div className="mb-2">
-                  <label>Daily People</label>
+                <div className="mb-3">
+                  <label className="form-label">Daily People</label>
                   <input
                     type="number"
                     className="form-control"
-                    value={newEntry.daily_people}
-                    onChange={(e) => setNewEntry({ ...newEntry, daily_people: e.target.value })}
+                    value={formData.daily_people}
+                    onChange={(e) => setFormData({ ...formData, daily_people: e.target.value })}
                   />
                 </div>
-                <div className="mb-2">
-                  <label>Monthly People</label>
+                <div className="mb-3">
+                  <label className="form-label">Monthly People</label>
                   <input
                     type="number"
                     className="form-control"
-                    value={newEntry.monthly_people}
-                    onChange={(e) => setNewEntry({ ...newEntry, monthly_people: e.target.value })}
+                    value={formData.monthly_people}
+                    onChange={(e) => setFormData({ ...formData, monthly_people: e.target.value })}
                   />
                 </div>
-                <div className="mb-2">
-                  <label>Cash</label>
+                <div className="mb-3">
+                  <label className="form-label">Cash</label>
                   <input
                     type="number"
                     className="form-control"
-                    value={newEntry.cash}
-                    onChange={(e) => setNewEntry({ ...newEntry, cash: e.target.value })}
+                    value={formData.cash}
+                    onChange={(e) => setFormData({ ...formData, cash: e.target.value })}
                   />
                 </div>
-                <div className="mb-2">
-                  <label>Cash Momo</label>
+                <div className="mb-3">
+                  <label className="form-label">Cash Momo</label>
                   <input
                     type="number"
                     className="form-control"
-                    value={newEntry.cash_momo}
-                    onChange={(e) => setNewEntry({ ...newEntry, cash_momo: e.target.value })}
+                    value={formData.cash_momo}
+                    onChange={(e) => setFormData({ ...formData, cash_momo: e.target.value })}
                   />
                 </div>
               </div>
               <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setShowAddModal(false)}>
-                  Close
-                </button>
-                <button className="btn btn-success" onClick={handleAddEntry}>
-                  Add Entry
+                <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Close</button>
+                <button className="btn btn-primary" onClick={handleSubmit}>
+                  {isEditing ? "Update Entry" : "Add Entry"}
                 </button>
               </div>
             </div>
