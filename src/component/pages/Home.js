@@ -37,11 +37,14 @@ function Home() {
     fetchTotals();
   }, []);
 
+  const token = localStorage.getItem("token");
+  const authHeader = { headers: { Authorization: `Bearer ${token}` } };
+
   const fetchTotals = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.get(`${API_BASE_URL}/total-money`);
+      const res = await axios.get(`${API_BASE_URL}/total-money`, authHeader);
       const { drinks, kitchen, billiard, gym, guesthouse, expenses } =
         res.data;
       const grandTotal = drinks + kitchen + billiard + gym + guesthouse - expenses;

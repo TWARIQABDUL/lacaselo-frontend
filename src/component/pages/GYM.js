@@ -35,6 +35,8 @@ function Gym() {
   const userStr = localStorage.getItem("user");
   const user = userStr ? JSON.parse(userStr) : null;
   const isAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
+  const token = localStorage.getItem("token");
+  const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
   const API_URL = `${API_BASE_URL}/gym`;
 
@@ -42,7 +44,7 @@ function Gym() {
   const fetchEntries = async (date) => {
     try {
       setLoading(true);
-      const res = await axios.get(API_URL, { params: { date } });
+      const res = await axios.get(API_URL, { params: { date }, ...authHeader });
       const data = res.data.records || [];
       setEntries(data);
       recalcTotals(data);
@@ -65,7 +67,7 @@ function Gym() {
   // ===== FETCH STATS =====
   const fetchStats = async () => {
     try {
-      const res = await axios.get(`${API_URL}/stats/timePeriods`);
+      const res = await axios.get(`${API_URL}/stats/timePeriods`, authHeader);
       setStats(res.data);
     } catch (err) {
       console.error("Failed to fetch stats:", err);
@@ -133,7 +135,7 @@ function Gym() {
           total_people,
           cash: Number(cash),
           cash_momo: Number(cash_momo),
-        });
+        }, authHeader);
       } else {
         await axios.post(API_URL, {
           date: selectedDate,
@@ -142,7 +144,7 @@ function Gym() {
           total_people,
           cash: Number(cash),
           cash_momo: Number(cash_momo),
-        });
+        }, authHeader);
       }
       fetchEntries(selectedDate);
       fetchStats();
@@ -157,7 +159,7 @@ function Gym() {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this entry?")) return;
     try {
-      await axios.delete(`${API_URL}/${id}`);
+      await axios.delete(`${API_URL}/${id}`, authHeader);
       fetchEntries(selectedDate);
       fetchStats();
     } catch (err) {

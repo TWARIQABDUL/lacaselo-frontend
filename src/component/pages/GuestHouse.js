@@ -22,6 +22,13 @@ function Guesthouse() {
 
   const API_URL = `${API_BASE_URL}/guesthouse`;
 
+  // Get user role from localStorage
+  const userStr = localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const isAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
+  const token = localStorage.getItem("token");
+  const authHeader = { headers: { Authorization: `Bearer ${token}` } };
+
   // ================= FETCH ROOMS =================
   const fetchRooms = async (date) => {
     try {

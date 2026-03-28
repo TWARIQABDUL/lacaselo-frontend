@@ -4,7 +4,24 @@ import API_BASE_URL from "../../config";
 
 function Bar() {
 
-const today = new Date().toISOString().split("T")[0];
+/* =============================
+   BUSINESS DATE (3PM RWANDA)
+============================= */
+function getBusinessDate() {
+  const now = new Date();
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const rwandaTime = new Date(utc + (2 * 60 * 60 * 1000));
+
+  if (rwandaTime.getHours() < 15) {
+    rwandaTime.setDate(rwandaTime.getDate() - 1);
+  }
+
+  return rwandaTime.toISOString().split("T")[0];
+}
+
+const today = getBusinessDate();
+
+/* ============================= */
 
 const [products, setProducts] = useState([]);
 const [selectedDate, setSelectedDate] = useState(today);
@@ -24,16 +41,13 @@ const [stats, setStats] = useState({
   year: 0,
 });
 
-// Get user role from localStorage
+/* ============================= */
+
 const userStr = localStorage.getItem("user");
 const user = userStr ? JSON.parse(userStr) : null;
 const isAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
 
 const API_URL = `${API_BASE_URL}/bar`;
-
-/* =============================
-   AUTH TOKEN HEADER
-============================= */
 
 const token = localStorage.getItem("token");
 
@@ -49,7 +63,6 @@ const authHeader = {
 
 const fetchProducts = async (date) => {
   try {
-
     setLoading(true);
 
     const res = await axios.get(API_URL, {
@@ -58,17 +71,14 @@ const fetchProducts = async (date) => {
     });
 
     const list = res.data.products || [];
-
     setProducts(list);
 
     let sales = 0;
     let profit = 0;
     let stockValue = 0;
-
     const lowProducts = [];
 
     list.forEach((p) => {
-
       const opening = Number(p.opening_stock || 0);
       const entree = Number(p.entree || 0);
       const sold = Number(p.sold || 0);
@@ -79,15 +89,12 @@ const fetchProducts = async (date) => {
       const closing = opening + entree - sold;
 
       sales += sold * price;
-
       profit += sold * (price - cost);
-
       stockValue += closing * cost;
 
       if (closing < 5) {
         lowProducts.push({ ...p, closing_stock: closing });
       }
-
     });
 
     setTotalSales(sales);
@@ -96,19 +103,15 @@ const fetchProducts = async (date) => {
     setLowStockProducts(lowProducts);
 
   } catch (err) {
-
     console.error(err);
     setProducts([]);
-
   } finally {
-
     setLoading(false);
-
   }
 };
 
 /* =============================
-   FETCH TIME PERIOD STATS
+   FETCH STATS
 ============================= */
 
 const fetchStats = async () => {
@@ -116,27 +119,21 @@ const fetchStats = async () => {
     const res = await axios.get(`${API_URL}/stats/timePeriods`, authHeader);
     setStats(res.data);
   } catch (err) {
-    console.error("Failed to fetch stats:", err);
+    console.error(err);
   }
 };
 
-/* =============================
-   LOAD DATA
-============================= */
+/* ============================= */
 
 useEffect(() => {
   fetchProducts(selectedDate);
   fetchStats();
 }, [selectedDate]);
 
-/* =============================
-   CHANGE DATE
-============================= */
+/* ============================= */
 
 const changeDate = (days) => {
-
   const newDate = new Date(selectedDate);
-
   newDate.setDate(newDate.getDate() + days);
 
   const formatted = newDate.toISOString().split("T")[0];
@@ -144,15 +141,11 @@ const changeDate = (days) => {
   if (formatted > today) return;
 
   setSelectedDate(formatted);
-
 };
 
-/* =============================
-   ADD DRINK
-============================= */
+/* ============================= */
 
 const handleAdd = async () => {
-
   const name = prompt("Product name");
   if (!name) return;
 
@@ -161,30 +154,22 @@ const handleAdd = async () => {
   const opening_stock = Number(prompt("Opening stock"));
 
   try {
-
-    await axios.post(
-      API_URL,
-      {
-        name,
-        initial_price,
-        price,
-        opening_stock,
-        date: selectedDate,
-      },
-      authHeader
-    );
+    await axios.post(API_URL, {
+      name,
+      initial_price,
+      price,
+      opening_stock,
+      date: selectedDate,
+    }, authHeader);
 
     fetchProducts(selectedDate);
-
   } catch (err) {
-
     console.error(err);
-
   }
 };
 
 /* =============================
-   UPDATE STOCK IN
+   FIXED INPUT HANDLING
 ============================= */
 
 const handleEntreeChange = async (p, value) => {
@@ -194,23 +179,16 @@ const handleEntreeChange = async (p, value) => {
   }
 
   try {
-    await axios.put(
-      `${API_URL}/entree/${p.id}`,
-      {
-        entree: Number(value),
-        date: selectedDate,
-      },
-      authHeader
-    );
+    await axios.put(`${API_URL}/entree/${p.id}`, {
+      entree: Number(value),
+      date: selectedDate,
+    }, authHeader);
+
     fetchProducts(selectedDate);
   } catch (err) {
     console.error(err);
   }
 };
-
-/* =============================
-   UPDATE SOLD
-============================= */
 
 const handleSoldChange = async (p, value) => {
   if (p.is_locked && !isAdmin) {
@@ -219,401 +197,41 @@ const handleSoldChange = async (p, value) => {
   }
 
   try {
-    await axios.put(
-      `${API_URL}/sold/${p.id}`,
-      {
-        sold: Number(value),
-        date: selectedDate,
-      },
-      authHeader
-    );
+    await axios.put(`${API_URL}/sold/${p.id}`, {
+      sold: Number(value),
+      date: selectedDate,
+    }, authHeader);
+
     fetchProducts(selectedDate);
   } catch (err) {
     console.error(err);
   }
 };
 
-/* =============================
-   EDIT PRODUCT
-============================= */
-
-const handleEdit = async (p) => {
-  const name = prompt("Edit Drink Name:", p.name) || p.name;
-  const initial_price = prompt("Edit Cost Price:", p.initial_price) || p.initial_price;
-  const price = prompt("Edit Selling Price:", p.price) || p.price;
-  const opening_stock = prompt("Edit Opening Stock:", p.opening_stock) || p.opening_stock;
-
-  try {
-    await axios.put(
-      `${API_URL}/edit/${p.id}`,
-      {
-        name,
-        initial_price: Number(initial_price),
-        price: Number(price),
-        opening_stock: Number(opening_stock),
-        date: selectedDate,
-      },
-      authHeader
-    );
-    fetchProducts(selectedDate);
-  } catch (err) {
-    console.error(err);
-    alert("Error editing product");
-  }
-};
-
-/* =============================
-   DELETE PRODUCT
-============================= */
-
-const handleDelete = async (id) => {
-  if (!window.confirm("Are you sure you want to delete this drink entirely?")) return;
-  try {
-    await axios.delete(`${API_URL}/${id}`, authHeader);
-    fetchProducts(selectedDate);
-  } catch (err) {
-    console.error(err);
-    alert("Error deleting product");
-  }
-};
-
-/* =============================
-   FORMAT NUMBERS
-============================= */
+/* ============================= */
 
 const formatNumber = (v) => Number(v || 0).toLocaleString();
 
-/* =============================
-   UI
-============================= */
+/* ============================= */
 
 return (
+<div>
 
-<div style={{ background: "#F7F9FC", minHeight: "100vh", padding: "25px" }}>
-
-{/* DASHBOARD */}
-
-<div className="row g-4 mb-4">
-
-{[
-  { title: "Total Sales", value: totalSales, color: "#2563EB" },
-  { title: "Total Profit", value: totalProfit, color: "#16A34A" },
-  { title: "Stock Value", value: totalStockValue, color: "#0EA5A4" },
-  { title: "Low Stock", value: lowStockProducts.length, color: "#DC2626", click: () => setShowLowStock(!showLowStock) }
-].map((card, i) => (
-
-<div key={i} className="col-md-3">
-
-<div
-className="card border-0 shadow-lg"
-style={{
-borderRadius: "16px",
-cursor: card.click ? "pointer" : "default"
-}}
-onClick={card.click}
->
-
-<div className="card-body text-center">
-
-<p style={{ color: "#6B7280" }}>{card.title}</p>
-
-<h2 style={{ color: card.color, fontWeight: "700" }}>
-{formatNumber(card.value)}
-</h2>
-
-</div>
-
-</div>
-
-</div>
-
-))}
-
-</div>
-
-{/* TIME PERIOD STATS */}
-
-<div className="row g-4 mb-4">
-
-{[
-  { label: "Today", value: stats.day },
-  { label: "This Week", value: stats.week },
-  { label: "This Month", value: stats.month },
-  { label: "This Year", value: stats.year }
-].map((stat, i) => (
-
-<div key={i} className="col-md-3">
-
-<div className="card border-0 shadow-sm" style={{ borderRadius: "12px", background: "#FFFFFF" }}>
-
-<div className="card-body text-center">
-
-<p style={{ color: "#9CA3AF", fontSize: "12px", fontWeight: "600", textTransform: "uppercase" }}>{stat.label}</p>
-
-<h3 style={{ color: "#1F2937", fontWeight: "700" }}>
-
-RWF {formatNumber(stat.value)}
-
-</h3>
-
-</div>
-
-</div>
-
-</div>
-
-))}
-
-</div>
-
-{/* LOW STOCK */}
-
-{showLowStock && (
-
-<div className="card shadow-lg mb-4 border-0" style={{ borderRadius: "16px" }}>
-
-<div
-style={{
-background: "#DC2626",
-color: "white",
-padding: "12px",
-borderRadius: "16px 16px 0 0"
-}}
->
-Low Stock Drinks
-</div>
-
-<table className="table text-center mb-0">
-
-<thead style={{ background: "#1A2238", color: "white" }}>
-<tr>
-<th>#</th>
-<th>Drink</th>
-<th>Remaining</th>
-</tr>
-</thead>
-
-<tbody>
-
-{lowStockProducts.map((p, i) => (
-
-<tr key={p.id}>
-<td>{i + 1}</td>
-<td>{p.name}</td>
-<td style={{ color: "#DC2626", fontWeight: "600" }}>
-{p.closing_stock}
-</td>
-</tr>
-
-))}
-
-</tbody>
-
-</table>
-
-</div>
-
-)}
-
-{/* HEADER */}
-
-<div className="card shadow-lg mb-4 border-0" style={{ borderRadius: "16px" }}>
-
-<div className="card-body d-flex justify-content-between align-items-center">
-
-<h4 style={{ fontWeight: "700", color: "#1A2238" }}>
-Bar Management
-</h4>
-
-<div className="d-flex align-items-center gap-2">
-
-<button
-className="btn btn-dark btn-sm"
-onClick={() => changeDate(-1)}
->
-◀
-</button>
-
-<strong>{selectedDate}</strong>
-
-<button
-className="btn btn-dark btn-sm"
-disabled={selectedDate === today}
-onClick={() => changeDate(1)}
->
-▶
-</button>
-
-<button
-onClick={handleAdd}
-className="btn shadow ms-3"
-style={{
-background: "#2563EB",
-color: "white",
-border: "none",
-padding: "8px 20px",
-borderRadius: "25px",
-fontWeight: "600"
-}}
->
-➕ Add Drink
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-{/* TABLE */}
-
-<div className="card shadow-lg border-0" style={{ borderRadius: "16px" }}>
-
-<div className="table-responsive">
-
-<table className="table table-hover text-center align-middle">
-
-<thead style={{ background: "#1A2238", color: "white" }}>
-
-<tr>
-<th>#</th>
-<th>Product</th>
-<th>Cost</th>
-<th>Price</th>
-<th>Opening</th>
-<th>Stock In</th>
-<th>Total</th>
-<th>Sold</th>
-<th>Closing</th>
-<th>Sales</th>
-<th>Action</th>
-</tr>
-
-</thead>
-
-<tbody>
-
-{loading ? (
-
-<tr>
-<td colSpan="10">Loading...</td>
-</tr>
-
-) : products.length === 0 ? (
-
-<tr>
-<td colSpan="10">No drinks</td>
-</tr>
-
-) : (
-
-products.map((p, i) => {
-
-const opening = Number(p.opening_stock || 0);
-const entree = Number(p.entree || 0);
-const sold = Number(p.sold || 0);
-
-const price = Number(p.price || 0);
-const cost = Number(p.initial_price || 0);
-
-const total = opening + entree;
-const closing = total - sold;
-
-const sales = sold * price;
-
-const isLow = closing < 5;
-
-return (
-
-<tr
-key={p.id}
-style={{
-background: isLow ? "#FEE2E2" : "white"
-}}
->
-
-<td>{i + 1}</td>
-
-<td style={{ fontWeight: "600" }}>
-{p.name}
-</td>
-
-<td>{formatNumber(cost)}</td>
-
-<td>{formatNumber(price)}</td>
-
-<td>{opening}</td>
-
-<td>
+{/* TABLE ONLY CHANGED PART */}
 
 <input
-type="number"
-className="form-control form-control-sm text-center"
-value={entree}
-disabled={p.is_locked && !isAdmin}
-onChange={(e) =>
-handleEntreeChange(p, e.target.value)
-}
+  type="number"
+  defaultValue={entree}
+  onBlur={(e) => handleEntreeChange(p, e.target.value)}
 />
-
-</td>
-
-<td style={{ fontWeight: "600" }}>
-{total}
-</td>
-
-<td>
 
 <input
-type="number"
-className="form-control form-control-sm text-center"
-value={sold}
-disabled={p.is_locked && !isAdmin}
-onChange={(e) =>
-handleSoldChange(p, e.target.value)
-}
+  type="number"
+  defaultValue={sold}
+  onBlur={(e) => handleSoldChange(p, e.target.value)}
 />
 
-</td>
-
-<td className={isLow ? "text-danger fw-bold" : ""}>
-{closing}
-</td>
-
-<td style={{ color: "#16A34A", fontWeight: "700" }}>
-{formatNumber(sales)}
-</td>
-
-<td>
-  {(!p.is_locked || isAdmin) && (
-    <button className="btn btn-sm btn-outline-primary me-2 mb-1" onClick={() => handleEdit(p)}>Edit</button>
-  )}
-  {p.is_locked && !isAdmin && (
-    <span className="badge bg-secondary me-2"><i className="bi bi-lock-fill"></i> Locked</span>
-  )}
-  {isAdmin && (
-    <button className="btn btn-sm btn-outline-danger mb-1" onClick={() => handleDelete(p.id)}>Delete</button>
-  )}
-</td>
-
-</tr>
-
-);
-
-})
-
-)}
-
-</tbody>
-
-</table>
-
 </div>
-
-</div>
-
-</div>
-
 );
 
 }
