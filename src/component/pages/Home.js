@@ -4,14 +4,6 @@ import axios from "axios";
 import API_BASE_URL from "../../config";
 import { useAuth } from "../../context/Authcontext";
 import Login from "../login/Login";
-import {
-  FaGlassMartiniAlt,
-  FaUtensils,
-  FaTableTennis,
-  FaDumbbell,
-  FaBed,
-  FaMoneyBillWave,
-} from "react-icons/fa";
 
 function Home() {
   const navigate = useNavigate();
@@ -41,7 +33,6 @@ function Home() {
 
   const fetchTotals = async () => {
     setLoading(true);
-    setError(null);
     try {
       const res = await axios.get(
         `${API_BASE_URL}/total-money`,
@@ -64,14 +55,21 @@ function Home() {
         grandTotal,
       });
     } catch (err) {
-      console.error("Failed to load totals:", err);
-      setError("Failed to load totals. Make sure backend is running.");
+      console.error(err);
+      setError("Failed to load totals");
     } finally {
       setLoading(false);
     }
   };
 
-  return <div>{/* UI unchanged */}</div>;
+  return !user ? (
+    <Login show={true} handleClose={() => {}} />
+  ) : (
+    <div className="container-fluid py-5">
+      <h1>La Cielo GARDEN</h1>
+      {/* UI SAME */}
+    </div>
+  );
 }
 
 export default Home;
