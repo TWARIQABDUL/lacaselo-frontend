@@ -21,6 +21,10 @@ function UserManagement() {
     headers: { Authorization: `Bearer ${token}` },
   };
 
+  const currentUserStr = localStorage.getItem("user");
+  const currentUser = currentUserStr ? JSON.parse(currentUserStr) : null;
+  const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
+
   const roles = [
     "SUPER_ADMIN",
     "ADMIN",
@@ -153,8 +157,12 @@ function UserManagement() {
                     </td>
                     <td>{formatDate(u.created_at)}</td>
                     <td className="text-center">
-                      <button className="btn btn-sm btn-outline-info me-2" onClick={() => handleEdit(u)}>Edit</button>
-                      <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(u.userId)}>Delete</button>
+                      {isSuperAdmin && (
+                        <>
+                          <button className="btn btn-sm btn-outline-info me-2" onClick={() => handleEdit(u)}>Edit</button>
+                          <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(u.userId)}>Delete</button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))
