@@ -25,6 +25,19 @@ const [stats, setStats] = useState({
 });
 
 const API_URL=`${API_BASE_URL}/kitchen`;
+const token = localStorage.getItem("token");
+
+// Get user role from localStorage
+const userStr = localStorage.getItem("user");
+const user = userStr ? JSON.parse(userStr) : null;
+const isSuperAdmin = user?.role === "SUPER_ADMIN";
+const isAdmin = isSuperAdmin || user?.role === "ADMIN";
+
+const authHeader = {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+};
 
 const fetchFoods=async(date)=>{
 
@@ -32,7 +45,7 @@ try{
 
 setLoading(true);
 
-const res=await axios.get(API_URL,{params:{date}});
+const res=await axios.get(API_URL,{params:{date}, ...authHeader});
 
 const list=res.data.foods||[];
 
@@ -84,7 +97,7 @@ setLoading(false);
 
 const fetchStats = async () => {
   try {
-    const res = await axios.get(`${API_URL}/stats/timePeriods`);
+    const res = await axios.get(`${API_URL}/stats/timePeriods`, authHeader);
     setStats(res.data);
   } catch (err) {
     console.error("Failed to fetch stats:", err);
@@ -119,12 +132,12 @@ const price=Number(prompt("Selling price"));
 const opening_stock=Number(prompt("Opening stock"));
 
 await axios.post(API_URL,{
-name,
-initial_price,
-price,
-opening_stock,
-date:selectedDate
-});
+  name,
+  initial_price,
+  price,
+  opening_stock,
+  date:selectedDate
+}, authHeader);
 
 fetchFoods(selectedDate);
 
@@ -133,9 +146,9 @@ fetchFoods(selectedDate);
 const handleEntreeChange=async(id,value)=>{
 
 await axios.put(`${API_URL}/entree/${id}`,{
-entree:Number(value),
-date:selectedDate
-});
+  entree:Number(value),
+  date:selectedDate
+}, authHeader);
 
 fetchFoods(selectedDate);
 
@@ -144,9 +157,9 @@ fetchFoods(selectedDate);
 const handleSoldChange=async(id,value)=>{
 
 await axios.put(`${API_URL}/sold/${id}`,{
-sold:Number(value),
-date:selectedDate
-});
+  sold:Number(value),
+  date:selectedDate
+}, authHeader);
 
 fetchFoods(selectedDate);
 
@@ -160,12 +173,12 @@ const handleEdit = async (f) => {
 
   try {
     await axios.put(`${API_URL}/edit/${f.id}`, {
-      name,
-      initial_price: Number(initial_price),
-      price: Number(price),
-      opening_stock: Number(opening_stock),
-      date: selectedDate
-    });
+  name,
+  initial_price: Number(initial_price),
+  price: Number(price),
+  opening_stock: Number(opening_stock),
+  date: selectedDate
+}, authHeader);
     fetchFoods(selectedDate);
   } catch(err) {
     console.error(err);
@@ -176,7 +189,7 @@ const handleEdit = async (f) => {
 const handleDelete = async (id) => {
   if (!window.confirm("Are you sure you want to delete this food entirely?")) return;
   try {
-    await axios.delete(`${API_URL}/${id}`);
+    await axios.delete(`${API_URL}/${id}`, authHeader);
     fetchFoods(selectedDate);
   } catch (err) {
     console.error(err);
@@ -321,19 +334,21 @@ Low Stock Foods
 
 <button className="btn btn-outline-dark btn-sm" disabled={selectedDate===today} onClick={()=>changeDate(1)}>▶</button>
 
-<button
-className="btn shadow"
-onClick={handleAdd}
-style={{
-background:"linear-gradient(135deg,#10B981,#065F46)",
-color:"white",
-borderRadius:"30px",
-padding:"8px 22px",
-fontWeight:"600"
-}}
->
-➕ Add Food
-</button>
+{isSuperAdmin && (
+  <button
+  className="btn shadow"
+  onClick={handleAdd}
+  style={{
+  background:"linear-gradient(135deg,#10B981,#065F46)",
+  color:"white",
+  borderRadius:"30px",
+  padding:"8px 22px",
+  fontWeight:"600"
+  }}
+  >
+  ➕ Add Food
+  </button>
+)}
 
 </div>
 
@@ -362,7 +377,9 @@ fontWeight:"600"
 <th>Sold</th>
 <th>Closing</th>
 <th>Sales</th>
-<th>Action</th>
+{isSuperAdmin && (
+  <th>Action</th>
+)}
 </tr>
 
 </thead>
@@ -370,9 +387,9 @@ fontWeight:"600"
 <tbody>
 
 {loading?(
-<tr><td colSpan="10">Loading...</td></tr>
+<tr><td colSpan={isSuperAdmin ? 11 : 10}>Loading...</td></tr>
 ):foods.length===0?(
-<tr><td colSpan="10">No foods</td></tr>
+<tr><td colSpan={isSuperAdmin ? 11 : 10}>No foods</td></tr>
 ):(foods.map((f,i)=>{
 
 const opening=Number(f.opening_stock||0);
@@ -427,10 +444,12 @@ style={{borderRadius:"10px"}}
 
 <td className="text-success fw-bold">{formatNumber(sales)}</td>
 
-<td>
-<button className="btn btn-sm btn-outline-primary me-2 mb-1" onClick={() => handleEdit(f)}>Edit</button>
-<button className="btn btn-sm btn-outline-danger mb-1" onClick={() => handleDelete(f.id)}>Delete</button>
-</td>
+{isSuperAdmin && (
+  <td>
+    <button className="btn btn-sm btn-outline-primary me-2 mb-1" onClick={() => handleEdit(f)}>Edit</button>
+    <button className="btn btn-sm btn-outline-danger mb-1" onClick={() => handleDelete(f.id)}>Delete</button>
+  </td>
+)}
 
 </tr>
 

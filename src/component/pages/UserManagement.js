@@ -17,6 +17,12 @@ function UserManagement() {
 
   const API_URL = `${API_BASE_URL}/users`;
   const token = localStorage.getItem("token");
+
+  // Get user role from localStorage
+  const userStr = localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
+
   const authHeader = {
     headers: { Authorization: `Bearer ${token}` },
   };
@@ -113,13 +119,15 @@ function UserManagement() {
     <div className="container-fluid py-4" style={{ background: "#0F172A", minHeight: "100vh", color: "#fff" }}>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="fw-bold">User Management</h2>
-        <button 
-          className="btn btn-primary px-4 rounded-pill shadow"
-          onClick={() => { resetForm(); setShowModal(true); }}
-          style={{ background: "linear-gradient(135deg, #2563EB, #1E40AF)" }}
-        >
-          + Add New User
-        </button>
+        {isSuperAdmin && (
+          <button 
+            className="btn btn-primary px-4 rounded-pill shadow"
+            onClick={() => { resetForm(); setShowModal(true); }}
+            style={{ background: "linear-gradient(135deg, #2563EB, #1E40AF)" }}
+          >
+            + Add New User
+          </button>
+        )}
       </div>
 
       <div className="card border-0 shadow-lg" style={{ background: "#1E293B", borderRadius: "16px" }}>
@@ -153,8 +161,14 @@ function UserManagement() {
                     </td>
                     <td>{formatDate(u.created_at)}</td>
                     <td className="text-center">
-                      <button className="btn btn-sm btn-outline-info me-2" onClick={() => handleEdit(u)}>Edit</button>
-                      <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(u.userId)}>Delete</button>
+                      {isSuperAdmin ? (
+                        <>
+                          <button className="btn btn-sm btn-outline-info me-2" onClick={() => handleEdit(u)}>Edit</button>
+                          <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(u.userId)}>Delete</button>
+                        </>
+                      ) : (
+                        <span className="text-muted small">No actions</span>
+                      )}
                     </td>
                   </tr>
                 ))

@@ -4,605 +4,617 @@ import API_BASE_URL from "../../config";
 
 function Bar() {
 
-const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toISOString().split("T")[0];
 
-const [products, setProducts] = useState([]);
-const [selectedDate, setSelectedDate] = useState(today);
-const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(today);
+  const [loading, setLoading] = useState(false);
 
-const [totalSales, setTotalSales] = useState(0);
-const [totalProfit, setTotalProfit] = useState(0);
-const [totalStockValue, setTotalStockValue] = useState(0);
+  const [totalSales, setTotalSales] = useState(0);
+  const [totalProfit, setTotalProfit] = useState(0);
+  const [totalStockValue, setTotalStockValue] = useState(0);
 
-const [lowStockProducts, setLowStockProducts] = useState([]);
-const [showLowStock, setShowLowStock] = useState(false);
+  const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [showLowStock, setShowLowStock] = useState(false);
 
-const [stats, setStats] = useState({
-  day: 0,
-  week: 0,
-  month: 0,
-  year: 0,
-});
+  const [stats, setStats] = useState({
+    day: 0,
+    week: 0,
+    month: 0,
+    year: 0,
+  });
 
-const API_URL = `${API_BASE_URL}/bar`;
+  // Get user role from localStorage
+  const userStr = localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
+  const isAdmin = isSuperAdmin || user?.role === "ADMIN";
 
-/* =============================
-   AUTH TOKEN HEADER
-============================= */
+  const API_URL = `${API_BASE_URL}/bar`;
 
-const token = localStorage.getItem("token");
+  /* =============================
+     AUTH TOKEN HEADER
+  ============================= */
 
-const authHeader = {
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
-};
+  const token = localStorage.getItem("token");
 
-/* =============================
-   FETCH PRODUCTS
-============================= */
+  const authHeader = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
 
-const fetchProducts = async (date) => {
-  try {
+  /* =============================
+     FETCH PRODUCTS
+  ============================= */
 
-    setLoading(true);
+  const fetchProducts = async (date) => {
+    try {
 
-    const res = await axios.get(API_URL, {
-      params: { date },
-      ...authHeader,
-    });
+      setLoading(true);
 
-    const list = res.data.products || [];
+      const res = await axios.get(API_URL, {
+        params: { date },
+        ...authHeader,
+      });
 
-    setProducts(list);
+      const list = res.data.products || [];
 
-    let sales = 0;
-    let profit = 0;
-    let stockValue = 0;
+      setProducts(list);
 
-    const lowProducts = [];
+      let sales = 0;
+      let profit = 0;
+      let stockValue = 0;
 
-    list.forEach((p) => {
+      const lowProducts = [];
 
-      const opening = Number(p.opening_stock || 0);
-      const entree = Number(p.entree || 0);
-      const sold = Number(p.sold || 0);
+      list.forEach((p) => {
 
-      const price = Number(p.price || 0);
-      const cost = Number(p.initial_price || 0);
+        const opening = Number(p.opening_stock || 0);
+        const entree = Number(p.entree || 0);
+        const sold = Number(p.sold || 0);
 
-      const closing = opening + entree - sold;
+        const price = Number(p.price || 0);
+        const cost = Number(p.initial_price || 0);
 
-      sales += sold * price;
+        const closing = opening + entree - sold;
 
-      profit += sold * (price - cost);
+        sales += sold * price;
 
-      stockValue += closing * cost;
+        profit += sold * (price - cost);
 
-      if (closing < 5) {
-        lowProducts.push({ ...p, closing_stock: closing });
-      }
+        stockValue += closing * cost;
 
-    });
+        if (closing < 5) {
+          lowProducts.push({ ...p, closing_stock: closing });
+        }
 
-    setTotalSales(sales);
-    setTotalProfit(profit);
-    setTotalStockValue(stockValue);
-    setLowStockProducts(lowProducts);
+      });
 
-  } catch (err) {
+      setTotalSales(sales);
+      setTotalProfit(profit);
+      setTotalStockValue(stockValue);
+      setLowStockProducts(lowProducts);
 
-    console.error(err);
-    setProducts([]);
+    } catch (err) {
 
-  } finally {
+      console.error(err);
+      setProducts([]);
 
-    setLoading(false);
+    } finally {
 
-  }
-};
+      setLoading(false);
 
-/* =============================
-   FETCH TIME PERIOD STATS
-============================= */
+    }
+  };
 
-const fetchStats = async () => {
-  try {
-    const res = await axios.get(`${API_URL}/stats/timePeriods`, authHeader);
-    setStats(res.data);
-  } catch (err) {
-    console.error("Failed to fetch stats:", err);
-  }
-};
+  /* =============================
+     FETCH TIME PERIOD STATS
+  ============================= */
 
-/* =============================
-   LOAD DATA
-============================= */
+  const fetchStats = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/stats/timePeriods`, authHeader);
+      setStats(res.data);
+    } catch (err) {
+      console.error("Failed to fetch stats:", err);
+    }
+  };
 
-useEffect(() => {
-  fetchProducts(selectedDate);
-  fetchStats();
-}, [selectedDate]);
+  /* =============================
+     LOAD DATA
+  ============================= */
 
-/* =============================
-   CHANGE DATE
-============================= */
-
-const changeDate = (days) => {
-
-  const newDate = new Date(selectedDate);
-
-  newDate.setDate(newDate.getDate() + days);
-
-  const formatted = newDate.toISOString().split("T")[0];
-
-  if (formatted > today) return;
-
-  setSelectedDate(formatted);
-
-};
-
-/* =============================
-   ADD DRINK
-============================= */
-
-const handleAdd = async () => {
-
-  const name = prompt("Product name");
-  if (!name) return;
-
-  const initial_price = Number(prompt("Cost price"));
-  const price = Number(prompt("Selling price"));
-  const opening_stock = Number(prompt("Opening stock"));
-
-  try {
-
-    await axios.post(
-      API_URL,
-      {
-        name,
-        initial_price,
-        price,
-        opening_stock,
-        date: selectedDate,
-      },
-      authHeader
-    );
-
+  useEffect(() => {
     fetchProducts(selectedDate);
+    fetchStats();
+  }, [selectedDate]);
+
+  /* =============================
+     CHANGE DATE
+  ============================= */
+
+  const changeDate = (days) => {
+
+    const newDate = new Date(selectedDate);
+
+    newDate.setDate(newDate.getDate() + days);
+
+    const formatted = newDate.toISOString().split("T")[0];
+
+    if (formatted > today) return;
+
+    setSelectedDate(formatted);
+
+  };
+
+  /* =============================
+     ADD DRINK
+  ============================= */
+
+  const handleAdd = async () => {
+
+    const name = prompt("Product name");
+    if (!name) return;
+
+    const initial_price = Number(prompt("Cost price"));
+    const price = Number(prompt("Selling price"));
+    const opening_stock = Number(prompt("Opening stock"));
+
+    try {
+
+      await axios.post(
+        API_URL,
+        {
+          name,
+          initial_price,
+          price,
+          opening_stock,
+          date: selectedDate,
+        },
+        authHeader
+      );
+
+      fetchProducts(selectedDate);
+
+    } catch (err) {
+
+      console.error(err);
+
+    }
+  };
+
+  /* =============================
+     UPDATE STOCK IN
+  ============================= */
+
+  const handleEntreeChange = async (p, value) => {
+    if (p.is_locked && !isAdmin) {
+      alert("This record is locked and cannot be edited by staff.");
+      return;
+    }
+
+    try {
+      await axios.put(
+        `${API_URL}/entree/${p.id}`,
+        {
+          entree: Number(value),
+          date: selectedDate,
+        },
+        authHeader
+      );
+      fetchProducts(selectedDate);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  /* =============================
+     UPDATE SOLD
+  ============================= */
+
+  const handleSoldChange = async (p, value) => {
+    if (p.is_locked && !isAdmin) {
+      alert("This record is locked and cannot be edited by staff.");
+      return;
+    }
+
+    try {
+      await axios.put(
+        `${API_URL}/sold/${p.id}`,
+        {
+          sold: Number(value),
+          date: selectedDate,
+        },
+        authHeader
+      );
+      fetchProducts(selectedDate);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  /* =============================
+     EDIT PRODUCT
+  ============================= */
+
+  const handleEdit = async (p) => {
+    const name = prompt("Edit Drink Name:", p.name) || p.name;
+    const initial_price = prompt("Edit Cost Price:", p.initial_price) || p.initial_price;
+    const price = prompt("Edit Selling Price:", p.price) || p.price;
+    const opening_stock = prompt("Edit Opening Stock:", p.opening_stock) || p.opening_stock;
+
+    try {
+      await axios.put(
+        `${API_URL}/edit/${p.id}`,
+        {
+          name,
+          initial_price: Number(initial_price),
+          price: Number(price),
+          opening_stock: Number(opening_stock),
+          date: selectedDate,
+        },
+        authHeader
+      );
+      fetchProducts(selectedDate);
+    } catch (err) {
+      console.error(err);
+      alert("Error editing product");
+    }
+  };
 
-  } catch (err) {
-
-    console.error(err);
-
-  }
-};
-
-/* =============================
-   UPDATE STOCK IN
-============================= */
-
-const handleEntreeChange = async (id, value) => {
-
-  try {
-
-    await axios.put(
-      `${API_URL}/entree/${id}`,
-      {
-        entree: Number(value),
-        date: selectedDate,
-      },
-      authHeader
-    );
+  /* =============================
+     DELETE PRODUCT
+  ============================= */
 
-    fetchProducts(selectedDate);
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this drink entirely?")) return;
+    try {
+      await axios.delete(`${API_URL}/${id}`, authHeader);
+      fetchProducts(selectedDate);
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting product");
+    }
+  };
 
-  } catch (err) {
+  /* =============================
+     FORMAT NUMBERS
+  ============================= */
 
-    console.error(err);
+  const formatNumber = (v) => Number(v || 0).toLocaleString();
 
-  }
-};
+  /* =============================
+     UI
+  ============================= */
 
-/* =============================
-   UPDATE SOLD
-============================= */
-
-const handleSoldChange = async (id, value) => {
-
-  try {
-
-    await axios.put(
-      `${API_URL}/sold/${id}`,
-      {
-        sold: Number(value),
-        date: selectedDate,
-      },
-      authHeader
-    );
+  return (
 
-    fetchProducts(selectedDate);
+    <div style={{ background: "#F7F9FC", minHeight: "100vh", padding: "25px" }}>
 
-  } catch (err) {
+      {/* DASHBOARD */}
 
-    console.error(err);
+      <div className="row g-4 mb-4">
 
-  }
-};
+        {[
+          { title: "Total Sales", value: totalSales, color: "#2563EB" },
+          { title: "Total Profit", value: totalProfit, color: "#16A34A" },
+          { title: "Stock Value", value: totalStockValue, color: "#0EA5A4" },
+          { title: "Low Stock", value: lowStockProducts.length, color: "#DC2626", click: () => setShowLowStock(!showLowStock) }
+        ].map((card, i) => (
 
-/* =============================
-   EDIT PRODUCT
-============================= */
+          <div key={i} className="col-md-3">
 
-const handleEdit = async (p) => {
-  const name = prompt("Edit Drink Name:", p.name) || p.name;
-  const initial_price = prompt("Edit Cost Price:", p.initial_price) || p.initial_price;
-  const price = prompt("Edit Selling Price:", p.price) || p.price;
-  const opening_stock = prompt("Edit Opening Stock:", p.opening_stock) || p.opening_stock;
+            <div
+              className="card border-0 shadow-lg"
+              style={{
+                borderRadius: "16px",
+                cursor: card.click ? "pointer" : "default"
+              }}
+              onClick={card.click}
+            >
 
-  try {
-    await axios.put(
-      `${API_URL}/edit/${p.id}`,
-      {
-        name,
-        initial_price: Number(initial_price),
-        price: Number(price),
-        opening_stock: Number(opening_stock),
-        date: selectedDate,
-      },
-      authHeader
-    );
-    fetchProducts(selectedDate);
-  } catch (err) {
-    console.error(err);
-    alert("Error editing product");
-  }
-};
+              <div className="card-body text-center">
 
-/* =============================
-   DELETE PRODUCT
-============================= */
+                <p style={{ color: "#6B7280" }}>{card.title}</p>
 
-const handleDelete = async (id) => {
-  if (!window.confirm("Are you sure you want to delete this drink entirely?")) return;
-  try {
-    await axios.delete(`${API_URL}/${id}`, authHeader);
-    fetchProducts(selectedDate);
-  } catch (err) {
-    console.error(err);
-    alert("Error deleting product");
-  }
-};
+                <h2 style={{ color: card.color, fontWeight: "700" }}>
+                  {formatNumber(card.value)}
+                </h2>
 
-/* =============================
-   FORMAT NUMBERS
-============================= */
+              </div>
 
-const formatNumber = (v) => Number(v || 0).toLocaleString();
+            </div>
 
-/* =============================
-   UI
-============================= */
+          </div>
 
-return (
+        ))}
 
-<div style={{ background: "#F7F9FC", minHeight: "100vh", padding: "25px" }}>
+      </div>
 
-{/* DASHBOARD */}
+      {/* TIME PERIOD STATS */}
 
-<div className="row g-4 mb-4">
+      <div className="row g-4 mb-4">
 
-{[
-  { title: "Total Sales", value: totalSales, color: "#2563EB" },
-  { title: "Total Profit", value: totalProfit, color: "#16A34A" },
-  { title: "Stock Value", value: totalStockValue, color: "#0EA5A4" },
-  { title: "Low Stock", value: lowStockProducts.length, color: "#DC2626", click: () => setShowLowStock(!showLowStock) }
-].map((card, i) => (
+        {[
+          { label: "Today", value: stats.day },
+          { label: "This Week", value: stats.week },
+          { label: "This Month", value: stats.month },
+          { label: "This Year", value: stats.year }
+        ].map((stat, i) => (
 
-<div key={i} className="col-md-3">
+          <div key={i} className="col-md-3">
 
-<div
-className="card border-0 shadow-lg"
-style={{
-borderRadius: "16px",
-cursor: card.click ? "pointer" : "default"
-}}
-onClick={card.click}
->
+            <div className="card border-0 shadow-sm" style={{ borderRadius: "12px", background: "#FFFFFF" }}>
 
-<div className="card-body text-center">
+              <div className="card-body text-center">
 
-<p style={{ color: "#6B7280" }}>{card.title}</p>
+                <p style={{ color: "#9CA3AF", fontSize: "12px", fontWeight: "600", textTransform: "uppercase" }}>{stat.label}</p>
 
-<h2 style={{ color: card.color, fontWeight: "700" }}>
-{formatNumber(card.value)}
-</h2>
+                <h3 style={{ color: "#1F2937", fontWeight: "700" }}>
 
-</div>
+                  RWF {formatNumber(stat.value)}
 
-</div>
+                </h3>
 
-</div>
+              </div>
 
-))}
+            </div>
 
-</div>
+          </div>
 
-{/* TIME PERIOD STATS */}
+        ))}
 
-<div className="row g-4 mb-4">
+      </div>
 
-{[
-  { label: "Today", value: stats.day },
-  { label: "This Week", value: stats.week },
-  { label: "This Month", value: stats.month },
-  { label: "This Year", value: stats.year }
-].map((stat, i) => (
+      {/* LOW STOCK */}
 
-<div key={i} className="col-md-3">
+      {showLowStock && (
 
-<div className="card border-0 shadow-sm" style={{ borderRadius: "12px", background: "#FFFFFF" }}>
+        <div className="card shadow-lg mb-4 border-0" style={{ borderRadius: "16px" }}>
 
-<div className="card-body text-center">
+          <div
+            style={{
+              background: "#DC2626",
+              color: "white",
+              padding: "12px",
+              borderRadius: "16px 16px 0 0"
+            }}
+          >
+            Low Stock Drinks
+          </div>
 
-<p style={{ color: "#9CA3AF", fontSize: "12px", fontWeight: "600", textTransform: "uppercase" }}>{stat.label}</p>
+          <table className="table text-center mb-0">
 
-<h3 style={{ color: "#1F2937", fontWeight: "700" }}>
+            <thead style={{ background: "#1A2238", color: "white" }}>
+              <tr>
+                <th>#</th>
+                <th>Drink</th>
+                <th>Remaining</th>
+              </tr>
+            </thead>
 
-RWF {formatNumber(stat.value)}
+            <tbody>
 
-</h3>
+              {lowStockProducts.map((p, i) => (
 
-</div>
+                <tr key={p.id}>
+                  <td>{i + 1}</td>
+                  <td>{p.name}</td>
+                  <td style={{ color: "#DC2626", fontWeight: "600" }}>
+                    {p.closing_stock}
+                  </td>
+                </tr>
 
-</div>
+              ))}
 
-</div>
+            </tbody>
 
-))}
+          </table>
 
-</div>
+        </div>
 
-{/* LOW STOCK */}
+      )}
 
-{showLowStock && (
+      {/* HEADER */}
 
-<div className="card shadow-lg mb-4 border-0" style={{ borderRadius: "16px" }}>
+      <div className="card shadow-lg mb-4 border-0" style={{ borderRadius: "16px" }}>
 
-<div
-style={{
-background: "#DC2626",
-color: "white",
-padding: "12px",
-borderRadius: "16px 16px 0 0"
-}}
->
-Low Stock Drinks
-</div>
+        <div className="card-body d-flex justify-content-between align-items-center">
 
-<table className="table text-center mb-0">
+          <h4 style={{ fontWeight: "700", color: "#1A2238" }}>
+            Bar Management
+          </h4>
 
-<thead style={{ background: "#1A2238", color: "white" }}>
-<tr>
-<th>#</th>
-<th>Drink</th>
-<th>Remaining</th>
-</tr>
-</thead>
+          <div className="d-flex align-items-center gap-2">
 
-<tbody>
+            <button
+              className="btn btn-dark btn-sm"
+              onClick={() => changeDate(-1)}
+            >
+              ◀
+            </button>
 
-{lowStockProducts.map((p, i) => (
+            <strong>{selectedDate}</strong>
 
-<tr key={p.id}>
-<td>{i + 1}</td>
-<td>{p.name}</td>
-<td style={{ color: "#DC2626", fontWeight: "600" }}>
-{p.closing_stock}
-</td>
-</tr>
+            <button
+              className="btn btn-dark btn-sm"
+              disabled={selectedDate === today}
+              onClick={() => changeDate(1)}
+            >
+              ▶
+            </button>
 
-))}
+            {isSuperAdmin && (
+              <button
+                onClick={handleAdd}
+                className="btn shadow ms-3"
+                style={{
+                  background: "#2563EB",
+                  color: "white",
+                  border: "none",
+                  padding: "8px 20px",
+                  borderRadius: "25px",
+                  fontWeight: "600"
+                }}
+              >
+                ➕ Add Drink
+              </button>
+            )}
 
-</tbody>
+          </div>
 
-</table>
+        </div>
 
-</div>
+      </div>
 
-)}
+      {/* TABLE */}
 
-{/* HEADER */}
+      <div className="card shadow-lg border-0" style={{ borderRadius: "16px" }}>
 
-<div className="card shadow-lg mb-4 border-0" style={{ borderRadius: "16px" }}>
+        <div className="table-responsive">
 
-<div className="card-body d-flex justify-content-between align-items-center">
+          <table className="table table-hover text-center align-middle">
 
-<h4 style={{ fontWeight: "700", color: "#1A2238" }}>
-Bar Management
-</h4>
+            <thead style={{ background: "#1A2238", color: "white" }}>
 
-<div className="d-flex align-items-center gap-2">
+              <tr>
+                <th>#</th>
+                <th>Product</th>
+                <th>Cost</th>
+                <th>Price</th>
+                <th>Opening</th>
+                <th>Stock In</th>
+                <th>Total</th>
+                <th>Sold</th>
+                <th>Closing</th>
+                <th>Sales</th>
+                {isSuperAdmin && (
+                <th>Action</th>
+                )}
+              </tr>
 
-<button
-className="btn btn-dark btn-sm"
-onClick={() => changeDate(-1)}
->
-◀
-</button>
+            </thead>
 
-<strong>{selectedDate}</strong>
+            <tbody>
 
-<button
-className="btn btn-dark btn-sm"
-disabled={selectedDate === today}
-onClick={() => changeDate(1)}
->
-▶
-</button>
+              {loading ? (
 
-<button
-onClick={handleAdd}
-className="btn shadow ms-3"
-style={{
-background: "#2563EB",
-color: "white",
-border: "none",
-padding: "8px 20px",
-borderRadius: "25px",
-fontWeight: "600"
-}}
->
-➕ Add Drink
-</button>
+                <tr>
+                  <td colSpan={isSuperAdmin ? 11 : 10}>Loading...</td>
+                </tr>
 
-</div>
+              ) : products.length === 0 ? (
 
-</div>
+                <tr>
+                  <td colSpan={isSuperAdmin ? 11 : 10}>No drinks</td>
+                </tr>
 
-</div>
+              ) : (
 
-{/* TABLE */}
+                products.map((p, i) => {
 
-<div className="card shadow-lg border-0" style={{ borderRadius: "16px" }}>
+                  const opening = Number(p.opening_stock || 0);
+                  const entree = Number(p.entree || 0);
+                  const sold = Number(p.sold || 0);
 
-<div className="table-responsive">
+                  const price = Number(p.price || 0);
+                  const cost = Number(p.initial_price || 0);
 
-<table className="table table-hover text-center align-middle">
+                  const total = opening + entree;
+                  const closing = total - sold;
 
-<thead style={{ background: "#1A2238", color: "white" }}>
+                  const sales = sold * price;
 
-<tr>
-<th>#</th>
-<th>Product</th>
-<th>Cost</th>
-<th>Price</th>
-<th>Opening</th>
-<th>Stock In</th>
-<th>Total</th>
-<th>Sold</th>
-<th>Closing</th>
-<th>Sales</th>
-<th>Action</th>
-</tr>
+                  const isLow = closing < 5;
 
-</thead>
+                  return (
 
-<tbody>
+                    <tr
+                      key={p.id}
+                      style={{
+                        background: isLow ? "#FEE2E2" : "white"
+                      }}
+                    >
 
-{loading ? (
+                      <td>{i + 1}</td>
 
-<tr>
-<td colSpan="10">Loading...</td>
-</tr>
+                      <td style={{ fontWeight: "600" }}>
+                        {p.name}
+                      </td>
 
-) : products.length === 0 ? (
+                      <td>{formatNumber(cost)}</td>
 
-<tr>
-<td colSpan="10">No drinks</td>
-</tr>
+                      <td>{formatNumber(price)}</td>
 
-) : (
+                      <td>{opening}</td>
 
-products.map((p, i) => {
+                      <td>
 
-const opening = Number(p.opening_stock || 0);
-const entree = Number(p.entree || 0);
-const sold = Number(p.sold || 0);
+                        <input
+                          type="number"
+                          className="form-control form-control-sm text-center"
+                          value={entree}
+                          disabled={p.is_locked && !isAdmin}
+                          onChange={(e) =>
+                            handleEntreeChange(p, e.target.value)
+                          }
+                        />
 
-const price = Number(p.price || 0);
-const cost = Number(p.initial_price || 0);
+                      </td>
 
-const total = opening + entree;
-const closing = total - sold;
+                      <td style={{ fontWeight: "600" }}>
+                        {total}
+                      </td>
 
-const sales = sold * price;
+                      <td>
 
-const isLow = closing < 5;
+                        <input
+                          type="number"
+                          className="form-control form-control-sm text-center"
+                          value={sold}
+                          disabled={p.is_locked && !isAdmin}
+                          onChange={(e) =>
+                            handleSoldChange(p, e.target.value)
+                          }
+                        />
 
-return (
+                      </td>
 
-<tr
-key={p.id}
-style={{
-background: isLow ? "#FEE2E2" : "white"
-}}
->
+                      <td className={isLow ? "text-danger fw-bold" : ""}>
+                        {closing}
+                      </td>
 
-<td>{i + 1}</td>
+                      <td style={{ color: "#16A34A", fontWeight: "700" }}>
+                        {formatNumber(sales)}
+                      </td>
 
-<td style={{ fontWeight: "600" }}>
-{p.name}
-</td>
+                      {isSuperAdmin && (
+                        <td>
+                          <button className="btn btn-sm btn-outline-primary me-2 mb-1" onClick={() => handleEdit(p)}>Edit</button>
+                          <button className="btn btn-sm btn-outline-danger mb-1" onClick={() => handleDelete(p.id)}>Delete</button>
+                        </td>
+                      )}
 
-<td>{formatNumber(cost)}</td>
+                    </tr>
 
-<td>{formatNumber(price)}</td>
+                  );
 
-<td>{opening}</td>
+                })
 
-<td>
+              )}
 
-<input
-type="number"
-className="form-control form-control-sm text-center"
-value={entree}
-onChange={(e) =>
-handleEntreeChange(p.id, e.target.value)
-}
-/>
+            </tbody>
 
-</td>
+          </table>
 
-<td style={{ fontWeight: "600" }}>
-{total}
-</td>
+        </div>
 
-<td>
+      </div>
 
-<input
-type="number"
-className="form-control form-control-sm text-center"
-value={sold}
-onChange={(e) =>
-handleSoldChange(p.id, e.target.value)
-}
-/>
+    </div>
 
-</td>
-
-<td className={isLow ? "text-danger fw-bold" : ""}>
-{closing}
-</td>
-
-<td style={{ color: "#16A34A", fontWeight: "700" }}>
-{formatNumber(sales)}
-</td>
-
-<td>
-<button className="btn btn-sm btn-outline-primary me-2 mb-1" onClick={() => handleEdit(p)}>Edit</button>
-<button className="btn btn-sm btn-outline-danger mb-1" onClick={() => handleDelete(p.id)}>Delete</button>
-</td>
-
-</tr>
-
-);
-
-})
-
-)}
-
-</tbody>
-
-</table>
-
-</div>
-
-</div>
-
-</div>
-
-);
+  );
 
 }
 
