@@ -539,7 +539,7 @@ function Bar() {
 
                       <td>{i + 1}</td>
 
-                      <td style={{ fontWeight: "600" }}>
+                      <td style={{ fontWeight: "600", maxWidth: "150px", whiteSpace: "normal", wordBreak: "break-word" }}>
                         {p.name}
                       </td>
 

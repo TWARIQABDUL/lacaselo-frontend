@@ -409,7 +409,7 @@ return(
 <tr key={f.id} style={{background:isLow?"#FEE2E2":"white"}}>
 
 <td>{i+1}</td>
-<td className="fw-semibold">{f.name}</td>
+<td className="fw-semibold" style={{ maxWidth: "200px", whiteSpace: "normal", wordBreak: "break-word" }}>{f.name}</td>
 <td>{formatNumber(cost)}</td>
 <td>{formatNumber(price)}</td>
 <td>{opening}</td>
