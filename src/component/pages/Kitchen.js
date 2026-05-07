@@ -420,7 +420,8 @@ return(
 type="number"
 className="form-control form-control-sm text-center"
 value={entree}
-onChange={(e)=>handleEntreeChange(f.id,e.target.value)}
+onChange={(e) => setFoods(foods.map(food => food.id === f.id ? { ...food, entree: e.target.value } : food))}
+onBlur={(e)=>handleEntreeChange(f.id,e.target.value)}
 style={{borderRadius:"10px"}}
 />
 
@@ -434,7 +435,8 @@ style={{borderRadius:"10px"}}
 type="number"
 className="form-control form-control-sm text-center"
 value={sold}
-onChange={(e)=>handleSoldChange(f.id,e.target.value)}
+onChange={(e) => setFoods(foods.map(food => food.id === f.id ? { ...food, sold: e.target.value } : food))}
+onBlur={(e)=>handleSoldChange(f.id,e.target.value)}
 style={{borderRadius:"10px"}}
 />
 

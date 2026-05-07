@@ -556,7 +556,8 @@ function Bar() {
                           className="form-control form-control-sm text-center"
                           value={entree}
                           disabled={p.is_locked && !isAdmin}
-                          onChange={(e) =>
+                          onChange={(e) => setProducts(products.map(prod => prod.id === p.id ? { ...prod, entree: e.target.value } : prod))}
+                          onBlur={(e) =>
                             handleEntreeChange(p, e.target.value)
                           }
                         />
@@ -574,7 +575,8 @@ function Bar() {
                           className="form-control form-control-sm text-center"
                           value={sold}
                           disabled={p.is_locked && !isAdmin}
-                          onChange={(e) =>
+                          onChange={(e) => setProducts(products.map(prod => prod.id === p.id ? { ...prod, sold: e.target.value } : prod))}
+                          onBlur={(e) =>
                             handleSoldChange(p, e.target.value)
                           }
                         />
