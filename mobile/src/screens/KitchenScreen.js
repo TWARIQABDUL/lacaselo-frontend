@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import apiClient from "../api/apiClient";
 
 const today = new Date().toISOString().split("T")[0];
@@ -30,6 +31,9 @@ export default function KitchenScreen() {
 
   const [addModal, setAddModal] = useState(false);
   const [form, setForm] = useState({ name: "", initial_price: "", price: "", opening_stock: "" });
+
+  const [editModal, setEditModal] = useState(false);
+  const [editForm, setEditForm] = useState(null);
 
   const fetchFoods = async (date) => {
     try {
@@ -102,6 +106,46 @@ export default function KitchenScreen() {
     }
   };
 
+  const handleEditSubmit = async () => {
+    if (!editForm || !editForm.name.trim()) return Alert.alert("Error", "Food name is required");
+    try {
+      await apiClient.put(`/kitchen/edit/${editForm.id}`, {
+        name: editForm.name,
+        initial_price: Number(editForm.initial_price),
+        price: Number(editForm.price),
+        opening_stock: Number(editForm.opening_stock),
+        date: selectedDate,
+      });
+      setEditModal(false);
+      setEditForm(null);
+      fetchFoods(selectedDate);
+    } catch (err) {
+      Alert.alert("Error", "Failed to edit food");
+    }
+  };
+
+  const handleDeletePress = (id) => {
+    Alert.alert(
+      "Delete Food",
+      "Are you sure you want to delete this food entirely?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete", 
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await apiClient.delete(`/kitchen/${id}`);
+              fetchFoods(selectedDate);
+            } catch (err) {
+              Alert.alert("Error", "Failed to delete food");
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const handleEntreeChange = async (id, value) => {
     try {
       await apiClient.put(`/kitchen/entree/${id}`, { entree: Number(value), date: selectedDate });
@@ -142,6 +186,14 @@ export default function KitchenScreen() {
         <FoodInput value={String(sold)} onSubmit={(v) => handleSoldChange(f.id, v)} />
         <Text style={[styles.cell, isLow && styles.textDanger]}>{closing}</Text>
         <Text style={[styles.cell, styles.textGreen]}>{fmt(sales)}</Text>
+        <View style={styles.actionCell}>
+          <TouchableOpacity onPress={() => { setEditForm(f); setEditModal(true); }} style={styles.iconBtn}>
+            <Ionicons name="pencil" size={14} color="#2563EB" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handleDeletePress(f.id)} style={styles.iconBtn}>
+            <Ionicons name="trash" size={14} color="#EF4444" />
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -206,7 +258,7 @@ export default function KitchenScreen() {
       {/* Table */}
       <View style={styles.tableContainer}>
         <View style={styles.tableHeader}>
-          {["#", "Food", "Open", "StockIn", "Total", "Sold", "Close", "Sales"].map((h) => (
+          {["#", "Food", "Open", "StockIn", "Total", "Sold", "Close", "Sales", "Acts"].map((h) => (
             <Text key={h} style={styles.th}>{h}</Text>
           ))}
         </View>
@@ -248,6 +300,41 @@ export default function KitchenScreen() {
               </TouchableOpacity>
               <TouchableOpacity style={styles.confirmBtn} onPress={handleAdd}>
                 <Text style={styles.confirmText}>Add</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal visible={editModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Edit Food</Text>
+            {editForm && [
+              { label: "Food Name", key: "name", keyboard: "default" },
+              { label: "Cost Price", key: "initial_price", keyboard: "numeric" },
+              { label: "Selling Price", key: "price", keyboard: "numeric" },
+              { label: "Opening Stock", key: "opening_stock", keyboard: "numeric" },
+            ].map((field) => (
+              <View key={field.key} style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>{field.label}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={String(editForm[field.key] || "")}
+                  onChangeText={(v) => setEditForm({ ...editForm, [field.key]: v })}
+                  keyboardType={field.keyboard}
+                  placeholderTextColor="#999"
+                  placeholder={field.label}
+                />
+              </View>
+            ))}
+            <View style={styles.modalBtns}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => { setEditModal(false); setEditForm(null); }}>
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.confirmBtn} onPress={handleEditSubmit}>
+                <Text style={styles.confirmText}>Save</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -327,4 +414,6 @@ const styles = StyleSheet.create({
   cancelText: { fontWeight: "700", color: "#374151" },
   confirmBtn: { flex: 1, backgroundColor: "#10B981", borderRadius: 10, padding: 12, alignItems: "center" },
   confirmText: { fontWeight: "700", color: "#fff" },
+  actionCell: { flex: 1, flexDirection: "row", justifyContent: "space-around", alignItems: "center" },
+  iconBtn: { padding: 4 },
 });

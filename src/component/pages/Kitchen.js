@@ -143,26 +143,38 @@ fetchFoods(selectedDate);
 
 };
 
-const handleEntreeChange=async(id,value)=>{
+const handleEntreeChange = async (f, value) => {
+  if (f.is_locked && !isAdmin) {
+    alert("This record is locked and cannot be edited by staff.");
+    return;
+  }
 
-await axios.put(`${API_URL}/entree/${id}`,{
-  entree:Number(value),
-  date:selectedDate
-}, authHeader);
-
-fetchFoods(selectedDate);
-
+  try {
+    await axios.put(`${API_URL}/entree/${f.id}`, {
+      entree: Number(value),
+      date: selectedDate
+    }, authHeader);
+    fetchFoods(selectedDate);
+  } catch (err) {
+    console.error(err);
+  }
 };
 
-const handleSoldChange=async(id,value)=>{
+const handleSoldChange = async (f, value) => {
+  if (f.is_locked && !isAdmin) {
+    alert("This record is locked and cannot be edited by staff.");
+    return;
+  }
 
-await axios.put(`${API_URL}/sold/${id}`,{
-  sold:Number(value),
-  date:selectedDate
-}, authHeader);
-
-fetchFoods(selectedDate);
-
+  try {
+    await axios.put(`${API_URL}/sold/${f.id}`, {
+      sold: Number(value),
+      date: selectedDate
+    }, authHeader);
+    fetchFoods(selectedDate);
+  } catch (err) {
+    console.error(err);
+  }
 };
 
 const handleEdit = async (f) => {
@@ -420,8 +432,9 @@ return(
 type="number"
 className="form-control form-control-sm text-center"
 value={entree}
+disabled={f.is_locked && !isAdmin}
 onChange={(e) => setFoods(foods.map(food => food.id === f.id ? { ...food, entree: e.target.value } : food))}
-onBlur={(e)=>handleEntreeChange(f.id,e.target.value)}
+onBlur={(e)=>handleEntreeChange(f,e.target.value)}
 style={{borderRadius:"10px"}}
 />
 
@@ -435,8 +448,9 @@ style={{borderRadius:"10px"}}
 type="number"
 className="form-control form-control-sm text-center"
 value={sold}
+disabled={f.is_locked && !isAdmin}
 onChange={(e) => setFoods(foods.map(food => food.id === f.id ? { ...food, sold: e.target.value } : food))}
-onBlur={(e)=>handleSoldChange(f.id,e.target.value)}
+onBlur={(e)=>handleSoldChange(f,e.target.value)}
 style={{borderRadius:"10px"}}
 />
 
