@@ -7,7 +7,9 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "icon": "./assets/icon.png",
     "splash": {
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#0B3D2E"
     },
@@ -17,6 +19,7 @@
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0B3D2E"
       },
       "package": "com.lacaselo.app"
@@ -30,8 +33,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "61d81797-1bc9-49b9-a375-7fe3d77e2acc"
+        "projectId": "e8178f31-f38a-4079-9817-b989ecf77898"
       }
-    }
+    },
+    "owner": "fambrizy"
   }
 }
