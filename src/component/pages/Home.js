@@ -17,6 +17,7 @@ function Home() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [showLogin, setShowLogin] = useState(!user);
+  const isAdmin = ["SUPER_ADMIN", "ADMIN"].includes(user?.role);
 
   const [totals, setTotals] = useState({
     drinks: 0,
@@ -108,39 +109,7 @@ function Home() {
 
           {/* SECTION CARDS */}
           <div className="container">
-            <div className="row g-4">
-              {pages.map((page) => (
-                <div key={page.key} className="col-12 col-md-4">
-                  <div
-                    className="card h-100 p-4 text-center border-0"
-                    style={{
-                      cursor: "pointer",
-                      borderRadius: "18px",
-                      background: "#ffffff",
-                      transition: "all 0.3s ease",
-                      boxShadow: "0 8px 20px rgba(0,0,0,0.08)",
-                    }}
-                    onClick={() => navigate(page.route)}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "translateY(-6px)";
-                      e.currentTarget.style.boxShadow =
-                        "0 15px 35px rgba(0,0,0,0.15)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow =
-                        "0 8px 20px rgba(0,0,0,0.08)";
-                    }}
-                  >
-                    <div className="mb-3 text-secondary">{page.icon}</div>
-                    <h5 className="fw-bold text-dark">{page.name}</h5>
-                    <h3 className="fw-bold mt-2 text-dark">
-                      {loading ? "..." : totals[page.key].toLocaleString()} RWF
-                    </h3>
-                  </div>
-                </div>
-              ))}
-            </div>
+            
 
             {/* GRAND TOTAL */}
             <div className="mt-5">
@@ -156,7 +125,7 @@ function Home() {
                   Net Profit (After Expenses)
                 </h3>
                 <h1 className="display-4 fw-bold mt-3 text-dark">
-                  {loading ? "..." : totals.grandTotal.toLocaleString()} RWF
+                  {loading ? "..." : (isAdmin ? totals.grandTotal.toLocaleString() : "XXXXXX")} RWF
                 </h1>
               </div>
             </div>
