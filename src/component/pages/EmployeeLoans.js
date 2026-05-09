@@ -70,6 +70,7 @@ function EmployeeLoans() {
         amount: Number(newLoan.amount),
         reason: newLoan.reason,
         loan_date: newLoan.loan_date,
+        given_by: user?.username || "unknown"
       });
       const updatedLoans = [res.data, ...loans];
       setLoans(updatedLoans);
