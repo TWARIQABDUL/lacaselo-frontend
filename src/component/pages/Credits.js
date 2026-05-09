@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
-import API_BASE_URL from "../../config";
+import api from "../../component/utils/api";
+import { formatCurrency } from "../../component/utils/formatters";
 
 function Employees() {
   const navigate = useNavigate();
@@ -9,22 +9,25 @@ function Employees() {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Totals
   const [totalPayment, setTotalPayment] = useState(0);
   const [totalLoanApp, setTotalLoanApp] = useState(0);
   const [totalRemainingApp, setTotalRemainingApp] = useState(0);
 
-  const API_URL = `${API_BASE_URL}/credits`;
+  // Modal State
+  const [showModal, setShowModal] = useState(false);
+  const [newEmployee, setNewEmployee] = useState({ name: "", payment: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(API_URL);
+      const res = await api.get("/credits");
       setEmployees(res.data);
       recalcTotals(res.data);
     } catch (err) {
       console.error(err);
       setEmployees([]);
-      setTotalPayment(0);
     } finally {
       setLoading(false);
     }
@@ -37,26 +40,33 @@ function Employees() {
     data.forEach((e) => {
       paymentSum += Number(e.payment || 0);
       loanSum += Number(e.total_loan || 0);
-      remainingSum += (Number(e.payment || 0) - Number(e.total_loan || 0));
+      remainingSum += Number(e.total_remaining || 0);
     });
     setTotalPayment(paymentSum);
     setTotalLoanApp(loanSum);
     setTotalRemainingApp(remainingSum);
   };
 
-  const handleAddEmployee = async () => {
-    const name = prompt("Employee Name:");
-    const payment = Number(prompt("Monthly Payment:")) || 0;
-    if (!name || !name.trim()) return alert("Name is required");
+  const handleAddEmployee = async (e) => {
+    e.preventDefault();
+    if (!newEmployee.name.trim()) return alert("Name is required");
 
     try {
-      const res = await axios.post(API_URL, { name, payment });
-      const newEmployees = [res.data, ...employees];
-      setEmployees(newEmployees);
-      recalcTotals(newEmployees);
+      setIsSubmitting(true);
+      const res = await api.post("/credits", {
+        name: newEmployee.name,
+        payment: Number(newEmployee.payment) || 0,
+      });
+      const updatedList = [res.data, ...employees];
+      setEmployees(updatedList);
+      recalcTotals(updatedList);
+      setShowModal(false);
+      setNewEmployee({ name: "", payment: "" });
     } catch (err) {
       console.error(err);
       alert("Error adding employee");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -67,7 +77,7 @@ function Employees() {
   const handleDeleteEmployee = async (id) => {
     if (!window.confirm("Are you sure you want to delete this employee?")) return;
     try {
-      await axios.delete(`${API_URL}/${id}`);
+      await api.delete(`/credits/${id}`);
       const newEmployees = employees.filter((e) => e.id !== id);
       setEmployees(newEmployees);
       recalcTotals(newEmployees);
@@ -77,35 +87,32 @@ function Employees() {
     }
   };
 
-  const formatNumber = (value) => Number(value || 0).toLocaleString();
-
   useEffect(() => {
     fetchEmployees();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
   return (
-    <div className="container mt-4">
-
+    <div className="container mt-4 pb-5">
       {/* ===== HEADER ===== */}
-      <div className="card shadow-lg mb-4 border-0" style={{ borderRadius: "15px" }}>
-        <div className="card-body d-flex justify-content-between align-items-center">
-          <h4 className="fw-bold mb-0" style={{ letterSpacing: "1px", color: "#1C1C1C" }}>Employees</h4>
+      <div className="card shadow-sm mb-4 border-0" style={{ borderRadius: "15px", background: "#fff" }}>
+        <div className="card-body d-flex justify-content-between align-items-center p-4">
+          <div>
+            <h3 className="fw-bold mb-0 text-dark">Employee Management</h3>
+            <p className="text-muted mb-0">Manage employee payroll and loan tracking</p>
+          </div>
           <button 
-            className="btn btn-gradient shadow-sm"
-            onClick={handleAddEmployee}
+            className="btn shadow-sm px-4 py-2"
+            onClick={() => setShowModal(true)}
             style={{
-              background: "linear-gradient(90deg, #0F2027, #203A43, #2C5364)",
+              background: "linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)",
               color: "#fff",
               fontWeight: "600",
-              letterSpacing: "0.5px",
               borderRadius: "10px",
-              padding: "0.5rem 1.2rem",
-              transition: "all 0.3s ease",
+              border: "none"
             }}
-            onMouseEnter={(e) => e.target.style.transform = "scale(1.05)"}
-            onMouseLeave={(e) => e.target.style.transform = "scale(1)"}
           >
+            <i className="bi bi-person-plus-fill me-2"></i>
             + Add Employee
           </button>
         </div>
@@ -114,87 +121,101 @@ function Employees() {
       {/* ===== SUMMARY CARDS ===== */}
       <div className="row g-4 mb-4">
         <div className="col-md-4">
-          <div className="card shadow border-0 rounded-3" style={{ backgroundColor: "#D4AF37", color: "#000" }}>
-            <div className="card-body text-center">
-              <h6 className="text-uppercase fw-semibold">Total Payment</h6>
-              <h4 className="fw-bold">RWF {formatNumber(totalPayment)}</h4>
+          <div className="card shadow-sm border-0 h-100" style={{ borderRadius: "15px", borderLeft: "5px solid #D4AF37" }}>
+            <div className="card-body">
+              <h6 className="text-uppercase text-muted fw-bold small">Total Monthly Payroll</h6>
+              <h3 className="fw-bold mb-0" style={{ color: "#D4AF37" }}>{formatCurrency(totalPayment)}</h3>
             </div>
           </div>
         </div>
 
         <div className="col-md-4">
-          <div className="card shadow border-0 rounded-3" style={{ backgroundColor: "#F28B82", color: "#000" }}>
-            <div className="card-body text-center">
-              <h6 className="text-uppercase fw-semibold">Total Loan</h6>
-              <h4 className="fw-bold text-danger">RWF {formatNumber(totalLoanApp)}</h4>
+          <div className="card shadow-sm border-0 h-100" style={{ borderRadius: "15px", borderLeft: "5px solid #dc3545" }}>
+            <div className="card-body">
+              <h6 className="text-uppercase text-muted fw-bold small">Total Outstanding Loans</h6>
+              <h3 className="fw-bold mb-0 text-danger">{formatCurrency(totalLoanApp)}</h3>
             </div>
           </div>
         </div>
 
         <div className="col-md-4">
-          <div className="card shadow border-0 rounded-3" style={{ backgroundColor: "#0E6251", color: "#fff" }}>
-            <div className="card-body text-center">
-              <h6 className="text-uppercase fw-semibold">Total Remaining</h6>
-              <h4 className="fw-bold">RWF {formatNumber(totalRemainingApp)}</h4>
+          <div className="card shadow-sm border-0 h-100" style={{ borderRadius: "15px", borderLeft: "5px solid #198754" }}>
+            <div className="card-body">
+              <h6 className="text-uppercase text-muted fw-bold small">Total Net Payable</h6>
+              <h3 className="fw-bold mb-0 text-success">{formatCurrency(totalPayment - totalLoanApp)}</h3>
             </div>
           </div>
         </div>
       </div>
 
       {/* ===== EMPLOYEES TABLE ===== */}
-      <div className="card shadow-lg border-0 rounded-4" style={{ overflow: "hidden" }}>
+      <div className="card shadow-sm border-0 rounded-4" style={{ overflow: "hidden" }}>
         <div className="table-responsive">
-          <table className="table table-hover text-center mb-0" style={{ borderCollapse: "separate", borderSpacing: "0 8px" }}>
-            <thead style={{ backgroundColor: "#1C1C1C", color: "#fff", letterSpacing: "0.5px" }}>
+          <table className="table table-hover align-middle mb-0">
+            <thead className="bg-light text-dark">
               <tr>
-                <th>#</th>
-                <th>Name</th>
-                <th>Monthly Payment</th>
-                <th>Total Loan</th>
-                <th>Remaining</th>
-                <th>Action</th>
+                <th className="ps-4 py-3 text-uppercase small fw-bold">Employee</th>
+                <th className="py-3 text-uppercase small fw-bold text-center">Monthly Salary</th>
+                <th className="py-3 text-uppercase small fw-bold text-center">Active Loan</th>
+                <th className="py-3 text-uppercase small fw-bold text-center">Net Balance</th>
+                <th className="pe-4 py-3 text-uppercase small fw-bold text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="5">Loading...</td>
+                  <td colSpan="5" className="text-center py-5">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                  </td>
                 </tr>
               ) : employees.length === 0 ? (
                 <tr>
-                  <td colSpan="5">No employees found</td>
+                  <td colSpan="5" className="text-center py-5 text-muted">
+                    No employees found. Click "+ Add Employee" to start.
+                  </td>
                 </tr>
               ) : (
-                employees.map((e, i) => (
-                  <tr 
-                    key={e.id} 
-                    style={{ backgroundColor: "#F9F9F9", borderRadius: "10px", marginBottom: "8px" }}
-                    className="shadow-sm"
-                  >
-                    <td>{i + 1}</td>
-                    <td>
-                      <span
-                        style={{
-                          color: "#0d6efd",
-                          cursor: "pointer",
-                          fontWeight: "600",
-                          transition: "all 0.2s ease",
-                        }}
-                        onMouseEnter={(ev) => ev.target.style.color = "#203A43"}
-                        onMouseLeave={(ev) => ev.target.style.color = "#0d6efd"}
-                        onClick={() => handleViewEmployee(e.id)}
-                      >
-                        {e.name}
+                employees.map((e) => (
+                  <tr key={e.id} style={{ transition: "all 0.2s ease" }}>
+                    <td className="ps-4">
+                      <div className="d-flex align-items-center">
+                        <div 
+                          className="rounded-circle d-flex align-items-center justify-content-center me-3" 
+                          style={{ width: "40px", height: "40px", background: "#e9ecef", color: "#495057", fontWeight: "bold" }}
+                        >
+                          {e.name.charAt(0).toUpperCase()}
+                        </div>
+                        <span 
+                          className="fw-bold text-primary" 
+                          style={{ cursor: "pointer", fontSize: "1.05rem" }}
+                          onClick={() => handleViewEmployee(e.id)}
+                        >
+                          {e.name}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="text-center fw-semibold text-dark">{formatCurrency(e.payment)}</td>
+                    <td className="text-center">
+                      <span className={`badge rounded-pill ${e.total_loan > 0 ? "bg-danger-subtle text-danger" : "bg-light text-muted"}`} style={{ fontSize: "0.9rem", padding: "8px 12px" }}>
+                        {formatCurrency(e.total_loan)}
                       </span>
                     </td>
-                    <td>RWF {formatNumber(e.payment)}</td>
-                    <td className="text-danger fw-bold">RWF {formatNumber(e.total_loan)}</td>
-                    <td className={(e.payment - e.total_loan) < 0 ? "text-danger fw-bold" : "text-success fw-bold"}>
-                      RWF {formatNumber(e.payment - e.total_loan)}
+                    <td className="text-center fw-bold">
+                      <span className={(e.payment - e.total_loan) < 0 ? "text-danger" : "text-success"}>
+                        {formatCurrency(e.payment - e.total_loan)}
+                      </span>
                     </td>
-                    <td>
+                    <td className="pe-4 text-end">
                       <button 
-                        className="btn btn-sm btn-outline-danger" 
+                        className="btn btn-sm btn-outline-primary me-2 rounded-3 px-3"
+                        onClick={() => handleViewEmployee(e.id)}
+                      >
+                        Details
+                      </button>
+                      <button 
+                        className="btn btn-sm btn-outline-danger rounded-3" 
                         onClick={() => handleDeleteEmployee(e.id)}
                       >
                         Delete
@@ -208,6 +229,59 @@ function Employees() {
         </div>
       </div>
 
+      {/* ===== ADD EMPLOYEE MODAL ===== */}
+      {showModal && (
+        <>
+          <div className="modal fade show d-block" tabIndex="-1" style={{ background: "rgba(0,0,0,0.5)" }}>
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content border-0 shadow-lg" style={{ borderRadius: "20px" }}>
+                <div className="modal-header border-0 pt-4 px-4">
+                  <h5 className="modal-title fw-bold">Add New Employee</h5>
+                  <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+                </div>
+                <form onSubmit={handleAddEmployee}>
+                  <div className="modal-body px-4">
+                    <div className="mb-3">
+                      <label className="form-label small fw-bold text-muted">Full Name</label>
+                      <input 
+                        type="text" 
+                        className="form-control rounded-3 py-2" 
+                        placeholder="Enter employee name"
+                        value={newEmployee.name}
+                        onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label small fw-bold text-muted">Monthly Salary (RWF)</label>
+                      <input 
+                        type="number" 
+                        className="form-control rounded-3 py-2" 
+                        placeholder="e.g. 50000"
+                        value={newEmployee.payment}
+                        onChange={(e) => setNewEmployee({ ...newEmployee, payment: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="modal-footer border-0 pb-4 px-4">
+                    <button type="button" className="btn btn-light rounded-3 px-4" onClick={() => setShowModal(false)}>Cancel</button>
+                    <button 
+                      type="submit" 
+                      className="btn btn-primary rounded-3 px-4"
+                      disabled={isSubmitting}
+                      style={{ background: "#2a5298", border: "none" }}
+                    >
+                      {isSubmitting ? "Saving..." : "Save Employee"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          <div className="modal-backdrop fade show"></div>
+        </>
+      )}
     </div>
   );
 }
