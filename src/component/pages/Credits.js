@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../../component/utils/api";
+import { useAuth } from "../../context/Authcontext";
 import { formatCurrency } from "../../component/utils/formatters";
 
 function Employees() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -18,6 +20,8 @@ function Employees() {
   const [showModal, setShowModal] = useState(false);
   const [newEmployee, setNewEmployee] = useState({ name: "", payment: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const isAdmin = ["SUPER_ADMIN", "ADMIN"].includes(user?.role);
 
   const fetchEmployees = async () => {
     try {
@@ -101,20 +105,22 @@ function Employees() {
             <h3 className="fw-bold mb-0 text-dark">Employee Management</h3>
             <p className="text-muted mb-0">Manage employee payroll and loan tracking</p>
           </div>
-          <button 
-            className="btn shadow-sm px-4 py-2"
-            onClick={() => setShowModal(true)}
-            style={{
-              background: "linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)",
-              color: "#fff",
-              fontWeight: "600",
-              borderRadius: "10px",
-              border: "none"
-            }}
-          >
-            <i className="bi bi-person-plus-fill me-2"></i>
-            + Add Employee
-          </button>
+          {isAdmin && (
+            <button 
+              className="btn shadow-sm px-4 py-2"
+              onClick={() => setShowModal(true)}
+              style={{
+                background: "linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)",
+                color: "#fff",
+                fontWeight: "600",
+                borderRadius: "10px",
+                border: "none"
+              }}
+            >
+              <i className="bi bi-person-plus-fill me-2"></i>
+              + Add Employee
+            </button>
+          )}
         </div>
       </div>
 
@@ -124,7 +130,9 @@ function Employees() {
           <div className="card shadow-sm border-0 h-100" style={{ borderRadius: "15px", borderLeft: "5px solid #D4AF37" }}>
             <div className="card-body">
               <h6 className="text-uppercase text-muted fw-bold small">Total Monthly Payroll</h6>
-              <h3 className="fw-bold mb-0" style={{ color: "#D4AF37" }}>{formatCurrency(totalPayment)}</h3>
+              <h3 className="fw-bold mb-0" style={{ color: "#D4AF37", filter: isAdmin ? "none" : "blur(5px)" }}>
+                {isAdmin ? formatCurrency(totalPayment) : "XXXXXX"}
+              </h3>
             </div>
           </div>
         </div>
@@ -142,7 +150,9 @@ function Employees() {
           <div className="card shadow-sm border-0 h-100" style={{ borderRadius: "15px", borderLeft: "5px solid #198754" }}>
             <div className="card-body">
               <h6 className="text-uppercase text-muted fw-bold small">Total Net Payable</h6>
-              <h3 className="fw-bold mb-0 text-success">{formatCurrency(totalPayment - totalLoanApp)}</h3>
+              <h3 className="fw-bold mb-0 text-success" style={{ filter: isAdmin ? "none" : "blur(5px)" }}>
+                {isAdmin ? formatCurrency(totalPayment - totalLoanApp) : "XXXXXX"}
+              </h3>
             </div>
           </div>
         </div>
@@ -196,15 +206,19 @@ function Employees() {
                         </span>
                       </div>
                     </td>
-                    <td className="text-center fw-semibold text-dark">{formatCurrency(e.payment)}</td>
+                    <td className="text-center fw-semibold text-dark">
+                      <span style={{ filter: isAdmin ? "none" : "blur(5px)" }}>
+                        {isAdmin ? formatCurrency(e.payment) : "XXXXXX"}
+                      </span>
+                    </td>
                     <td className="text-center">
                       <span className={`badge rounded-pill ${e.total_loan > 0 ? "bg-danger-subtle text-danger" : "bg-light text-muted"}`} style={{ fontSize: "0.9rem", padding: "8px 12px" }}>
                         {formatCurrency(e.total_loan)}
                       </span>
                     </td>
                     <td className="text-center fw-bold">
-                      <span className={(e.payment - e.total_loan) < 0 ? "text-danger" : "text-success"}>
-                        {formatCurrency(e.payment - e.total_loan)}
+                      <span className={(e.payment - e.total_loan) < 0 ? "text-danger" : "text-success"} style={{ filter: isAdmin ? "none" : "blur(5px)" }}>
+                        {isAdmin ? formatCurrency(e.payment - e.total_loan) : "XXXXXX"}
                       </span>
                     </td>
                     <td className="pe-4 text-end">
@@ -214,12 +228,14 @@ function Employees() {
                       >
                         Details
                       </button>
-                      <button 
-                        className="btn btn-sm btn-outline-danger rounded-3" 
-                        onClick={() => handleDeleteEmployee(e.id)}
-                      >
-                        Delete
-                      </button>
+                      {isAdmin && (
+                        <button 
+                          className="btn btn-sm btn-outline-danger rounded-3" 
+                          onClick={() => handleDeleteEmployee(e.id)}
+                        >
+                          Delete
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))

@@ -24,6 +24,7 @@ function EmployeeLoans() {
 
   // RBAC: Check if user can add loans
   const canAddLoan = ["BAR_MAN", "CHIEF_KITCHEN", "SUPER_ADMIN"].includes(user?.role);
+  const isAdmin = ["SUPER_ADMIN", "ADMIN"].includes(user?.role);
 
   const fetchLoans = async () => {
     try {
@@ -226,12 +227,14 @@ function EmployeeLoans() {
                       >
                         Repay
                       </button>
-                      <button 
-                        className="btn btn-sm btn-outline-danger rounded-3" 
-                        onClick={() => handleDeleteLoan(l.id)}
-                      >
-                        Delete
-                      </button>
+                      {isAdmin && (
+                        <button 
+                          className="btn btn-sm btn-outline-danger rounded-3" 
+                          onClick={() => handleDeleteLoan(l.id)}
+                        >
+                          Delete
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))
