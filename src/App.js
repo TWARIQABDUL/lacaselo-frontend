@@ -90,7 +90,7 @@ function App() {
         <Route
           path="/billiard"
           element={
-            <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN"]}>
+            <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN", "TOKEN_MAN"]}>
               <Layout>
                 <Billiard />
               </Layout>
