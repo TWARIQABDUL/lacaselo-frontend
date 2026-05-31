@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import API_BASE_URL from "../../config";
+import { useAuth } from "../../context/Authcontext";
 
 function Billiard() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
+
   const today = new Date().toISOString().split("T")[0];
   const [billiards, setBilliards] = useState([]);
   const [selectedDate, setSelectedDate] = useState(today);
   const [loading, setLoading] = useState(false);
+
+  const [tokenPrice, setTokenPrice] = useState(500);
 
   const [totalToken, setTotalToken] = useState(0);
   const [totalCash, setTotalCash] = useState(0);
@@ -42,10 +48,25 @@ function Billiard() {
     }
   };
 
+  const fetchTokenPrice = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/settings`, { params: { key: "token_price" } });
+      if (res.data && res.data.setting_value) {
+        setTokenPrice(Number(res.data.setting_value));
+      }
+    } catch (err) {
+      console.error("Failed to fetch token price:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchTokenPrice();
+  }, []);
+
   useEffect(() => {
     fetchBilliards(selectedDate);
     fetchStats();
-  }, [selectedDate]);
+  }, [selectedDate, tokenPrice]); // re-fetch if tokenPrice changes
 
   // ===== FETCH STATS =====
   const fetchStats = async () => {
@@ -88,19 +109,46 @@ function Billiard() {
       const newData = [res.data, ...billiards];
       setBilliards(newData);
       recalcTotals(newData);
+      fetchStats();
     } catch (err) {
       console.error("Error adding billiard record:", err);
+    }
+  };
+
+  // ===== CHANGE TOKEN PRICE =====
+  const handleChangeTokenPrice = async () => {
+    const newPrice = prompt(`Enter new Token Price (current is ${tokenPrice}):`);
+    if (!newPrice || isNaN(newPrice)) return;
+
+    try {
+      await axios.put(`${API_BASE_URL}/settings`, { 
+        setting_key: "token_price", 
+        setting_value: newPrice 
+      });
+      setTokenPrice(Number(newPrice));
+    } catch (err) {
+      console.error("Error updating token price:", err);
+      alert("Failed to update token price.");
     }
   };
 
   // ===== EDIT FIELDS =====
   const handleChange = (id, field, value) => {
     const numValue = Number(value);
-    const updatedData = billiards.map((b) => (b.id === id ? { ...b, [field]: numValue } : b));
+    const updatedData = billiards.map((b) => {
+      if (b.id === id) {
+        const updated = { ...b, [field]: numValue };
+        updated.total = (Number(updated.token || 0) * tokenPrice) + Number(updated.cash || 0) + Number(updated.cash_momo || 0);
+        return updated;
+      }
+      return b;
+    });
     setBilliards(updatedData);
     recalcTotals(updatedData);
 
-    axios.put(`${API_URL}/${id}`, { [field]: numValue }).catch((err) => console.error(err));
+    axios.put(`${API_URL}/${id}`, { [field]: numValue }).then(() => {
+        fetchStats();
+    }).catch((err) => console.error(err));
   };
 
   const formatNumber = (value) => Number(value || 0).toLocaleString();
@@ -112,7 +160,7 @@ function Billiard() {
     const formatted = newDate.toISOString().split("T")[0];
     if (formatted > today) return;
     setSelectedDate(formatted);
-    fetchBilliards(formatted);
+    // Note: useEffect handles fetching data
   };
 
   return (
@@ -181,8 +229,16 @@ function Billiard() {
       {/* ===== HEADER ===== */}
       <div className="card shadow mb-4">
         <div className="card-body d-flex justify-content-between align-items-center">
-          <h4 className="fw-bold mb-0">Billiard</h4>
-          <div className="d-flex gap-2">
+          <h4 className="fw-bold mb-0">
+            Billiard 
+            <small className="text-muted ms-2" style={{fontSize: "0.5em"}}>(Price: RWF {tokenPrice}/token)</small>
+          </h4>
+          <div className="d-flex gap-2 align-items-center">
+            {isAdmin && (
+              <button className="btn btn-warning btn-sm me-2" onClick={handleChangeTokenPrice}>
+                Set Token Price
+              </button>
+            )}
             <button className="btn btn-outline-dark btn-sm" onClick={() => changeDate(-1)}>◀</button>
             <strong>{selectedDate}</strong>
             <button className="btn btn-outline-dark btn-sm" onClick={() => changeDate(1)} disabled={selectedDate === today}>▶</button>
