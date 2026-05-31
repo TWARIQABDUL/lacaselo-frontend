@@ -12,6 +12,9 @@ function Billiard() {
   const [selectedDate, setSelectedDate] = useState(today);
   const [loading, setLoading] = useState(false);
 
+  const [showModal, setShowModal] = useState(false);
+  const [newToken, setNewToken] = useState("");
+
   const [tokenPrice, setTokenPrice] = useState(500);
 
   const [totalToken, setTotalToken] = useState(0);
@@ -99,10 +102,15 @@ function Billiard() {
   };
 
   // ===== ADD NEW RECORD =====
-  const handleAdd = async () => {
-    const token = Number(prompt("Number of tokens:")) || 0;
-    const cash = Number(prompt("Cash amount:")) || 0;
-    const cash_momo = Number(prompt("Momo amount:")) || 0;
+  const openModal = () => {
+    setNewToken("");
+    setShowModal(true);
+  };
+
+  const submitAddRecord = async () => {
+    const token = Number(newToken) || 0;
+    const cash = 0;
+    const cash_momo = 0;
 
     try {
       const res = await axios.post(API_URL, { date: selectedDate, token, cash, cash_momo });
@@ -110,6 +118,7 @@ function Billiard() {
       setBilliards(newData);
       recalcTotals(newData);
       fetchStats();
+      setShowModal(false);
     } catch (err) {
       console.error("Error adding billiard record:", err);
     }
@@ -167,8 +176,8 @@ function Billiard() {
     <div className="container-fluid mt-4">
 
       {/* ===== SUMMARY CARDS ===== */}
-      <div className="row g-4 mb-4">
-        <div className="col-md-3">
+      <div className="row g-4 mb-4 justify-content-center">
+        <div className="col-md-4">
           <div className="card text-white shadow border-0" style={{ backgroundColor: "#0B3D2E" }}>
             <div className="card-body text-center">
               <h6>Total Tokens</h6>
@@ -177,25 +186,7 @@ function Billiard() {
           </div>
         </div>
 
-        <div className="col-md-3">
-          <div className="card shadow border-0" style={{ backgroundColor: "#D4AF37", color: "#000" }}>
-            <div className="card-body text-center">
-              <h6>Total Cash</h6>
-              <h4>RWF {formatNumber(totalCash)}</h4>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-3">
-          <div className="card text-white shadow border-0" style={{ backgroundColor: "#0E6251" }}>
-            <div className="card-body text-center">
-              <h6>Total Momo</h6>
-              <h4>RWF {formatNumber(totalMomo)}</h4>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-3">
+        <div className="col-md-4">
           <div className="card text-white shadow border-0" style={{ backgroundColor: "#C0392B" }}>
             <div className="card-body text-center">
               <h6>Total Earned</h6>
@@ -242,7 +233,7 @@ function Billiard() {
             <button className="btn btn-outline-dark btn-sm" onClick={() => changeDate(-1)}>◀</button>
             <strong>{selectedDate}</strong>
             <button className="btn btn-outline-dark btn-sm" onClick={() => changeDate(1)} disabled={selectedDate === today}>▶</button>
-            <button className="btn btn-success ms-3" onClick={handleAdd}>+ Add Record</button>
+            <button className="btn btn-success ms-3" onClick={openModal}>+ Add Record</button>
           </div>
         </div>
       </div>
@@ -254,10 +245,8 @@ function Billiard() {
             <thead className="table-dark">
               <tr>
                 <th>#</th>
-                <th>Token</th>
-                <th>Cash</th>
-                <th>Momo</th>
-                <th>Total</th>
+                <th>Tokens</th>
+                <th>Total Earned</th>
               </tr>
             </thead>
             <tbody>
@@ -272,28 +261,13 @@ function Billiard() {
                     <td>
                       <input
                         type="number"
-                        className="form-control form-control-sm"
+                        className="form-control form-control-sm mx-auto"
+                        style={{ maxWidth: "150px", textAlign: "center" }}
                         value={b.token}
                         onChange={(e) => handleChange(b.id, "token", e.target.value)}
                       />
                     </td>
-                    <td>
-                      <input
-                        type="number"
-                        className="form-control form-control-sm"
-                        value={b.cash}
-                        onChange={(e) => handleChange(b.id, "cash", e.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        className="form-control form-control-sm"
-                        value={b.cash_momo}
-                        onChange={(e) => handleChange(b.id, "cash_momo", e.target.value)}
-                      />
-                    </td>
-                    <td>{formatNumber(b.total)}</td>
+                    <td className="align-middle fw-bold">{formatNumber(b.total)}</td>
                   </tr>
                 ))
               )}
@@ -301,6 +275,40 @@ function Billiard() {
           </table>
         </div>
       </div>
+
+      {/* ===== ADD RECORD MODAL ===== */}
+      {showModal && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-dark text-white">
+                <h5 className="modal-title fw-bold">Add Billiard Record</h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowModal(false)}></button>
+              </div>
+              <div className="modal-body p-4">
+                <div className="mb-3">
+                  <label className="form-label fw-semibold text-muted">Number of tokens</label>
+                  <input 
+                    type="number" 
+                    className="form-control form-control-lg" 
+                    value={newToken} 
+                    onChange={(e) => setNewToken(e.target.value)} 
+                    placeholder="Enter total tokens"
+                    autoFocus
+                  />
+                  <div className="mt-2 text-success small">
+                    Estimated Total: RWF {formatNumber((Number(newToken) || 0) * tokenPrice)}
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer border-0 pb-4 pe-4">
+                <button type="button" className="btn btn-light px-4" onClick={() => setShowModal(false)}>Cancel</button>
+                <button type="button" className="btn btn-success px-4 fw-bold" onClick={submitAddRecord}>Save Record</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
