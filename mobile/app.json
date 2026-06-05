@@ -36,6 +36,12 @@
         "projectId": "e8178f31-f38a-4079-9817-b989ecf77898"
       }
     },
-    "owner": "fambrizy"
+    "owner": "fambrizy",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/e8178f31-f38a-4079-9817-b989ecf77898"
+    }
   }
 }
