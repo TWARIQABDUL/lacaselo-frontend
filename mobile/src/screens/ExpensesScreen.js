@@ -49,7 +49,7 @@ export default function ExpensesScreen() {
     try {
       setLoading(true);
       const res = await apiClient.get("/expenses", { params: { date } });
-      const data = res.data || [];
+      const data = res.data?.records ? res.data.records : (Array.isArray(res.data) ? res.data : []);
       setExpenses(data);
       recalcTotals(data);
     } catch (err) {
