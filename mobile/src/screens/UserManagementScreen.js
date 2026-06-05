@@ -148,7 +148,7 @@ export default function UserManagementScreen() {
           <Text style={styles.actionText}>Edit</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDelete(u.userId)}>
-          <Text style={styles.actionText}>Del</Text>
+          <Text style={styles.actionText}>Delete</Text>
         </TouchableOpacity>
       </View>
     </View>
