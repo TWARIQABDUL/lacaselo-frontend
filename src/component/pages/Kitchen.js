@@ -17,6 +17,9 @@ const [totalStockValue,setTotalStockValue]=useState(0);
 const [lowStockFoods,setLowStockFoods]=useState([]);
 const [showLowStock,setShowLowStock]=useState(false);
 
+const [showExpenseModal, setShowExpenseModal] = useState(false);
+const [newExpense, setNewExpense] = useState({ name: "", amount: "" });
+
 const [stats, setStats] = useState({
   day: 0,
   week: 0,
@@ -141,6 +144,25 @@ await axios.post(API_URL,{
 
 fetchFoods(selectedDate);
 
+};
+
+const submitExpense = async () => {
+  if (!newExpense.name || !newExpense.amount) return alert("Name and amount are required");
+  try {
+    await axios.post(`${API_BASE_URL}/expenses`, {
+      date: selectedDate,
+      expense_name: newExpense.name,
+      amount: Number(newExpense.amount),
+      category: "kitchen",
+      is_profit: 0
+    }, authHeader);
+    setShowExpenseModal(false);
+    setNewExpense({ name: "", amount: "" });
+    alert("Expense added successfully!");
+  } catch (err) {
+    console.error(err);
+    alert("Error adding expense");
+  }
 };
 
 const handleEntreeChange = async (f, value) => {
@@ -346,6 +368,14 @@ Low Stock Foods
 
 <button className="btn btn-outline-dark btn-sm" disabled={selectedDate===today} onClick={()=>changeDate(1)}>▶</button>
 
+<button
+  onClick={() => setShowExpenseModal(true)}
+  className="btn btn-outline-danger btn-sm ms-2"
+  style={{ fontWeight: "600", borderRadius: "20px", padding: "6px 15px" }}
+>
+  💸 Add Expense
+</button>
+
 {isSuperAdmin && (
   <button
   className="btn shadow"
@@ -480,6 +510,50 @@ style={{borderRadius:"10px"}}
 </div>
 
 </div>
+
+{/* ===== ADD EXPENSE MODAL ===== */}
+{showExpenseModal && (
+  <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+    <div className="modal-dialog modal-dialog-centered">
+      <div className="modal-content border-0 shadow-lg">
+        <div className="modal-header bg-danger text-white">
+          <h5 className="modal-title fw-bold">Add Kitchen Expense</h5>
+          <button type="button" className="btn-close btn-close-white" onClick={() => setShowExpenseModal(false)}></button>
+        </div>
+        <div className="modal-body p-4 text-start">
+          
+          <div className="mb-3">
+            <label className="form-label fw-semibold text-muted">Expense Name</label>
+            <input 
+              type="text" 
+              className="form-control form-control-lg" 
+              value={newExpense.name} 
+              onChange={(e) => setNewExpense({ ...newExpense, name: e.target.value })} 
+              placeholder="e.g. Buying tomatoes"
+              autoFocus
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label fw-semibold text-muted">Amount (RWF)</label>
+            <input 
+              type="number" 
+              className="form-control form-control-lg" 
+              value={newExpense.amount} 
+              onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })} 
+              placeholder="e.g. 5000"
+            />
+          </div>
+
+        </div>
+        <div className="modal-footer border-0 pb-4 pe-4">
+          <button type="button" className="btn btn-light px-4" onClick={() => setShowExpenseModal(false)}>Cancel</button>
+          <button type="button" className="btn btn-danger px-4 fw-bold" onClick={submitExpense}>Save Expense</button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
 </div>
 
