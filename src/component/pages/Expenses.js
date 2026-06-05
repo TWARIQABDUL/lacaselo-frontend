@@ -8,6 +8,10 @@ function Expenses() {
   const [selectedDate, setSelectedDate] = useState(today);
   const [loading, setLoading] = useState(false);
 
+  // Modal State
+  const [showModal, setShowModal] = useState(false);
+  const [newExpense, setNewExpense] = useState({ name: "", amount: "", category: "unprofitable" });
+
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [totalBar, setTotalBar] = useState(0);
   const [totalKitchen, setTotalKitchen] = useState(0);
@@ -27,7 +31,7 @@ function Expenses() {
     try {
       setLoading(true);
       const res = await axios.get(API_URL, { params: { date } });
-      const data = res.data || [];
+      const data = res.data?.records || [];
       setExpenses(data);
       recalcTotals(data);
     } catch (err) {
@@ -74,18 +78,28 @@ function Expenses() {
   };
 
   // ===== ADD NEW EXPENSE =====
-  const handleAdd = async () => {
-    const name = prompt("Expense Name:");
-    if (!name) return alert("Expense name is required");
+  const openModal = () => {
+    setNewExpense({ name: "", amount: "", category: "unprofitable" });
+    setShowModal(true);
+  };
 
-    const amount = Number(prompt("Amount:")) || 0;
-    const category = prompt("Category (bar/kitchen/unprofitable):") || "unprofitable";
+  const submitAddExpense = async () => {
+    if (!newExpense.name) return alert("Expense name is required");
+
+    const amount = Number(newExpense.amount) || 0;
 
     try {
-      const res = await axios.post(API_URL, { date: selectedDate, expense_name: name, amount, category, is_profit: 0 });
+      const res = await axios.post(API_URL, { 
+        date: selectedDate, 
+        expense_name: newExpense.name, 
+        amount, 
+        category: newExpense.category, 
+        is_profit: 0 
+      });
       const newData = [res.data, ...expenses];
       setExpenses(newData);
       recalcTotals(newData);
+      setShowModal(false);
     } catch (err) {
       console.error("Error adding expense:", err);
     }
@@ -183,7 +197,7 @@ function Expenses() {
             <button className="btn btn-outline-dark btn-sm" onClick={() => changeDate(-1)}>◀</button>
             <strong>{selectedDate}</strong>
             <button className="btn btn-outline-dark btn-sm" onClick={() => changeDate(1)} disabled={selectedDate === today}>▶</button>
-            <button className="btn btn-success ms-3" onClick={handleAdd}>+ Add Expense</button>
+            <button className="btn btn-success ms-3" onClick={openModal}>+ Add Expense</button>
           </div>
         </div>
       </div>
@@ -233,6 +247,63 @@ function Expenses() {
           </table>
         </div>
       </div>
+
+      {/* ===== ADD EXPENSE MODAL ===== */}
+      {showModal && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-dark text-white">
+                <h5 className="modal-title fw-bold">Add New Expense</h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowModal(false)}></button>
+              </div>
+              <div className="modal-body p-4">
+                
+                <div className="mb-3">
+                  <label className="form-label fw-semibold text-muted">Expense Name</label>
+                  <input 
+                    type="text" 
+                    className="form-control form-control-lg" 
+                    value={newExpense.name} 
+                    onChange={(e) => setNewExpense({ ...newExpense, name: e.target.value })} 
+                    placeholder="e.g. Buying water"
+                    autoFocus
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label fw-semibold text-muted">Amount (RWF)</label>
+                  <input 
+                    type="number" 
+                    className="form-control form-control-lg" 
+                    value={newExpense.amount} 
+                    onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })} 
+                    placeholder="e.g. 5000"
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label fw-semibold text-muted">Category</label>
+                  <select 
+                    className="form-select form-select-lg"
+                    value={newExpense.category}
+                    onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
+                  >
+                    <option value="unprofitable">Unprofitable</option>
+                    <option value="bar">Bar</option>
+                    <option value="kitchen">Kitchen</option>
+                  </select>
+                </div>
+
+              </div>
+              <div className="modal-footer border-0 pb-4 pe-4">
+                <button type="button" className="btn btn-light px-4" onClick={() => setShowModal(false)}>Cancel</button>
+                <button type="button" className="btn btn-success px-4 fw-bold" onClick={submitAddExpense}>Save Expense</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
