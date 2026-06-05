@@ -15,6 +15,8 @@ function Expenses() {
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [totalBar, setTotalBar] = useState(0);
   const [totalKitchen, setTotalKitchen] = useState(0);
+  const [totalGuesthouse, setTotalGuesthouse] = useState(0);
+  const [totalBilliard, setTotalBilliard] = useState(0);
   const [totalUnprofitable, setTotalUnprofitable] = useState(0);
 
   const [stats, setStats] = useState({
@@ -40,6 +42,8 @@ function Expenses() {
       setTotalExpenses(0);
       setTotalBar(0);
       setTotalKitchen(0);
+      setTotalGuesthouse(0);
+      setTotalBilliard(0);
       setTotalUnprofitable(0);
     } finally {
       setLoading(false);
@@ -63,17 +67,21 @@ function Expenses() {
 
   // ===== RECALCULATE TOTALS =====
   const recalcTotals = (data) => {
-    let total = 0, bar = 0, kitchen = 0, unprofitable = 0;
+    let total = 0, bar = 0, kitchen = 0, guesthouse = 0, billiard = 0, unprofitable = 0;
     data.forEach((e) => {
       const amount = Number(e.amount || 0);
       total += amount;
       if (e.category === "bar") bar += amount;
       else if (e.category === "kitchen") kitchen += amount;
+      else if (e.category === "guesthouse") guesthouse += amount;
+      else if (e.category === "billiard") billiard += amount;
       else if (e.category === "unprofitable") unprofitable += amount;
     });
     setTotalExpenses(total);
     setTotalBar(bar);
     setTotalKitchen(kitchen);
+    setTotalGuesthouse(guesthouse);
+    setTotalBilliard(billiard);
     setTotalUnprofitable(unprofitable);
   };
 
@@ -131,7 +139,7 @@ function Expenses() {
 
       {/* ===== SUMMARY CARDS ===== */}
       <div className="row g-4 mb-4">
-        <div className="col-md-3">
+        <div className="col-md-4">
           <div className="card text-white shadow border-0" style={{ backgroundColor: "#0B3D2E" }}>
             <div className="card-body text-center">
               <h6>Total Expenses</h6>
@@ -140,7 +148,7 @@ function Expenses() {
           </div>
         </div>
 
-        <div className="col-md-3">
+        <div className="col-md-4">
           <div className="card shadow border-0" style={{ backgroundColor: "#D4AF37", color: "#000" }}>
             <div className="card-body text-center">
               <h6>Bar Expenses</h6>
@@ -149,7 +157,7 @@ function Expenses() {
           </div>
         </div>
 
-        <div className="col-md-3">
+        <div className="col-md-4">
           <div className="card text-white shadow border-0" style={{ backgroundColor: "#0E6251" }}>
             <div className="card-body text-center">
               <h6>Kitchen Expenses</h6>
@@ -158,7 +166,25 @@ function Expenses() {
           </div>
         </div>
 
-        <div className="col-md-3">
+        <div className="col-md-4">
+          <div className="card text-white shadow border-0" style={{ backgroundColor: "#4A235A" }}>
+            <div className="card-body text-center">
+              <h6>Guesthouse Expenses</h6>
+              <h4>RWF {formatNumber(totalGuesthouse)}</h4>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-4">
+          <div className="card text-white shadow border-0" style={{ backgroundColor: "#154360" }}>
+            <div className="card-body text-center">
+              <h6>Billiard Expenses</h6>
+              <h4>RWF {formatNumber(totalBilliard)}</h4>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-4">
           <div className="card text-white shadow border-0" style={{ backgroundColor: "#C0392B" }}>
             <div className="card-body text-center">
               <h6>Unprofitable</h6>
@@ -292,6 +318,8 @@ function Expenses() {
                     <option value="unprofitable">Unprofitable</option>
                     <option value="bar">Bar</option>
                     <option value="kitchen">Kitchen</option>
+                    <option value="guesthouse">Guesthouse</option>
+                    <option value="billiard">Billiard</option>
                   </select>
                 </div>
 
