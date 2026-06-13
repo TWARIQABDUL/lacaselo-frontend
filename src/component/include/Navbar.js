@@ -63,15 +63,26 @@ function Navbar() {
 
             {/* ADMIN ONLY LINK */}
             {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN") && (
-              <li>
-                <Link
-                  to="/users"
-                  className={`world-link ${location.pathname === "/users" ? "active" : ""}`}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Users
-                </Link>
-              </li>
+              <>
+                <li>
+                  <Link
+                    to="/users"
+                    className={`world-link ${location.pathname === "/users" ? "active" : ""}`}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Users
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/activity-logs"
+                    className={`world-link ${location.pathname === "/activity-logs" ? "active" : ""}`}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Activity Logs
+                  </Link>
+                </li>
+              </>
             )}
 
             {/* LOGIN/LOGOUT BUTTON */}
