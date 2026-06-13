@@ -161,7 +161,7 @@ display:flex;
 align-items:center;
 justify-content:space-between;
 
-padding:16px 40px;
+padding:12px 20px;
 }
 
 /* LOGO */
@@ -199,7 +199,7 @@ font-size:18px;
 .world-menu{
 display:flex;
 align-items:center;
-gap:18px;
+gap:8px;
 
 list-style:none;
 margin:0;
@@ -213,7 +213,8 @@ color:#CBD5F5;
 
 text-decoration:none;
 
-padding:9px 18px;
+padding:8px 12px;
+font-size:14px;
 
 border-radius:30px;
 
@@ -292,7 +293,7 @@ transition:.3s;
 
 /* MOBILE */
 
-@media(max-width:991px){
+@media(max-width:1200px){
 
 .menu-toggle{
 display:flex;
