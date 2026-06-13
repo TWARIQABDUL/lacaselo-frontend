@@ -219,6 +219,8 @@ border-radius:30px;
 
 font-weight:500;
 
+white-space: nowrap;
+
 transition:.35s;
 }
 
