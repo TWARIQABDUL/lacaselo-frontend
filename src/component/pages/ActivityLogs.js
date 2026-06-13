@@ -5,12 +5,21 @@ import API_BASE_URL from "../../config";
 function ActivityLogs() {
 
 const [logs, setLogs] = useState([]);
-const [date, setDate] = useState("");
+const today = new Date().toISOString().split("T")[0];
+const [date, setDate] = useState(today);
 const [search, setSearch] = useState("");
 
 useEffect(() => {
   fetchLogs();
 }, [date, search]);
+
+const changeDate = (days) => {
+  const baseDate = date ? new Date(date) : new Date(today);
+  baseDate.setDate(baseDate.getDate() + days);
+  const formatted = baseDate.toISOString().split("T")[0];
+  if (formatted > today) return;
+  setDate(formatted);
+};
 
 const fetchLogs = async () => {
   try {
@@ -53,14 +62,34 @@ return(
 <h3 className="mb-4">System Activity Logs</h3>
 
 <div className="row mb-3 g-2">
-  <div className="col-md-3">
-    <label className="form-label">Filter by Date</label>
-    <input 
-      type="date" 
-      className="form-control" 
-      value={date} 
-      onChange={(e) => setDate(e.target.value)} 
-    />
+  <div className="col-md-4">
+    <label className="form-label d-block">Filter by Date</label>
+    <div className="d-flex align-items-center gap-2 mt-2">
+      <button
+        className="btn btn-dark btn-sm"
+        onClick={() => changeDate(-1)}
+      >
+        ◀
+      </button>
+
+      <strong>{date}</strong>
+
+      <button
+        className="btn btn-dark btn-sm"
+        disabled={date === today}
+        onClick={() => changeDate(1)}
+      >
+        ▶
+      </button>
+      
+      <button 
+        className="btn btn-outline-secondary btn-sm ms-2"
+        onClick={() => setDate("")}
+        style={{display: date ? 'block' : 'none'}}
+      >
+        Clear
+      </button>
+    </div>
   </div>
   <div className="col-md-5">
     <label className="form-label">Search Action / Product</label>
