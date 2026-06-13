@@ -18,6 +18,7 @@ import Expenses from "./component/pages/Expenses";
 import Credits from "./component/pages/Credits";
 import EmployeeLoans from "./component/pages/EmployeeLoans";
 import UserManagement from "./component/pages/UserManagement";
+import ActivityLogs from "./component/pages/ActivityLogs";
 
 // ===== Security =====
 import ProtectedRoute from "./component/auth/ProtectedRoutes.js";
@@ -137,6 +138,17 @@ function App() {
             <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN"]}>
               <Layout>
                 <UserManagement />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/activity-logs"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN"]}>
+              <Layout>
+                <ActivityLogs />
               </Layout>
             </ProtectedRoute>
           }
