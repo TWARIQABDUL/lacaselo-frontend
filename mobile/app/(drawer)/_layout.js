@@ -101,7 +101,7 @@ function CustomDrawerContent(props) {
 }
 
 export default function DrawerLayout() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const role = user?.role || "";
 
   return (
@@ -112,6 +112,11 @@ export default function DrawerLayout() {
         headerTintColor: "#fff",
         headerTitleStyle: { fontWeight: "700" },
         drawerStyle: { backgroundColor: "#0B3D2E", width: 280 },
+        headerRight: () => (
+          <TouchableOpacity onPress={logout} style={{ marginRight: 15, padding: 5 }}>
+            <Ionicons name="log-out-outline" size={24} color="#EF4444" />
+          </TouchableOpacity>
+        ),
       }}
     >
       <Drawer.Screen name="index" options={{ title: "Dashboard" }} />

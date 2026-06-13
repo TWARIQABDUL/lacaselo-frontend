@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import axios from "axios";
+import apiClient from "../api/apiClient";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginScreen() {
@@ -28,10 +28,7 @@ export default function LoginScreen() {
     setError("");
     setLoading(true);
     try {
-      const res = await axios.post(
-        "https://backend-vitq.onrender.com/api/login",
-        { username, password }
-      );
+      const res = await apiClient.post("/login", { username, password });
       if (res.data.token) {
         await login({ token: res.data.token, user: res.data.user });
       }
