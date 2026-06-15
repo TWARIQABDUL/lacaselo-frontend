@@ -9,6 +9,13 @@ function Guesthouse() {
   const [selectedDate, setSelectedDate] = useState(today);
   const [loading, setLoading] = useState(false);
 
+  // Get user role from localStorage
+  const userStr = localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
+  const isAdmin = isSuperAdmin || user?.role === "ADMIN";
+  const isPastDate = selectedDate < today;
+
   const [totalIncome, setTotalIncome] = useState(0);
   const [totalRoomsSold, setTotalRoomsSold] = useState(0);
   const [totalSales, setTotalSales] = useState(0);
@@ -111,6 +118,11 @@ function Guesthouse() {
 
   // ================= UPDATE ROOM =================
   const handleRoomChange = (id, field, value) => {
+    if (!isAdmin && isPastDate) {
+      alert("Past dates cannot be edited.");
+      return;
+    }
+
     const numValue = Number(value);
 
     const updatedRooms = rooms.map((r) =>
@@ -239,47 +251,63 @@ function Guesthouse() {
                     <td>{r.date}</td>
 
                     <td>
-                      <input
-                        type="number"
-                        className="form-control form-control-sm"
-                        value={r.vip || 0}
-                        onChange={(e) =>
-                          handleRoomChange(r.id, "vip", e.target.value)
-                        }
-                      />
+                      {(!isAdmin && isPastDate) ? (
+                        <span className="fw-semibold">{r.vip || 0}</span>
+                      ) : (
+                        <input
+                          type="number"
+                          className="form-control form-control-sm"
+                          value={r.vip || 0}
+                          onChange={(e) =>
+                            handleRoomChange(r.id, "vip", e.target.value)
+                          }
+                        />
+                      )}
                     </td>
 
                     <td>
-                      <input
-                        type="number"
-                        className="form-control form-control-sm"
-                        value={r.normal || 0}
-                        onChange={(e) =>
-                          handleRoomChange(r.id, "normal", e.target.value)
-                        }
-                      />
+                      {(!isAdmin && isPastDate) ? (
+                        <span className="fw-semibold">{r.normal || 0}</span>
+                      ) : (
+                        <input
+                          type="number"
+                          className="form-control form-control-sm"
+                          value={r.normal || 0}
+                          onChange={(e) =>
+                            handleRoomChange(r.id, "normal", e.target.value)
+                          }
+                        />
+                      )}
                     </td>
 
                     <td>
-                      <input
-                        type="number"
-                        className="form-control form-control-sm"
-                        value={r.vip_price || 0}
-                        onChange={(e) =>
-                          handleRoomChange(r.id, "vip_price", e.target.value)
-                        }
-                      />
+                      {(!isAdmin && isPastDate) ? (
+                        <span className="fw-semibold">{r.vip_price || 0}</span>
+                      ) : (
+                        <input
+                          type="number"
+                          className="form-control form-control-sm"
+                          value={r.vip_price || 0}
+                          onChange={(e) =>
+                            handleRoomChange(r.id, "vip_price", e.target.value)
+                          }
+                        />
+                      )}
                     </td>
 
                     <td>
-                      <input
-                        type="number"
-                        className="form-control form-control-sm"
-                        value={r.normal_price || 0}
-                        onChange={(e) =>
-                          handleRoomChange(r.id, "normal_price", e.target.value)
-                        }
-                      />
+                      {(!isAdmin && isPastDate) ? (
+                        <span className="fw-semibold">{r.normal_price || 0}</span>
+                      ) : (
+                        <input
+                          type="number"
+                          className="form-control form-control-sm"
+                          value={r.normal_price || 0}
+                          onChange={(e) =>
+                            handleRoomChange(r.id, "normal_price", e.target.value)
+                          }
+                        />
+                      )}
                     </td>
 
                   </tr>

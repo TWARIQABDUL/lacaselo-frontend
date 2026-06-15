@@ -27,11 +27,11 @@ function Bar() {
     year: 0,
   });
 
-  // Get user role from localStorage
   const userStr = localStorage.getItem("user");
   const user = userStr ? JSON.parse(userStr) : null;
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
   const isAdmin = isSuperAdmin || user?.role === "ADMIN";
+  const isPastDate = selectedDate < today;
 
   const API_URL = `${API_BASE_URL}/bar`;
 
@@ -215,8 +215,8 @@ function Bar() {
   ============================= */
 
   const handleEntreeChange = async (p, value) => {
-    if (p.is_locked && !isAdmin) {
-      alert("This record is locked and cannot be edited by staff.");
+    if (!isAdmin && (isPastDate || p.is_locked)) {
+      alert("This record is locked or from a past date and cannot be edited by staff.");
       return;
     }
 
@@ -240,8 +240,8 @@ function Bar() {
   ============================= */
 
   const handleSoldChange = async (p, value) => {
-    if (p.is_locked && !isAdmin) {
-      alert("This record is locked and cannot be edited by staff.");
+    if (!isAdmin && (isPastDate || p.is_locked)) {
+      alert("This record is locked or from a past date and cannot be edited by staff.");
       return;
     }
 
@@ -585,16 +585,19 @@ function Bar() {
 
                       <td>
 
-                        <input
-                          type="number"
-                          className="form-control form-control-sm text-center"
-                          value={entree}
-                          disabled={p.is_locked && !isAdmin}
-                          onChange={(e) => setProducts(products.map(prod => prod.id === p.id ? { ...prod, entree: e.target.value } : prod))}
-                          onBlur={(e) =>
-                            handleEntreeChange(p, e.target.value)
-                          }
-                        />
+                        {(!isAdmin && (isPastDate || p.is_locked)) ? (
+                          <span className="fw-semibold">{entree}</span>
+                        ) : (
+                          <input
+                            type="number"
+                            className="form-control form-control-sm text-center"
+                            value={entree}
+                            onChange={(e) => setProducts(products.map(prod => prod.id === p.id ? { ...prod, entree: e.target.value } : prod))}
+                            onBlur={(e) =>
+                              handleEntreeChange(p, e.target.value)
+                            }
+                          />
+                        )}
 
                       </td>
 
@@ -604,16 +607,19 @@ function Bar() {
 
                       <td>
 
-                        <input
-                          type="number"
-                          className="form-control form-control-sm text-center"
-                          value={sold}
-                          disabled={p.is_locked && !isAdmin}
-                          onChange={(e) => setProducts(products.map(prod => prod.id === p.id ? { ...prod, sold: e.target.value } : prod))}
-                          onBlur={(e) =>
-                            handleSoldChange(p, e.target.value)
-                          }
-                        />
+                        {(!isAdmin && (isPastDate || p.is_locked)) ? (
+                          <span className="fw-semibold">{sold}</span>
+                        ) : (
+                          <input
+                            type="number"
+                            className="form-control form-control-sm text-center"
+                            value={sold}
+                            onChange={(e) => setProducts(products.map(prod => prod.id === p.id ? { ...prod, sold: e.target.value } : prod))}
+                            onBlur={(e) =>
+                              handleSoldChange(p, e.target.value)
+                            }
+                          />
+                        )}
 
                       </td>
 

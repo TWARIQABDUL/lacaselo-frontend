@@ -9,6 +9,13 @@ function Gym() {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Get user role from localStorage
+  const userStr = localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
+  const isAdmin = isSuperAdmin || user?.role === "ADMIN";
+  const isPastDate = selectedDate < today;
+
   const [totalIncome, setTotalIncome] = useState(0);
   const [totalDaily, setTotalDaily] = useState(0);
   const [totalMonthly, setTotalMonthly] = useState(0);
@@ -103,6 +110,10 @@ function Gym() {
 
   // ===== OPEN MODAL (EDIT) =====
   const handleOpenEdit = (entry) => {
+    if (!isAdmin && isPastDate) {
+      alert("Past dates cannot be edited.");
+      return;
+    }
     setIsEditing(true);
     setCurrentEntry(entry);
     setFormData({
@@ -150,6 +161,10 @@ function Gym() {
 
   // ===== DELETE ENTRY =====
   const handleDelete = async (id) => {
+    if (!isAdmin && isPastDate) {
+      alert("Past dates cannot be deleted.");
+      return;
+    }
     if (!window.confirm("Are you sure you want to delete this entry?")) return;
     try {
       await axios.delete(`${API_URL}/${id}`);

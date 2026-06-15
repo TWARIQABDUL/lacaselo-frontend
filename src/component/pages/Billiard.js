@@ -11,6 +11,7 @@ function Billiard() {
   const [billiards, setBilliards] = useState([]);
   const [selectedDate, setSelectedDate] = useState(today);
   const [loading, setLoading] = useState(false);
+  const isPastDate = selectedDate < today;
 
   const [showModal, setShowModal] = useState(false);
   const [newToken, setNewToken] = useState("");
@@ -143,6 +144,10 @@ function Billiard() {
 
   // ===== EDIT FIELDS =====
   const handleChange = (id, field, value) => {
+    if (!isAdmin && isPastDate) {
+      alert("Past dates cannot be edited.");
+      return;
+    }
     const numValue = Number(value);
     const updatedData = billiards.map((b) => {
       if (b.id === id) {
@@ -259,13 +264,17 @@ function Billiard() {
                   <tr key={b.id}>
                     <td>{i + 1}</td>
                     <td>
-                      <input
-                        type="number"
-                        className="form-control form-control-sm mx-auto"
-                        style={{ maxWidth: "150px", textAlign: "center" }}
-                        value={b.token}
-                        onChange={(e) => handleChange(b.id, "token", e.target.value)}
-                      />
+                      {(!isAdmin && isPastDate) ? (
+                        <span className="fw-semibold">{b.token}</span>
+                      ) : (
+                        <input
+                          type="number"
+                          className="form-control form-control-sm mx-auto"
+                          style={{ maxWidth: "150px", textAlign: "center" }}
+                          value={b.token}
+                          onChange={(e) => handleChange(b.id, "token", e.target.value)}
+                        />
+                      )}
                     </td>
                     <td className="align-middle fw-bold">{formatNumber(b.total)}</td>
                   </tr>

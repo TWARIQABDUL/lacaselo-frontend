@@ -8,6 +8,13 @@ function Expenses() {
   const [selectedDate, setSelectedDate] = useState(today);
   const [loading, setLoading] = useState(false);
 
+  // Get user role from localStorage
+  const userStr = localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
+  const isAdmin = isSuperAdmin || user?.role === "ADMIN";
+  const isPastDate = selectedDate < today;
+
   // Modal State
   const [showModal, setShowModal] = useState(false);
   const [newExpense, setNewExpense] = useState({ name: "", amount: "", category: "unprofitable" });
@@ -115,6 +122,11 @@ function Expenses() {
 
   // ===== EDIT FIELD =====
   const handleChange = (id, field, value) => {
+    if (!isAdmin && isPastDate) {
+      alert("Past dates cannot be edited.");
+      return;
+    }
+
     const updatedData = expenses.map((e) => (e.id === id ? { ...e, [field]: value } : e));
     setExpenses(updatedData);
     recalcTotals(updatedData);
@@ -250,20 +262,28 @@ function Expenses() {
                   <tr key={e.id}>
                     <td>{i + 1}</td>
                     <td>
-                      <input
-                        type="text"
-                        className="form-control form-control-sm"
-                        value={e.expense_name}
-                        onChange={(ev) => handleChange(e.id, "expense_name", ev.target.value)}
-                      />
+                      {(!isAdmin && isPastDate) ? (
+                        <span className="fw-semibold">{e.expense_name}</span>
+                      ) : (
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          value={e.expense_name}
+                          onChange={(ev) => handleChange(e.id, "expense_name", ev.target.value)}
+                        />
+                      )}
                     </td>
                     <td>
-                      <input
-                        type="number"
-                        className="form-control form-control-sm"
-                        value={e.amount}
-                        onChange={(ev) => handleChange(e.id, "amount", ev.target.value)}
-                      />
+                      {(!isAdmin && isPastDate) ? (
+                        <span className="fw-semibold">{e.amount}</span>
+                      ) : (
+                        <input
+                          type="number"
+                          className="form-control form-control-sm"
+                          value={e.amount}
+                          onChange={(ev) => handleChange(e.id, "amount", ev.target.value)}
+                        />
+                      )}
                     </td>
                     <td>{e.category}</td>
                   </tr>

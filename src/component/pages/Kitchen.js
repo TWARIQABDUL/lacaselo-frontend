@@ -35,6 +35,7 @@ const userStr = localStorage.getItem("user");
 const user = userStr ? JSON.parse(userStr) : null;
 const isSuperAdmin = user?.role === "SUPER_ADMIN";
 const isAdmin = isSuperAdmin || user?.role === "ADMIN";
+const isPastDate = selectedDate < today;
 
 const authHeader = {
   headers: {
@@ -166,8 +167,8 @@ const submitExpense = async () => {
 };
 
 const handleEntreeChange = async (f, value) => {
-  if (f.is_locked && !isAdmin) {
-    alert("This record is locked and cannot be edited by staff.");
+  if (!isAdmin && (isPastDate || f.is_locked)) {
+    alert("This record is locked or from a past date and cannot be edited by staff.");
     return;
   }
 
@@ -183,8 +184,8 @@ const handleEntreeChange = async (f, value) => {
 };
 
 const handleSoldChange = async (f, value) => {
-  if (f.is_locked && !isAdmin) {
-    alert("This record is locked and cannot be edited by staff.");
+  if (!isAdmin && (isPastDate || f.is_locked)) {
+    alert("This record is locked or from a past date and cannot be edited by staff.");
     return;
   }
 
@@ -458,15 +459,18 @@ return(
 
 <td>
 
-<input
-type="number"
-className="form-control form-control-sm text-center"
-value={entree}
-disabled={f.is_locked && !isAdmin}
-onChange={(e) => setFoods(foods.map(food => food.id === f.id ? { ...food, entree: e.target.value } : food))}
-onBlur={(e)=>handleEntreeChange(f,e.target.value)}
-style={{borderRadius:"10px"}}
-/>
+{(!isAdmin && (isPastDate || f.is_locked)) ? (
+  <span className="fw-semibold">{entree}</span>
+) : (
+  <input
+  type="number"
+  className="form-control form-control-sm text-center"
+  value={entree}
+  onChange={(e) => setFoods(foods.map(food => food.id === f.id ? { ...food, entree: e.target.value } : food))}
+  onBlur={(e)=>handleEntreeChange(f,e.target.value)}
+  style={{borderRadius:"10px"}}
+  />
+)}
 
 </td>
 
@@ -474,15 +478,18 @@ style={{borderRadius:"10px"}}
 
 <td>
 
-<input
-type="number"
-className="form-control form-control-sm text-center"
-value={sold}
-disabled={f.is_locked && !isAdmin}
-onChange={(e) => setFoods(foods.map(food => food.id === f.id ? { ...food, sold: e.target.value } : food))}
-onBlur={(e)=>handleSoldChange(f,e.target.value)}
-style={{borderRadius:"10px"}}
-/>
+{(!isAdmin && (isPastDate || f.is_locked)) ? (
+  <span className="fw-semibold">{sold}</span>
+) : (
+  <input
+  type="number"
+  className="form-control form-control-sm text-center"
+  value={sold}
+  onChange={(e) => setFoods(foods.map(food => food.id === f.id ? { ...food, sold: e.target.value } : food))}
+  onBlur={(e)=>handleSoldChange(f,e.target.value)}
+  style={{borderRadius:"10px"}}
+  />
+)}
 
 </td>
 
