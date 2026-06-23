@@ -114,7 +114,7 @@ export default function CreditsScreen() {
           keyExtractor={(e) => String(e.id)}
           renderItem={renderEmployee}
           ListEmptyComponent={<Text style={styles.emptyText}>No employees found</Text>}
-          contentContainerStyle={{ paddingBottom: 20 }}
+          contentContainerStyle={{ paddingBottom: 80 }}
         />
       )}
 

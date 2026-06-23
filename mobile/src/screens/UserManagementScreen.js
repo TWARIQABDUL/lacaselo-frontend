@@ -181,7 +181,7 @@ export default function UserManagementScreen() {
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>{editUser ? "Edit User" : "Add New User"}</Text>
             
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Username</Text>
                 <TextInput

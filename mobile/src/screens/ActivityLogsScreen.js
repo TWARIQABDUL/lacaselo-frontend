@@ -119,7 +119,7 @@ export default function ActivityLogsScreen() {
           keyExtractor={(log) => String(log.log_id)}
           renderItem={renderLog}
           ListEmptyComponent={<Text style={styles.emptyText}>No logs found</Text>}
-          contentContainerStyle={{ paddingBottom: 20 }}
+          contentContainerStyle={{ paddingBottom: 80 }}
         />
       )}
     </View>

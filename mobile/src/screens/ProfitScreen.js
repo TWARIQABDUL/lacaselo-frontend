@@ -164,7 +164,7 @@ export default function ProfitScreen() {
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>{editProfit ? "Edit Profit" : "Add Profit"}</Text>
             
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Source</Text>
                 <TextInput

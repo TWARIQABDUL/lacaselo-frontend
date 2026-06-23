@@ -128,7 +128,7 @@ export default function GymScreen() {
   );
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 80 }}>
       {/* Summary Cards */}
       <View style={styles.cardRow}>
         {[

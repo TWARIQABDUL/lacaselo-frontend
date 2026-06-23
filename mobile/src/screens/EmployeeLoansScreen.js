@@ -126,7 +126,7 @@ export default function EmployeeLoansScreen({ employeeId, employeeName }) {
           keyExtractor={(l) => String(l.id)}
           renderItem={renderLoan}
           ListEmptyComponent={<Text style={styles.emptyText}>No loans found</Text>}
-          contentContainerStyle={{ paddingBottom: 20 }}
+          contentContainerStyle={{ paddingBottom: 80 }}
         />
       )}
 
