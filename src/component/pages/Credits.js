@@ -15,6 +15,7 @@ function Employees() {
   const [totalPayment, setTotalPayment] = useState(0);
   const [totalLoanApp, setTotalLoanApp] = useState(0);
   const [totalRemainingApp, setTotalRemainingApp] = useState(0);
+  const [totalPenaltyApp, setTotalPenaltyApp] = useState(0);
 
   // Modal State
   const [showModal, setShowModal] = useState(false);
@@ -41,14 +42,17 @@ function Employees() {
     let paymentSum = 0;
     let loanSum = 0;
     let remainingSum = 0;
+    let penaltySum = 0;
     data.forEach((e) => {
       paymentSum += Number(e.payment || 0);
       loanSum += Number(e.total_loan || 0);
       remainingSum += Number(e.total_remaining || 0);
+      penaltySum += Number(e.total_penalty || 0);
     });
     setTotalPayment(paymentSum);
     setTotalLoanApp(loanSum);
     setTotalRemainingApp(remainingSum);
+    setTotalPenaltyApp(penaltySum);
   };
 
   const handleAddEmployee = async (e) => {
@@ -76,6 +80,10 @@ function Employees() {
 
   const handleViewEmployee = (employeeId) => {
     navigate(`/employees/${employeeId}/loans`);
+  };
+
+  const handleViewPenalties = (employeeId) => {
+    navigate(`/employees/${employeeId}/penalties`);
   };
 
   const handleDeleteEmployee = async (id) => {
@@ -126,10 +134,10 @@ function Employees() {
 
       {/* ===== SUMMARY CARDS ===== */}
       <div className="row g-4 mb-4">
-        <div className="col-md-4">
+        <div className="col-md-3">
           <div className="card shadow-sm border-0 h-100" style={{ borderRadius: "15px", borderLeft: "5px solid #D4AF37" }}>
             <div className="card-body">
-              <h6 className="text-uppercase text-muted fw-bold small">Total Monthly Payroll</h6>
+              <h6 className="text-uppercase text-muted fw-bold small">Total Payroll</h6>
               <h3 className="fw-bold mb-0" style={{ color: "#D4AF37", filter: isAdmin ? "none" : "blur(5px)" }}>
                 {isAdmin ? formatCurrency(totalPayment) : "XXXXXX"}
               </h3>
@@ -137,21 +145,30 @@ function Employees() {
           </div>
         </div>
 
-        <div className="col-md-4">
+        <div className="col-md-3">
           <div className="card shadow-sm border-0 h-100" style={{ borderRadius: "15px", borderLeft: "5px solid #dc3545" }}>
             <div className="card-body">
-              <h6 className="text-uppercase text-muted fw-bold small">Total Outstanding Loans</h6>
+              <h6 className="text-uppercase text-muted fw-bold small">Total Loans</h6>
               <h3 className="fw-bold mb-0 text-danger">{formatCurrency(totalLoanApp)}</h3>
             </div>
           </div>
         </div>
 
-        <div className="col-md-4">
+        <div className="col-md-3">
+          <div className="card shadow-sm border-0 h-100" style={{ borderRadius: "15px", borderLeft: "5px solid #ff9800" }}>
+            <div className="card-body">
+              <h6 className="text-uppercase text-muted fw-bold small">Total Penalties</h6>
+              <h3 className="fw-bold mb-0" style={{ color: "#ff9800" }}>{formatCurrency(totalPenaltyApp)}</h3>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-3">
           <div className="card shadow-sm border-0 h-100" style={{ borderRadius: "15px", borderLeft: "5px solid #198754" }}>
             <div className="card-body">
-              <h6 className="text-uppercase text-muted fw-bold small">Total Net Payable</h6>
+              <h6 className="text-uppercase text-muted fw-bold small">Net Payable</h6>
               <h3 className="fw-bold mb-0 text-success" style={{ filter: isAdmin ? "none" : "blur(5px)" }}>
-                {isAdmin ? formatCurrency(totalPayment - totalLoanApp) : "XXXXXX"}
+                {isAdmin ? formatCurrency(totalPayment - totalLoanApp - totalPenaltyApp) : "XXXXXX"}
               </h3>
             </div>
           </div>
@@ -167,6 +184,7 @@ function Employees() {
                 <th className="ps-4 py-3 text-uppercase small fw-bold">Employee</th>
                 <th className="py-3 text-uppercase small fw-bold text-center">Monthly Salary</th>
                 <th className="py-3 text-uppercase small fw-bold text-center">Active Loan</th>
+                <th className="py-3 text-uppercase small fw-bold text-center">Penalties</th>
                 <th className="py-3 text-uppercase small fw-bold text-center">Net Balance</th>
                 <th className="pe-4 py-3 text-uppercase small fw-bold text-end">Actions</th>
               </tr>
@@ -182,7 +200,7 @@ function Employees() {
                 </tr>
               ) : employees.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="text-center py-5 text-muted">
+                  <td colSpan="6" className="text-center py-5 text-muted">
                     No employees found. Click "+ Add Employee" to start.
                   </td>
                 </tr>
@@ -216,9 +234,14 @@ function Employees() {
                         {formatCurrency(e.total_loan)}
                       </span>
                     </td>
+                    <td className="text-center">
+                      <span className={`badge rounded-pill ${e.total_penalty > 0 ? "bg-warning-subtle text-warning" : "bg-light text-muted"}`} style={{ fontSize: "0.9rem", padding: "8px 12px" }}>
+                        {formatCurrency(e.total_penalty)}
+                      </span>
+                    </td>
                     <td className="text-center fw-bold">
-                      <span className={(e.payment - e.total_loan) < 0 ? "text-danger" : "text-success"} style={{ filter: isAdmin ? "none" : "blur(5px)" }}>
-                        {isAdmin ? formatCurrency(e.payment - e.total_loan) : "XXXXXX"}
+                      <span className={(e.payment - e.total_loan - e.total_penalty) < 0 ? "text-danger" : "text-success"} style={{ filter: isAdmin ? "none" : "blur(5px)" }}>
+                        {isAdmin ? formatCurrency(e.payment - e.total_loan - e.total_penalty) : "XXXXXX"}
                       </span>
                     </td>
                     <td className="pe-4 text-end">
@@ -226,8 +249,16 @@ function Employees() {
                         className="btn btn-sm btn-outline-primary me-2 rounded-3 px-3"
                         onClick={() => handleViewEmployee(e.id)}
                       >
-                        Details
+                        Loans
                       </button>
+                      {isAdmin && (
+                        <button 
+                          className="btn btn-sm btn-outline-warning me-2 rounded-3 px-3"
+                          onClick={() => handleViewPenalties(e.id)}
+                        >
+                          Penalties
+                        </button>
+                      )}
                       {isAdmin && (
                         <button 
                           className="btn btn-sm btn-outline-danger rounded-3" 

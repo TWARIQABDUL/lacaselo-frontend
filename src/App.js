@@ -17,6 +17,7 @@ import Billiard from "./component/pages/Billiard";
 import Expenses from "./component/pages/Expenses";
 import Credits from "./component/pages/Credits";
 import EmployeeLoans from "./component/pages/EmployeeLoans";
+import EmployeePenalties from "./component/pages/EmployeePenalties";
 import UserManagement from "./component/pages/UserManagement";
 import ActivityLogs from "./component/pages/ActivityLogs";
 
@@ -127,6 +128,17 @@ function App() {
             <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN", "MANAGER", "BAR_MAN", "CHIEF_KITCHEN"]}>
               <Layout>
                 <EmployeeLoans />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/employees/:id/penalties"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN"]}>
+              <Layout>
+                <EmployeePenalties />
               </Layout>
             </ProtectedRoute>
           }

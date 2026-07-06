@@ -1,0 +1,213 @@
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import apiClient from "../api/apiClient";
+
+export default function EmployeePenaltiesScreen({ employeeId, employeeName }) {
+  const router = useRouter();
+
+  const [penalties, setPenalties] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [totalPenalty, setTotalPenalty] = useState(0);
+
+  const [addModal, setAddModal] = useState(false);
+  const [form, setForm] = useState({
+    amount: "",
+    reason: "",
+    penalty_date: new Date().toISOString().split("T")[0],
+  });
+
+  const recalcTotals = (data) => {
+    let penaltySum = 0;
+    data.forEach((p) => {
+      penaltySum += Number(p.amount || 0);
+    });
+    setTotalPenalty(penaltySum);
+  };
+
+  const fetchPenalties = async () => {
+    try {
+      setLoading(true);
+      const res = await apiClient.get(`/credits/${employeeId}/penalties`);
+      setPenalties(res.data);
+      recalcTotals(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPenalties();
+  }, [employeeId]);
+
+  const handleAddPenalty = async () => {
+    if (!form.amount || !form.penalty_date) return Alert.alert("Error", "Amount and date are required");
+    try {
+      const res = await apiClient.post(`/credits/${employeeId}/penalties`, {
+        amount: Number(form.amount),
+        reason: form.reason,
+        penalty_date: form.penalty_date,
+      });
+      const newPenalties = [res.data, ...penalties];
+      setPenalties(newPenalties);
+      recalcTotals(newPenalties);
+      setAddModal(false);
+      setForm({ amount: "", reason: "", penalty_date: new Date().toISOString().split("T")[0] });
+    } catch (err) {
+      Alert.alert("Error", "Failed to add penalty");
+    }
+  };
+
+  const fmt = (v) => Number(v || 0).toLocaleString();
+
+  const renderPenalty = ({ item: p, index }) => (
+    <View style={styles.penaltyRow}>
+      <Text style={styles.penaltyIndex}>{index + 1}</Text>
+      <View style={styles.penaltyInfo}>
+        <Text style={styles.penaltyDate}>{p.penalty_date}</Text>
+        <Text style={styles.penaltyReason}>{p.reason || "—"}</Text>
+        <Text style={styles.penaltyGivenBy}>Given by: {p.given_by}</Text>
+      </View>
+      <View style={styles.penaltyAmounts}>
+        <Text style={styles.penaltyAmount}>RWF {fmt(p.amount)}</Text>
+      </View>
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+          <Text style={styles.backText}>← Back</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{employeeName} — Penalties</Text>
+        <TouchableOpacity style={styles.addBtn} onPress={() => setAddModal(true)}>
+          <Text style={styles.addBtnText}>+ Add Penalty</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Summary Cards */}
+      <View style={styles.cardRow}>
+        <View style={[styles.summaryCard, { backgroundColor: "#ff9800" }]}>
+          <Text style={[styles.summaryLabel, { color: "#fff" }]}>Total Penalties</Text>
+          <Text style={[styles.summaryValue, { color: "#fff" }]}>RWF {fmt(totalPenalty)}</Text>
+        </View>
+      </View>
+
+      {/* Penalties List */}
+      {loading ? (
+        <ActivityIndicator color="#ff9800" size="large" style={{ marginTop: 40 }} />
+      ) : (
+        <FlatList
+          data={penalties}
+          keyExtractor={(p) => String(p.id)}
+          renderItem={renderPenalty}
+          ListEmptyComponent={<Text style={styles.emptyText}>No penalties found</Text>}
+          contentContainerStyle={{ paddingBottom: 80 }}
+        />
+      )}
+
+      {/* Add Penalty Modal */}
+      <Modal visible={addModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Issue Penalty</Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Penalty Amount</Text>
+              <TextInput
+                style={styles.input}
+                value={form.amount}
+                onChangeText={(v) => setForm({ ...form, amount: v })}
+                keyboardType="numeric"
+                placeholder="0"
+                placeholderTextColor="#999"
+              />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Reason / Mistake</Text>
+              <TextInput
+                style={styles.input}
+                value={form.reason}
+                onChangeText={(v) => setForm({ ...form, reason: v })}
+                placeholder="Describe the mistake"
+                placeholderTextColor="#999"
+              />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Date (YYYY-MM-DD)</Text>
+              <TextInput
+                style={styles.input}
+                value={form.penalty_date}
+                onChangeText={(v) => setForm({ ...form, penalty_date: v })}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor="#999"
+              />
+            </View>
+            <View style={styles.modalBtns}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => setAddModal(false)}>
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.confirmBtn} onPress={handleAddPenalty}>
+                <Text style={styles.confirmText}>Add Penalty</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#f2f2f2" },
+  header: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    backgroundColor: "#fff", padding: 14, elevation: 3,
+  },
+  backBtn: { padding: 6 },
+  backText: { color: "#ff9800", fontWeight: "700", fontSize: 14 },
+  headerTitle: { fontSize: 15, fontWeight: "700", color: "#1C1C1C", flex: 1, textAlign: "center" },
+  addBtn: { backgroundColor: "#ff9800", borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
+  addBtnText: { color: "#fff", fontWeight: "700", fontSize: 12 },
+  cardRow: { flexDirection: "row", padding: 12, gap: 8 },
+  summaryCard: { flex: 1, borderRadius: 12, padding: 16, alignItems: "center", elevation: 3 },
+  summaryLabel: { fontSize: 12, fontWeight: "600" },
+  summaryValue: { fontSize: 18, fontWeight: "700", marginTop: 6 },
+  penaltyRow: {
+    flexDirection: "row", alignItems: "center", backgroundColor: "#fff",
+    marginHorizontal: 12, marginBottom: 8, borderRadius: 12, padding: 14, elevation: 2,
+  },
+  penaltyIndex: { width: 28, fontSize: 13, color: "#9CA3AF", fontWeight: "600" },
+  penaltyInfo: { flex: 1 },
+  penaltyDate: { fontSize: 14, fontWeight: "700", color: "#1A2238" },
+  penaltyReason: { fontSize: 12, color: "#6B7280", marginTop: 2 },
+  penaltyGivenBy: { fontSize: 10, color: "#9CA3AF", marginTop: 4 },
+  penaltyAmounts: { alignItems: "flex-end" },
+  penaltyAmount: { fontSize: 14, fontWeight: "700", color: "#ff9800" },
+  emptyText: { textAlign: "center", padding: 40, color: "#666" },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 20 },
+  modalCard: { backgroundColor: "#fff", borderRadius: 20, padding: 24 },
+  modalTitle: { fontSize: 18, fontWeight: "700", color: "#1A2238", marginBottom: 16, textAlign: "center" },
+  inputGroup: { marginBottom: 12 },
+  inputLabel: { fontSize: 13, color: "#374151", fontWeight: "600", marginBottom: 4 },
+  input: { borderWidth: 1, borderColor: "#d1d5db", borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, color: "#000", backgroundColor: "#f9fafb" },
+  modalBtns: { flexDirection: "row", gap: 12, marginTop: 8 },
+  cancelBtn: { flex: 1, backgroundColor: "#f3f4f6", borderRadius: 10, padding: 12, alignItems: "center" },
+  cancelText: { fontWeight: "700", color: "#374151" },
+  confirmBtn: { flex: 1, backgroundColor: "#ff9800", borderRadius: 10, padding: 12, alignItems: "center" },
+  confirmText: { fontWeight: "700", color: "#fff" },
+});

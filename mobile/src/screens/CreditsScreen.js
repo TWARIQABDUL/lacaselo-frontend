@@ -19,6 +19,7 @@ export default function CreditsScreen() {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [totalPayment, setTotalPayment] = useState(0);
+  const [totalPenalty, setTotalPenalty] = useState(0);
 
   const [addModal, setAddModal] = useState(false);
   const [form, setForm] = useState({ name: "", payment: "" });
@@ -38,8 +39,13 @@ export default function CreditsScreen() {
 
   const recalcTotals = (data) => {
     let sum = 0;
-    data.forEach((e) => { sum += Number(e.payment || 0); });
+    let penSum = 0;
+    data.forEach((e) => { 
+      sum += Number(e.payment || 0); 
+      penSum += Number(e.total_penalty || 0);
+    });
     setTotalPayment(sum);
+    setTotalPenalty(penSum);
   };
 
   useFocusEffect(useCallback(() => {
@@ -66,17 +72,22 @@ export default function CreditsScreen() {
   const fmt = (v) => Number(v || 0).toLocaleString();
 
   const renderEmployee = ({ item: e, index }) => (
-    <TouchableOpacity
-      style={styles.employeeRow}
-      onPress={() => router.push({ pathname: "/employee/[id]", params: { id: e.id, name: e.name } })}
-    >
+    <View style={styles.employeeRow}>
       <Text style={styles.empIndex}>{index + 1}</Text>
       <View style={styles.empInfo}>
         <Text style={styles.empName}>{e.name}</Text>
-        <Text style={styles.empPayment}>RWF {fmt(e.payment)} / month</Text>
+        <Text style={styles.empPayment}>RWF {fmt(e.payment)} / mo</Text>
+        <Text style={[styles.empPayment, { color: '#ff9800' }]}>Penalties: RWF {fmt(e.total_penalty)}</Text>
       </View>
-      <Text style={styles.empArrow}>›</Text>
-    </TouchableOpacity>
+      <View style={styles.actions}>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => router.push({ pathname: "/employee/[id]", params: { id: e.id, name: e.name } })}>
+          <Text style={styles.actionText}>Loans</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: '#ff9800' }]} onPress={() => router.push({ pathname: "/penalties/[id]", params: { id: e.id, name: e.name } })}>
+          <Text style={styles.actionText}>Penalties</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 
   return (
@@ -88,12 +99,12 @@ export default function CreditsScreen() {
           <Text style={styles.summaryValue}>RWF {fmt(totalPayment)}</Text>
         </View>
         <View style={[styles.summaryCard, { backgroundColor: "#F28B82" }]}>
-          <Text style={styles.summaryLabel}>Total Loan</Text>
-          <Text style={styles.summaryValue}>RWF 0</Text>
+          <Text style={styles.summaryLabel}>Total Penalties</Text>
+          <Text style={styles.summaryValue}>RWF {fmt(totalPenalty)}</Text>
         </View>
         <View style={[styles.summaryCard, { backgroundColor: "#0E6251" }]}>
-          <Text style={[styles.summaryLabel, { color: "#fff" }]}>Remaining</Text>
-          <Text style={[styles.summaryValue, { color: "#fff" }]}>RWF 0</Text>
+          <Text style={[styles.summaryLabel, { color: "#fff" }]}>Net Payable</Text>
+          <Text style={[styles.summaryValue, { color: "#fff" }]}>RWF {fmt(totalPayment - totalPenalty)}</Text>
         </View>
       </View>
 
@@ -180,7 +191,9 @@ const styles = StyleSheet.create({
   empInfo: { flex: 1 },
   empName: { fontSize: 16, fontWeight: "700", color: "#1C1C1C" },
   empPayment: { fontSize: 12, color: "#6B7280", marginTop: 2 },
-  empArrow: { fontSize: 24, color: "#145A32", fontWeight: "300" },
+  actions: { flexDirection: "row", gap: 6 },
+  actionBtn: { backgroundColor: "#145A32", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6 },
+  actionText: { color: "#fff", fontSize: 12, fontWeight: "600" },
   emptyText: { textAlign: "center", padding: 40, color: "#666" },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 20 },
   modalCard: { backgroundColor: "#fff", borderRadius: 20, padding: 24 },
