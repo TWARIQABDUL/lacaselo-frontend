@@ -14,4 +14,18 @@ apiClient.interceptors.request.use(async (config) => {
   return config;
 });
 
+import { router } from "expo-router";
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response && error.response.status === 401) {
+      await AsyncStorage.removeItem("token");
+      await AsyncStorage.removeItem("user");
+      router.replace("/login");
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default apiClient;
