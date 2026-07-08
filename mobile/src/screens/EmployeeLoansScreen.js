@@ -13,9 +13,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import apiClient from "../api/apiClient";
+import { useAuth } from "../context/AuthContext";
 
 export default function EmployeeLoansScreen({ employeeId, employeeName }) {
   const router = useRouter();
+  const { user } = useAuth();
+  const isAdmin = ["SUPER_ADMIN", "ADMIN"].includes(user?.role);
 
   const [loans, setLoans] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -23,6 +26,8 @@ export default function EmployeeLoansScreen({ employeeId, employeeName }) {
   const [totalRemaining, setTotalRemaining] = useState(0);
 
   const [addModal, setAddModal] = useState(false);
+  const [showPayModal, setShowPayModal] = useState(false);
+  const [payment, setPayment] = useState({ amount: "", loanId: null, currentRemaining: 0 });
   const [form, setForm] = useState({
     amount: "",
     reason: "",
@@ -74,6 +79,48 @@ export default function EmployeeLoansScreen({ employeeId, employeeName }) {
     }
   };
 
+  const handleDeleteLoan = async (loanId) => {
+    Alert.alert(
+      "Confirm Delete",
+      "Are you sure you want to delete this loan?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: async () => {
+            try {
+              await apiClient.delete(`/credits/${employeeId}/loans/${loanId}`);
+              const newLoans = loans.filter((l) => l.id !== loanId);
+              setLoans(newLoans);
+              recalcTotals(newLoans);
+            } catch (err) {
+              console.error(err);
+              Alert.alert("Error", "Failed to delete loan");
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handlePayLoan = async () => {
+    const amount = Number(payment.amount);
+    if (!amount || amount <= 0) return Alert.alert("Error", "Invalid amount.");
+    if (amount > payment.currentRemaining) return Alert.alert("Error", "Payment exceeds remaining balance.");
+
+    try {
+      const res = await apiClient.put(`/credits/${employeeId}/loans/${payment.loanId}/pay`, {
+        paymentAmount: amount
+      });
+      const newLoans = loans.map((l) => l.id === payment.loanId ? res.data : l);
+      setLoans(newLoans);
+      recalcTotals(newLoans);
+      setShowPayModal(false);
+      setPayment({ amount: "", loanId: null, currentRemaining: 0 });
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Error", "Failed to process payment");
+    }
+  };
+
   const fmt = (v) => Number(v || 0).toLocaleString();
 
   const renderLoan = ({ item: l, index }) => (
@@ -88,6 +135,24 @@ export default function EmployeeLoansScreen({ employeeId, employeeName }) {
         <Text style={[styles.loanRemaining, { color: Number(l.remaining) >= 0 ? "#16A34A" : "#DC2626" }]}>
           Rem: {fmt(l.remaining)}
         </Text>
+      </View>
+      <View style={styles.actionBtns}>
+        {l.remaining > 0 && (
+          <TouchableOpacity 
+            style={styles.repayBtn} 
+            onPress={() => {
+              setPayment({ amount: String(l.remaining), loanId: l.id, currentRemaining: l.remaining });
+              setShowPayModal(true);
+            }}
+          >
+            <Text style={styles.repayBtnText}>Repay</Text>
+          </TouchableOpacity>
+        )}
+        {isAdmin && (
+          <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDeleteLoan(l.id)}>
+            <Text style={styles.deleteBtnText}>Del</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -177,6 +242,37 @@ export default function EmployeeLoansScreen({ employeeId, employeeName }) {
           </View>
         </View>
       </Modal>
+
+      {/* Pay Modal */}
+      <Modal visible={showPayModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Repay Loan</Text>
+            <Text style={{ textAlign: 'center', marginBottom: 15, color: '#666' }}>
+              Remaining: RWF {fmt(payment.currentRemaining)}
+            </Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Payment Amount</Text>
+              <TextInput
+                style={styles.input}
+                value={payment.amount}
+                onChangeText={(v) => setPayment({ ...payment, amount: v })}
+                keyboardType="numeric"
+                placeholder="0"
+                placeholderTextColor="#999"
+              />
+            </View>
+            <View style={styles.modalBtns}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowPayModal(false)}>
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.confirmBtn, { backgroundColor: '#2a5298' }]} onPress={handlePayLoan}>
+                <Text style={styles.confirmText}>Submit Payment</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -204,9 +300,14 @@ const styles = StyleSheet.create({
   loanInfo: { flex: 1 },
   loanDate: { fontSize: 14, fontWeight: "700", color: "#1A2238" },
   loanReason: { fontSize: 12, color: "#6B7280", marginTop: 2 },
-  loanAmounts: { alignItems: "flex-end" },
+  loanAmounts: { alignItems: "flex-end", marginRight: 10 },
   loanAmount: { fontSize: 14, fontWeight: "700", color: "#DC2626" },
   loanRemaining: { fontSize: 12, fontWeight: "600", marginTop: 2 },
+  actionBtns: { flexDirection: "column", gap: 6, alignItems: "center" },
+  repayBtn: { backgroundColor: "#16A34A", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
+  repayBtnText: { color: "#fff", fontSize: 10, fontWeight: "bold" },
+  deleteBtn: { backgroundColor: "#DC2626", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
+  deleteBtnText: { color: "#fff", fontSize: 10, fontWeight: "bold" },
   emptyText: { textAlign: "center", padding: 40, color: "#666" },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 20 },
   modalCard: { backgroundColor: "#fff", borderRadius: 20, padding: 24 },

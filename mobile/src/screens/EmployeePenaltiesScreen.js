@@ -13,9 +13,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import apiClient from "../api/apiClient";
+import { useAuth } from "../context/AuthContext";
 
 export default function EmployeePenaltiesScreen({ employeeId, employeeName }) {
   const router = useRouter();
+  const { user } = useAuth();
+  const isAdmin = ["SUPER_ADMIN", "ADMIN"].includes(user?.role);
 
   const [penalties, setPenalties] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -71,6 +74,28 @@ export default function EmployeePenaltiesScreen({ employeeId, employeeName }) {
     }
   };
 
+  const handleDeletePenalty = async (penaltyId) => {
+    Alert.alert(
+      "Confirm Delete",
+      "Are you sure you want to delete this penalty? This will remove it from the total deductions.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: async () => {
+            try {
+              await apiClient.delete(`/credits/${employeeId}/penalties/${penaltyId}`);
+              const newPenalties = penalties.filter((p) => p.id !== penaltyId);
+              setPenalties(newPenalties);
+              recalcTotals(newPenalties);
+            } catch (err) {
+              console.error(err);
+              Alert.alert("Error", "Failed to delete penalty");
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const fmt = (v) => Number(v || 0).toLocaleString();
 
   const renderPenalty = ({ item: p, index }) => (
@@ -84,6 +109,11 @@ export default function EmployeePenaltiesScreen({ employeeId, employeeName }) {
       <View style={styles.penaltyAmounts}>
         <Text style={styles.penaltyAmount}>RWF {fmt(p.amount)}</Text>
       </View>
+      {isAdmin && (
+        <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDeletePenalty(p.id)}>
+          <Text style={styles.deleteBtnText}>Del</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 
@@ -196,8 +226,10 @@ const styles = StyleSheet.create({
   penaltyDate: { fontSize: 14, fontWeight: "700", color: "#1A2238" },
   penaltyReason: { fontSize: 12, color: "#6B7280", marginTop: 2 },
   penaltyGivenBy: { fontSize: 10, color: "#9CA3AF", marginTop: 4 },
-  penaltyAmounts: { alignItems: "flex-end" },
+  penaltyAmounts: { alignItems: "flex-end", marginRight: 10 },
   penaltyAmount: { fontSize: 14, fontWeight: "700", color: "#ff9800" },
+  deleteBtn: { backgroundColor: "#DC2626", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
+  deleteBtnText: { color: "#fff", fontSize: 10, fontWeight: "bold" },
   emptyText: { textAlign: "center", padding: 40, color: "#666" },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 20 },
   modalCard: { backgroundColor: "#fff", borderRadius: 20, padding: 24 },
