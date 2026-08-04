@@ -12,6 +12,7 @@ import {
   Alert,
 } from "react-native";
 import apiClient from "../api/apiClient";
+import ClosingCommentModal from "../components/ClosingCommentModal";
 
 const today = new Date().toLocaleDateString("en-CA");
 
@@ -164,6 +165,7 @@ export default function GymScreen() {
           <TouchableOpacity style={styles.arrowBtn} onPress={() => changeDate(1)} disabled={selectedDate === today}>
             <Text style={[styles.arrowText, selectedDate === today && { opacity: 0.4 }]}>▶</Text>
           </TouchableOpacity>
+          <ClosingCommentModal selectedDate={selectedDate} department="gym" />
           <TouchableOpacity style={styles.addBtn} onPress={() => setAddModal(true)}>
             <Text style={styles.addBtnText}>+ Add</Text>
           </TouchableOpacity>

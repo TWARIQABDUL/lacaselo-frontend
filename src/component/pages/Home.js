@@ -32,11 +32,29 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const today = new Date().toISOString().split("T")[0];
+  const [selectedDate, setSelectedDate] = useState(today);
+  const [comments, setComments] = useState([]);
+
   const API_BASE = API_BASE_URL;
 
   useEffect(() => {
     fetchTotals();
-  }, []);
+    fetchComments(selectedDate);
+  }, [selectedDate]);
+
+  const fetchComments = async (date) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${API_BASE_URL}/comments`, {
+        params: { date },
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setComments(res.data);
+    } catch (err) {
+      console.error("Failed to load comments:", err);
+    }
+  };
 
   const fetchTotals = async () => {
     setLoading(true);
@@ -129,6 +147,52 @@ function Home() {
                 </h1>
               </div>
             </div>
+
+            {/* CLOSING COMMENTS */}
+            <div className="mt-5">
+              <div className="d-flex justify-content-between align-items-center mb-4">
+                <h4 className="fw-bold text-dark mb-0"><i className="bi bi-chat-square-text-fill text-primary me-2"></i> Closing Comments</h4>
+                <div className="d-flex align-items-center">
+                  <label className="fw-bold me-2 text-muted">Date:</label>
+                  <input 
+                    type="date" 
+                    className="form-control form-control-sm" 
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    max={today}
+                  />
+                </div>
+              </div>
+
+              {comments.length === 0 ? (
+                <div className="text-center p-4 bg-white rounded shadow-sm">
+                  <p className="text-muted mb-0 fst-italic">No closing comments recorded for this date.</p>
+                </div>
+              ) : (
+                <div className="row g-3">
+                  {comments.map(c => (
+                    <div key={c.id} className="col-md-6 col-lg-4">
+                      <div className="card border-0 shadow-sm h-100" style={{ borderRadius: "15px" }}>
+                        <div className="card-body">
+                          <div className="d-flex justify-content-between align-items-center mb-2">
+                            <span className="badge bg-primary text-uppercase">{c.department}</span>
+                            <small className="text-muted">{new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
+                          </div>
+                          <p className="card-text text-dark mb-3">"{c.comment}"</p>
+                          <div className="d-flex align-items-center mt-auto">
+                            <i className="bi bi-person-circle text-secondary fs-4 me-2"></i>
+                            <div>
+                              <p className="mb-0 fw-bold small text-secondary">{c.username || 'Staff'}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
       )}

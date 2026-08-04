@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import apiClient from "../api/apiClient";
+import ClosingCommentModal from "../components/ClosingCommentModal";
 
 const today = new Date().toISOString().split("T")[0];
 
@@ -249,6 +250,7 @@ export default function KitchenScreen() {
           <TouchableOpacity style={styles.arrowBtn} onPress={() => changeDate(1)} disabled={selectedDate === today}>
             <Text style={[styles.arrowText, selectedDate === today && { opacity: 0.4 }]}>▶</Text>
           </TouchableOpacity>
+          <ClosingCommentModal selectedDate={selectedDate} department="kitchen" />
           <TouchableOpacity style={styles.addBtn} onPress={() => setAddModal(true)}>
             <Text style={styles.addBtnText}>+ Add</Text>
           </TouchableOpacity>

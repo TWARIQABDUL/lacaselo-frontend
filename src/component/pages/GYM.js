@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import API_BASE_URL from "../../config";
+import ClosingComment from "./ClosingComment";
 
 function Gym() {
   const today = new Date().toLocaleDateString("en-CA"); // local YYYY-MM-DD
@@ -241,6 +242,7 @@ function Gym() {
               onClick={() => changeDate(1)}
               disabled={selectedDate === today}
             >▶</button>
+            <ClosingComment selectedDate={selectedDate} department="gym" />
             <button className="btn btn-success ms-3" onClick={handleOpenAdd}>
               + Add Entry
             </button>

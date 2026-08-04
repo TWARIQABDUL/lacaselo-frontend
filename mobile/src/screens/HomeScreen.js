@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  TextInput,
 } from "react-native";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -22,6 +23,14 @@ const SECTIONS = [
 
 export default function HomeScreen() {
   const router = useRouter();
+
+  const today = new Date();
+  const offset = today.getTimezoneOffset() * 60000;
+  const localToday = new Date(today.getTime() - offset).toISOString().split("T")[0];
+
+  const [selectedDate, setSelectedDate] = useState(localToday);
+  const [comments, setComments] = useState([]);
+
   const [totals, setTotals] = useState({ drinks: 0, kitchen: 0, billiard: 0, gym: 0, guesthouse: 0, expenses: 0, grandTotal: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -29,6 +38,19 @@ export default function HomeScreen() {
   useEffect(() => {
     fetchTotals();
   }, []);
+
+  useEffect(() => {
+    fetchComments(selectedDate);
+  }, [selectedDate]);
+
+  const fetchComments = async (date) => {
+    try {
+      const res = await apiClient.get("/comments", { params: { date } });
+      setComments(res.data || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const fetchTotals = async () => {
     setLoading(true);
@@ -86,6 +108,45 @@ export default function HomeScreen() {
           <Text style={styles.totalValue}>{fmt(totals.grandTotal)} RWF</Text>
         )}
       </View>
+
+      {/* COMMENTS SECTION */}
+      <View style={styles.commentsSection}>
+        <View style={styles.commentsHeader}>
+          <Text style={styles.commentsTitle}>Closing Comments</Text>
+          <View style={styles.datePickerWrap}>
+            <TextInput
+              style={styles.dateInput}
+              value={selectedDate}
+              onChangeText={setSelectedDate}
+              placeholder="YYYY-MM-DD"
+            />
+          </View>
+        </View>
+
+        {comments.length === 0 ? (
+          <View style={styles.noCommentsCard}>
+            <Text style={styles.noCommentsText}>No closing comments recorded for this date.</Text>
+          </View>
+        ) : (
+          comments.map((c) => (
+            <View key={c.id} style={styles.commentCard}>
+              <View style={styles.commentHeaderRow}>
+                <View style={styles.deptBadge}>
+                  <Text style={styles.deptBadgeText}>{String(c.department).toUpperCase()}</Text>
+                </View>
+                <Text style={styles.commentTime}>
+                  {new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+              </View>
+              <Text style={styles.commentText}>"{c.comment}"</Text>
+              <View style={styles.commentAuthorRow}>
+                <Ionicons name="person-circle" size={18} color="#6b7280" />
+                <Text style={styles.commentAuthor}>{c.username || 'Staff'}</Text>
+              </View>
+            </View>
+          ))
+        )}
+      </View>
     </ScrollView>
   );
 }
@@ -137,4 +198,19 @@ const styles = StyleSheet.create({
   },
   totalLabel: { fontSize: 16, fontWeight: "700", color: "#1C1C1C", textAlign: "center" },
   totalValue: { fontSize: 32, fontWeight: "700", color: "#145A32", marginTop: 10 },
+  commentsSection: { marginTop: 24 },
+  commentsHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
+  commentsTitle: { fontSize: 18, fontWeight: "700", color: "#1C1C1C" },
+  datePickerWrap: { flexDirection: "row", alignItems: "center" },
+  dateInput: { backgroundColor: "#fff", borderWidth: 1, borderColor: "#ccc", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, fontSize: 14, minWidth: 100, textAlign: "center" },
+  noCommentsCard: { backgroundColor: "#fff", padding: 20, borderRadius: 16, alignItems: "center" },
+  noCommentsText: { color: "#9ca3af", fontStyle: "italic" },
+  commentCard: { backgroundColor: "#fff", borderRadius: 16, padding: 16, marginBottom: 12, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6, elevation: 2 },
+  commentHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
+  deptBadge: { backgroundColor: "#e0e7ff", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  deptBadgeText: { color: "#4338ca", fontSize: 10, fontWeight: "700" },
+  commentTime: { fontSize: 10, color: "#6b7280" },
+  commentText: { fontSize: 14, color: "#374151", marginBottom: 12, lineHeight: 20 },
+  commentAuthorRow: { flexDirection: "row", alignItems: "center" },
+  commentAuthor: { fontSize: 12, fontWeight: "700", color: "#6b7280", marginLeft: 4 },
 });

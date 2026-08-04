@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import API_BASE_URL from "../../config";
+import ClosingComment from "./ClosingComment";
 
 function Guesthouse() {
   const today = new Date().toISOString().split("T")[0];
@@ -191,6 +192,8 @@ function Guesthouse() {
             >
               ▶
             </button>
+
+            <ClosingComment selectedDate={selectedDate} department="guesthouse" />
 
             <button className="btn btn-success ms-3" onClick={handleAdd}>
               + Add Room

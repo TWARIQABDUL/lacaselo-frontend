@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import API_BASE_URL from "../../config";
 import { useAuth } from "../../context/Authcontext";
+import ClosingComment from "./ClosingComment";
 
 function Billiard() {
   const { user } = useAuth();
@@ -238,6 +239,7 @@ function Billiard() {
             <button className="btn btn-outline-dark btn-sm" onClick={() => changeDate(-1)}>◀</button>
             <strong>{selectedDate}</strong>
             <button className="btn btn-outline-dark btn-sm" onClick={() => changeDate(1)} disabled={selectedDate === today}>▶</button>
+            <ClosingComment selectedDate={selectedDate} department="billiard" />
             <button className="btn btn-success ms-3" onClick={openModal}>+ Add Record</button>
           </div>
         </div>
