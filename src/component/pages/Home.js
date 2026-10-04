@@ -4,6 +4,7 @@ import axios from "axios";
 import API_BASE_URL from "../../config";
 import { useAuth } from "../../context/Authcontext";
 import Login from "../login/Login";
+import ClosingsAdmin from "./ClosingsAdmin";
 import {
   FaGlassMartiniAlt,
   FaUtensils,
@@ -192,6 +193,9 @@ function Home() {
                 </div>
               )}
             </div>
+
+            {/* CLOSING MONEY (ADMIN) */}
+            {isAdmin && <ClosingsAdmin selectedDate={selectedDate} />}
 
           </div>
         </div>

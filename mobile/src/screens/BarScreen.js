@@ -14,6 +14,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import apiClient from "../api/apiClient";
 import ClosingCommentModal from "../components/ClosingCommentModal";
+import ClosingSubmitModal from "../components/ClosingSubmitModal";
 
 const today = new Date().toISOString().split("T")[0];
 
@@ -256,6 +257,7 @@ export default function BarScreen() {
             <Text style={[styles.arrowText, selectedDate === today && styles.disabled]}>▶</Text>
           </TouchableOpacity>
           <ClosingCommentModal selectedDate={selectedDate} department="bar" />
+          <ClosingSubmitModal selectedDate={selectedDate} department="bar" systemSales={totalSales} />
           <TouchableOpacity style={styles.addBtn} onPress={() => setAddModal(true)}>
             <Text style={styles.addBtnText}>+ Add</Text>
           </TouchableOpacity>

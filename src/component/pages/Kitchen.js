@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import API_BASE_URL from "../../config";
 import ClosingComment from "./ClosingComment";
+import ClosingSubmit from "./ClosingSubmit";
 
 function Kitchen(){
 
@@ -371,6 +372,7 @@ Low Stock Foods
 <button className="btn btn-outline-dark btn-sm" disabled={selectedDate===today} onClick={()=>changeDate(1)}>▶</button>
 
 <ClosingComment selectedDate={selectedDate} department="kitchen" />
+<ClosingSubmit selectedDate={selectedDate} department="kitchen" systemSales={totalSales} />
 
 <button
   onClick={() => setShowExpenseModal(true)}

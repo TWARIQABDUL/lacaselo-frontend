@@ -11,6 +11,8 @@ import {
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import apiClient from "../api/apiClient";
+import { useAuth } from "../context/AuthContext";
+import ClosingsAdminSection from "../components/ClosingsAdminSection";
 
 const SECTIONS = [
   { name: "Drinks", key: "drinks", route: "/(drawer)/bar", icon: <Ionicons name="wine-outline" size={36} color="#145A32" /> },
@@ -23,6 +25,8 @@ const SECTIONS = [
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { user } = useAuth();
+  const isAdmin = ["SUPER_ADMIN", "ADMIN"].includes(user?.role);
 
   const today = new Date();
   const offset = today.getTimezoneOffset() * 60000;
@@ -147,6 +151,8 @@ export default function HomeScreen() {
           ))
         )}
       </View>
+
+      {isAdmin && <ClosingsAdminSection selectedDate={selectedDate} />}
     </ScrollView>
   );
 }

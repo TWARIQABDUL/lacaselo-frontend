@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import API_BASE_URL from "../../config";
 import ClosingComment from "./ClosingComment";
+import ClosingSubmit from "./ClosingSubmit";
 
 function Bar() {
 
@@ -473,6 +474,7 @@ function Bar() {
             </button>
 
             <ClosingComment selectedDate={selectedDate} department="bar" />
+<ClosingSubmit selectedDate={selectedDate} department="bar" systemSales={totalSales} />
 
             <button
               onClick={() => setShowExpenseModal(true)}
