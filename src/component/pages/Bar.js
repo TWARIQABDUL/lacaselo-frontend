@@ -474,7 +474,7 @@ function Bar() {
             </button>
 
             <ClosingComment selectedDate={selectedDate} department="bar" />
-<ClosingSubmit selectedDate={selectedDate} department="bar" systemSales={totalSales} />
+<ClosingSubmit selectedDate={selectedDate} />
 
             <button
               onClick={() => setShowExpenseModal(true)}

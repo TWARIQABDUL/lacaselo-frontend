@@ -13,7 +13,6 @@ import {
 } from "react-native";
 import apiClient from "../api/apiClient";
 import ClosingCommentModal from "../components/ClosingCommentModal";
-import ClosingSubmitModal from "../components/ClosingSubmitModal";
 
 const today = new Date().toLocaleDateString("en-CA");
 
@@ -167,7 +166,6 @@ export default function GymScreen() {
             <Text style={[styles.arrowText, selectedDate === today && { opacity: 0.4 }]}>▶</Text>
           </TouchableOpacity>
           <ClosingCommentModal selectedDate={selectedDate} department="gym" />
-          <ClosingSubmitModal selectedDate={selectedDate} department="gym" systemSales={totalIncome} />
           <TouchableOpacity style={styles.addBtn} onPress={() => setAddModal(true)}>
             <Text style={styles.addBtnText}>+ Add</Text>
           </TouchableOpacity>

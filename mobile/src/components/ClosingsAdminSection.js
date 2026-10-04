@@ -61,11 +61,11 @@ export default function ClosingsAdminSection({ selectedDate }) {
             <View key={c.id} style={styles.card}>
               <View style={styles.headerRow}>
                 <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{String(c.department).toUpperCase()}</Text>
+                  <Text style={styles.badgeText}>ALL DEPARTMENTS</Text>
                 </View>
                 <Text style={styles.user}>{c.username || "Staff"}</Text>
               </View>
-              <View style={styles.row}><Text style={styles.label}>Stock sold value</Text><Text style={styles.value}>{fmt(c.system_sales)}</Text></View>
+              <View style={styles.row}><Text style={styles.label}>Stock sold value (system)</Text><Text style={styles.value}>{fmt(c.system_sales)}</Text></View>
               <View style={styles.row}><Text style={styles.label}>Money on code</Text><Text style={styles.value}>{fmt(c.momo_amount)}</Text></View>
               <View style={styles.row}><Text style={styles.label}>Money in cash</Text><Text style={styles.value}>{fmt(c.cash_amount)}</Text></View>
               {salesGap !== 0 && (

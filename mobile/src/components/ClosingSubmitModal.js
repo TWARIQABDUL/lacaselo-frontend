@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import apiClient from "../api/apiClient";
+import { useAuth } from "../context/AuthContext";
 
 const fmt = (n) => Number(n || 0).toLocaleString();
 
-export default function ClosingSubmitModal({ selectedDate, department, systemSales = 0 }) {
+export default function ClosingSubmitModal({ selectedDate }) {
+  const { user } = useAuth();
+  const canClose = ["BAR_MAN", "MANAGER"].includes(user?.role);
+
   const [closing, setClosing] = useState(null);
   const [momo, setMomo] = useState("");
   const [cash, setCash] = useState("");
@@ -20,7 +24,7 @@ export default function ClosingSubmitModal({ selectedDate, department, systemSal
   const fetchClosing = async () => {
     try {
       setLoading(true);
-      const res = await apiClient.get("/closings", { params: { date: selectedDate, department } });
+      const res = await apiClient.get("/closings", { params: { date: selectedDate } });
       setClosing(res.data && res.data.length > 0 ? res.data[0] : null);
     } catch (err) {
       console.error("Failed to fetch closing", err);
@@ -35,17 +39,15 @@ export default function ClosingSubmitModal({ selectedDate, department, systemSal
       setCash("");
       fetchClosing();
     }
-  }, [showModal, selectedDate, department]);
+  }, [showModal, selectedDate]);
 
   const submit = async () => {
     try {
       setSaving(true);
       await apiClient.post("/closings", {
         date: selectedDate,
-        department,
         momo_amount: Number(momo),
         cash_amount: Number(cash),
-        system_sales: Number(systemSales || 0),
       });
       Alert.alert("Success", "Closing submitted successfully!");
       await fetchClosing();
@@ -71,6 +73,8 @@ export default function ClosingSubmitModal({ selectedDate, department, systemSal
 
   const canSubmit = !closing && !isPastDate;
 
+  if (!canClose) return null;
+
   return (
     <>
       <TouchableOpacity style={styles.openBtn} onPress={() => setShowModal(true)}>
@@ -85,11 +89,7 @@ export default function ClosingSubmitModal({ selectedDate, department, systemSal
               <ActivityIndicator color="#16a34a" size="large" style={{ marginVertical: 20 }} />
             ) : (
               <>
-                <Text style={styles.dateLabel}>Date: {selectedDate}</Text>
-                <View style={styles.row}>
-                  <Text style={styles.rowLabel}>Sold value (system)</Text>
-                  <Text style={styles.rowValue}>{fmt(closing ? closing.system_sales : systemSales)}</Text>
-                </View>
+                <Text style={styles.dateLabel}>Date: {selectedDate} · All departments combined</Text>
 
                 {closing ? (
                   <>

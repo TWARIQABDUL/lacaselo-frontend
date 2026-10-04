@@ -79,10 +79,10 @@ function ClosingsAdmin({ selectedDate }) {
                 <div className="card border-0 shadow-sm h-100" style={{ borderRadius: "15px" }}>
                   <div className="card-body">
                     <div className="d-flex justify-content-between align-items-center mb-3">
-                      <span className="badge bg-success text-uppercase">{c.department}</span>
+                      <span className="badge bg-success text-uppercase">All departments</span>
                       <small className="text-muted">{c.username || "Staff"}</small>
                     </div>
-                    <div className="d-flex justify-content-between"><span className="text-muted">Stock sold value</span><strong>{fmt(c.system_sales)}</strong></div>
+                    <div className="d-flex justify-content-between"><span className="text-muted">Stock sold value (system)</span><strong>{fmt(c.system_sales)}</strong></div>
                     <div className="d-flex justify-content-between"><span className="text-muted">Money on code</span><strong>{fmt(c.momo_amount)}</strong></div>
                     <div className="d-flex justify-content-between mb-2"><span className="text-muted">Money in cash</span><strong>{fmt(c.cash_amount)}</strong></div>
                     {salesGap !== 0 && (

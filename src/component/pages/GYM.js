@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import API_BASE_URL from "../../config";
 import ClosingComment from "./ClosingComment";
-import ClosingSubmit from "./ClosingSubmit";
 
 function Gym() {
   const today = new Date().toLocaleDateString("en-CA"); // local YYYY-MM-DD
@@ -244,7 +243,6 @@ function Gym() {
               disabled={selectedDate === today}
             >▶</button>
             <ClosingComment selectedDate={selectedDate} department="gym" />
-<ClosingSubmit selectedDate={selectedDate} department="gym" systemSales={totalIncome} />
             <button className="btn btn-success ms-3" onClick={handleOpenAdd}>
               + Add Entry
             </button>

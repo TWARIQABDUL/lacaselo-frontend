@@ -4,7 +4,11 @@ import API_BASE_URL from "../../config";
 
 const fmt = (n) => Number(n || 0).toLocaleString();
 
-function ClosingSubmit({ selectedDate, department, systemSales = 0 }) {
+function ClosingSubmit({ selectedDate }) {
+  const userStr = localStorage.getItem("user");
+  const role = userStr ? JSON.parse(userStr)?.role : null;
+  const canClose = ["BAR_MAN", "MANAGER"].includes(role);
+
   const [closing, setClosing] = useState(null);
   const [momo, setMomo] = useState("");
   const [cash, setCash] = useState("");
@@ -20,7 +24,7 @@ function ClosingSubmit({ selectedDate, department, systemSales = 0 }) {
       setLoading(true);
       const token = localStorage.getItem("token");
       const res = await axios.get(`${API_BASE_URL}/closings`, {
-        params: { date: selectedDate, department },
+        params: { date: selectedDate },
         headers: { Authorization: `Bearer ${token}` },
       });
       setClosing(res.data && res.data.length > 0 ? res.data[0] : null);
@@ -37,7 +41,7 @@ function ClosingSubmit({ selectedDate, department, systemSales = 0 }) {
       setCash("");
       fetchClosing();
     }
-  }, [showModal, selectedDate, department]);
+  }, [showModal, selectedDate]);
 
   const handleSave = async () => {
     if (momo === "" || cash === "" || Number(momo) < 0 || Number(cash) < 0) {
@@ -52,10 +56,8 @@ function ClosingSubmit({ selectedDate, department, systemSales = 0 }) {
         `${API_BASE_URL}/closings`,
         {
           date: selectedDate,
-          department,
           momo_amount: Number(momo),
           cash_amount: Number(cash),
-          system_sales: Number(systemSales || 0),
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -71,6 +73,8 @@ function ClosingSubmit({ selectedDate, department, systemSales = 0 }) {
   };
 
   const canSubmit = !closing && !isPastDate;
+
+  if (!canClose) return null;
 
   return (
     <>
@@ -96,12 +100,8 @@ function ClosingSubmit({ selectedDate, department, systemSales = 0 }) {
                 ) : (
                   <>
                     <p className="text-muted small mb-3">
-                      Date: {selectedDate} · {department}
+                      Date: {selectedDate} · All departments combined
                     </p>
-                    <div className="d-flex justify-content-between mb-3">
-                      <span className="text-muted">Sold value (system)</span>
-                      <strong>{fmt(closing ? closing.system_sales : systemSales)}</strong>
-                    </div>
 
                     {closing ? (
                       <>

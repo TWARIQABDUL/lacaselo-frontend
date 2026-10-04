@@ -13,7 +13,6 @@ import {
 } from "react-native";
 import apiClient from "../api/apiClient";
 import ClosingCommentModal from "../components/ClosingCommentModal";
-import ClosingSubmitModal from "../components/ClosingSubmitModal";
 
 const today = new Date().toISOString().split("T")[0];
 
@@ -157,7 +156,6 @@ export default function GuestHouseScreen() {
             <Text style={[styles.arrowText, selectedDate === today && { opacity: 0.4 }]}>▶</Text>
           </TouchableOpacity>
           <ClosingCommentModal selectedDate={selectedDate} department="guesthouse" />
-          <ClosingSubmitModal selectedDate={selectedDate} department="guesthouse" systemSales={totalIncome} />
           <TouchableOpacity style={styles.addBtn} onPress={() => setAddModal(true)}>
             <Text style={styles.addBtnText}>+ Add</Text>
           </TouchableOpacity>

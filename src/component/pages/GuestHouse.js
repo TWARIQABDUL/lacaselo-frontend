@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import API_BASE_URL from "../../config";
 import ClosingComment from "./ClosingComment";
-import ClosingSubmit from "./ClosingSubmit";
 
 function Guesthouse() {
   const today = new Date().toISOString().split("T")[0];
@@ -195,7 +194,6 @@ function Guesthouse() {
             </button>
 
             <ClosingComment selectedDate={selectedDate} department="guesthouse" />
-<ClosingSubmit selectedDate={selectedDate} department="guesthouse" systemSales={totalIncome} />
 
             <button className="btn btn-success ms-3" onClick={handleAdd}>
               + Add Room

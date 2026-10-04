@@ -257,7 +257,7 @@ export default function BarScreen() {
             <Text style={[styles.arrowText, selectedDate === today && styles.disabled]}>▶</Text>
           </TouchableOpacity>
           <ClosingCommentModal selectedDate={selectedDate} department="bar" />
-          <ClosingSubmitModal selectedDate={selectedDate} department="bar" systemSales={totalSales} />
+          <ClosingSubmitModal selectedDate={selectedDate} />
           <TouchableOpacity style={styles.addBtn} onPress={() => setAddModal(true)}>
             <Text style={styles.addBtnText}>+ Add</Text>
           </TouchableOpacity>
