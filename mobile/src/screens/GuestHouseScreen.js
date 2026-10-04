@@ -12,11 +12,14 @@ import {
   Alert,
 } from "react-native";
 import apiClient from "../api/apiClient";
+import { useAuth } from "../context/AuthContext";
 import ClosingCommentModal from "../components/ClosingCommentModal";
 
 const today = new Date().toISOString().split("T")[0];
 
 export default function GuestHouseScreen() {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
   const [rooms, setRooms] = useState([]);
   const [selectedDate, setSelectedDate] = useState(today);
   const [loading, setLoading] = useState(false);
@@ -89,7 +92,7 @@ export default function GuestHouseScreen() {
       setForm({ vip: "", normal: "", vip_price: "", normal_price: "" });
       fetchRooms(selectedDate);
     } catch (err) {
-      Alert.alert("Error", "Failed to add room entry");
+      Alert.alert("Error", err.response?.data?.message || "Failed to add room entry");
     }
   };
 
@@ -156,9 +159,11 @@ export default function GuestHouseScreen() {
             <Text style={[styles.arrowText, selectedDate === today && { opacity: 0.4 }]}>▶</Text>
           </TouchableOpacity>
           <ClosingCommentModal selectedDate={selectedDate} department="guesthouse" />
-          <TouchableOpacity style={styles.addBtn} onPress={() => setAddModal(true)}>
-            <Text style={styles.addBtnText}>+ Add</Text>
-          </TouchableOpacity>
+          {isSuperAdmin && (
+            <TouchableOpacity style={styles.addBtn} onPress={() => setAddModal(true)}>
+              <Text style={styles.addBtnText}>+ Add</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 

@@ -104,16 +104,21 @@ function Guesthouse() {
     const normal_price = Number(prompt("Normal Room Price:")) || 0;
 
     try {
-      await axios.post(API_URL, {
-        date,
-        vip,
-        normal,
-        vip_price,
-        normal_price
-      });
+      await axios.post(
+        API_URL,
+        {
+          date,
+          vip,
+          normal,
+          vip_price,
+          normal_price
+        },
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      );
       fetchRooms(selectedDate);
     } catch (err) {
       console.error("Error adding room:", err);
+      alert(err.response?.data?.message || "Failed to add record");
     }
   };
 
@@ -195,9 +200,11 @@ function Guesthouse() {
 
             <ClosingComment selectedDate={selectedDate} department="guesthouse" />
 
-            <button className="btn btn-success ms-3" onClick={handleAdd}>
-              + Add Room
-            </button>
+            {isSuperAdmin && (
+              <button className="btn btn-success ms-3" onClick={handleAdd}>
+                + Add Room
+              </button>
+            )}
           </div>
         </div>
       </div>
