@@ -47,6 +47,15 @@ export default function HomeScreen() {
     fetchComments(selectedDate);
   }, [selectedDate]);
 
+  const shiftDate = (days) => {
+    const d = new Date(`${selectedDate}T00:00:00Z`);
+    if (isNaN(d.getTime())) return;
+    d.setUTCDate(d.getUTCDate() + days);
+    const next = d.toISOString().split("T")[0];
+    if (next > localToday) return;
+    setSelectedDate(next);
+  };
+
   const fetchComments = async (date) => {
     try {
       const res = await apiClient.get("/comments", { params: { date } });
@@ -118,12 +127,18 @@ export default function HomeScreen() {
         <View style={styles.commentsHeader}>
           <Text style={styles.commentsTitle}>Closing Comments</Text>
           <View style={styles.datePickerWrap}>
+            <TouchableOpacity style={styles.dateArrowBtn} onPress={() => shiftDate(-1)}>
+              <Text style={styles.dateArrowText}>◀</Text>
+            </TouchableOpacity>
             <TextInput
               style={styles.dateInput}
               value={selectedDate}
               onChangeText={setSelectedDate}
               placeholder="YYYY-MM-DD"
             />
+            <TouchableOpacity style={styles.dateArrowBtn} onPress={() => shiftDate(1)} disabled={selectedDate >= localToday}>
+              <Text style={[styles.dateArrowText, selectedDate >= localToday && { opacity: 0.35 }]}>▶</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -205,9 +220,11 @@ const styles = StyleSheet.create({
   totalLabel: { fontSize: 16, fontWeight: "700", color: "#1C1C1C", textAlign: "center" },
   totalValue: { fontSize: 32, fontWeight: "700", color: "#145A32", marginTop: 10 },
   commentsSection: { marginTop: 24 },
-  commentsHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
+  commentsHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", rowGap: 8, marginBottom: 12 },
   commentsTitle: { fontSize: 18, fontWeight: "700", color: "#1C1C1C" },
-  datePickerWrap: { flexDirection: "row", alignItems: "center" },
+  datePickerWrap: { flexDirection: "row", alignItems: "center", gap: 6 },
+  dateArrowBtn: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: "#d1d5db", backgroundColor: "#fff" },
+  dateArrowText: { fontSize: 12, color: "#1C1C1C" },
   dateInput: { backgroundColor: "#fff", borderWidth: 1, borderColor: "#ccc", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, fontSize: 14, minWidth: 100, textAlign: "center" },
   noCommentsCard: { backgroundColor: "#fff", padding: 20, borderRadius: 16, alignItems: "center" },
   noCommentsText: { color: "#9ca3af", fontStyle: "italic" },

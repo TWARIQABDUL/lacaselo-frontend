@@ -44,6 +44,15 @@ function Home() {
     fetchComments(selectedDate);
   }, [selectedDate]);
 
+  const shiftDate = (days) => {
+    const d = new Date(`${selectedDate}T00:00:00Z`);
+    if (isNaN(d.getTime())) return;
+    d.setUTCDate(d.getUTCDate() + days);
+    const next = d.toISOString().split("T")[0];
+    if (next > today) return;
+    setSelectedDate(next);
+  };
+
   const fetchComments = async (date) => {
     try {
       const token = localStorage.getItem("token");
@@ -153,8 +162,9 @@ function Home() {
             <div className="mt-5">
               <div className="d-flex justify-content-between align-items-center mb-4">
                 <h4 className="fw-bold text-dark mb-0"><i className="bi bi-chat-square-text-fill text-primary me-2"></i> Closing Comments</h4>
-                <div className="d-flex align-items-center">
-                  <label className="fw-bold me-2 text-muted">Date:</label>
+                <div className="d-flex align-items-center gap-2">
+                  <button className="btn btn-outline-dark btn-sm" onClick={() => shiftDate(-1)}>◀</button>
+                  <label className="fw-bold me-1 text-muted">Date:</label>
                   <input 
                     type="date" 
                     className="form-control form-control-sm" 
@@ -162,6 +172,7 @@ function Home() {
                     onChange={(e) => setSelectedDate(e.target.value)}
                     max={today}
                   />
+                  <button className="btn btn-outline-dark btn-sm" onClick={() => shiftDate(1)} disabled={selectedDate >= today}>▶</button>
                 </div>
               </div>
 
