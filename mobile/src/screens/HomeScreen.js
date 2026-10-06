@@ -152,7 +152,7 @@ export default function HomeScreen() {
         )}
       </View>
 
-      {isAdmin && <ClosingsAdminSection selectedDate={selectedDate} />}
+      {isAdmin && <ClosingsAdminSection selectedDate={selectedDate} onDateChange={setSelectedDate} maxDate={localToday} />}
     </ScrollView>
   );
 }

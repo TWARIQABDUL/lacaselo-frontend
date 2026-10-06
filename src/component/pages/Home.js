@@ -195,7 +195,7 @@ function Home() {
             </div>
 
             {/* CLOSING MONEY (ADMIN) */}
-            {isAdmin && <ClosingsAdmin selectedDate={selectedDate} />}
+            {isAdmin && <ClosingsAdmin selectedDate={selectedDate} onDateChange={setSelectedDate} maxDate={today} />}
 
           </div>
         </div>

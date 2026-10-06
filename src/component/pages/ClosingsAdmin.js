@@ -4,7 +4,7 @@ import API_BASE_URL from "../../config";
 
 const fmt = (n) => Number(n || 0).toLocaleString();
 
-function ClosingsAdmin({ selectedDate }) {
+function ClosingsAdmin({ selectedDate, onDateChange, maxDate }) {
   const [closings, setClosings] = useState([]);
   const [received, setReceived] = useState({});
   const [savingId, setSavingId] = useState(null);
@@ -57,11 +57,32 @@ function ClosingsAdmin({ selectedDate }) {
     }
   };
 
+  const changeDate = (days) => {
+    const d = new Date(`${selectedDate}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + days);
+    const next = d.toISOString().split("T")[0];
+    if (maxDate && next > maxDate) return;
+    onDateChange(next);
+  };
+
   return (
     <div className="mt-5">
-      <h4 className="fw-bold text-dark mb-4">
-        <i className="bi bi-cash-coin text-success me-2"></i> Closing Money
-      </h4>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h4 className="fw-bold text-dark mb-0">
+          <i className="bi bi-cash-coin text-success me-2"></i> Closing Money
+        </h4>
+        {onDateChange && (
+          <div className="d-flex align-items-center gap-2">
+            <button className="btn btn-outline-dark btn-sm" onClick={() => changeDate(-1)}>◀</button>
+            <strong>{selectedDate}</strong>
+            <button
+              className="btn btn-outline-dark btn-sm"
+              onClick={() => changeDate(1)}
+              disabled={!!maxDate && selectedDate >= maxDate}
+            >▶</button>
+          </div>
+        )}
+      </div>
 
       {closings.length === 0 ? (
         <div className="text-center p-4 bg-white rounded shadow-sm">

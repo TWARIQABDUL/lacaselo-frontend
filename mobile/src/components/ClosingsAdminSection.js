@@ -4,7 +4,7 @@ import apiClient from "../api/apiClient";
 
 const fmt = (n) => Number(n || 0).toLocaleString();
 
-export default function ClosingsAdminSection({ selectedDate }) {
+export default function ClosingsAdminSection({ selectedDate, onDateChange, maxDate }) {
   const [closings, setClosings] = useState([]);
   const [received, setReceived] = useState({});
   const [savingId, setSavingId] = useState(null);
@@ -45,9 +45,33 @@ export default function ClosingsAdminSection({ selectedDate }) {
     }
   };
 
+  const changeDate = (days) => {
+    const d = new Date(`${selectedDate}T00:00:00Z`);
+    if (isNaN(d.getTime())) return;
+    d.setUTCDate(d.getUTCDate() + days);
+    const next = d.toISOString().split("T")[0];
+    if (maxDate && next > maxDate) return;
+    onDateChange(next);
+  };
+
+  const atMax = !!maxDate && selectedDate >= maxDate;
+
   return (
     <View style={styles.section}>
-      <Text style={styles.title}>Closing Money</Text>
+      <View style={styles.headerBar}>
+        <Text style={styles.titleInline}>Closing Money</Text>
+        {onDateChange && (
+          <View style={styles.dateNav}>
+            <TouchableOpacity style={styles.arrowBtn} onPress={() => changeDate(-1)}>
+              <Text style={styles.arrowText}>◀</Text>
+            </TouchableOpacity>
+            <Text style={styles.dateText}>{selectedDate}</Text>
+            <TouchableOpacity style={styles.arrowBtn} onPress={() => changeDate(1)} disabled={atMax}>
+              <Text style={[styles.arrowText, atMax && { opacity: 0.35 }]}>▶</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
       {closings.length === 0 ? (
         <View style={styles.emptyCard}>
           <Text style={styles.emptyText}>No closing money submitted for this date.</Text>
@@ -101,7 +125,12 @@ export default function ClosingsAdminSection({ selectedDate }) {
 
 const styles = StyleSheet.create({
   section: { marginTop: 24 },
-  title: { fontSize: 18, fontWeight: "700", color: "#1C1C1C", marginBottom: 12 },
+  headerBar: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
+  titleInline: { fontSize: 18, fontWeight: "700", color: "#1C1C1C" },
+  dateNav: { flexDirection: "row", alignItems: "center", gap: 8 },
+  arrowBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: "#d1d5db", backgroundColor: "#fff" },
+  arrowText: { fontSize: 12, color: "#1C1C1C" },
+  dateText: { fontSize: 13, fontWeight: "700", color: "#1C1C1C" },
   emptyCard: { backgroundColor: "#fff", padding: 20, borderRadius: 16, alignItems: "center" },
   emptyText: { color: "#9ca3af", fontStyle: "italic" },
   card: { backgroundColor: "#fff", borderRadius: 16, padding: 16, marginBottom: 12, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6, elevation: 2 },
