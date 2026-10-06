@@ -396,11 +396,11 @@ const styles = StyleSheet.create({
   lowStockName: { fontWeight: "600" },
   lowStockQty: { color: "#DC2626", fontWeight: "700" },
   header: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", rowGap: 10,
     backgroundColor: "#fff", margin: 10, borderRadius: 12, padding: 14, elevation: 3,
   },
   headerTitle: { fontSize: 15, fontWeight: "700", color: "#1A2238" },
-  headerRight: { flexDirection: "row", alignItems: "center", gap: 6 },
+  headerRight: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", rowGap: 8, gap: 6, flexShrink: 1 },
   arrowBtn: { backgroundColor: "#1A2238", borderRadius: 6, padding: 6 },
   arrowText: { color: "#fff", fontWeight: "700" },
   disabled: { opacity: 0.4 },

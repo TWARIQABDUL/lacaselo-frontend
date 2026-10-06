@@ -174,7 +174,7 @@ export default function ClosingSubmitModal({ selectedDate }) {
 }
 
 const styles = StyleSheet.create({
-  openBtn: { backgroundColor: "#dcfce7", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, marginLeft: 8, borderWidth: 1, borderColor: "#bbf7d0" },
+  openBtn: { backgroundColor: "#dcfce7", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: "#bbf7d0" },
   openBtnText: { color: "#16a34a", fontWeight: "700", fontSize: 12 },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 20 },
   modalCard: { backgroundColor: "#fff", borderRadius: 20, padding: 24 },
