@@ -1,18 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import apiClient from "../api/apiClient";
+import { useAuth } from "../context/AuthContext";
 
 export default function ClosingCommentModal({ selectedDate, department }) {
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const { user } = useAuth();
+  const isAdmin = ["SUPER_ADMIN", "ADMIN"].includes(user?.role);
   
   // Format today's date in local time for correct comparison
   const today = new Date();
   const offset = today.getTimezoneOffset() * 60000;
   const localToday = new Date(today.getTime() - offset).toISOString().split("T")[0];
   const isPastDate = selectedDate < localToday;
+  // staff cannot change a comment once it has been saved
+  const isLocked = isPastDate || (saved && !isAdmin);
 
   const fetchComment = async () => {
     try {
@@ -22,8 +28,10 @@ export default function ClosingCommentModal({ selectedDate, department }) {
       });
       if (res.data && res.data.length > 0) {
         setComment(res.data[0].comment);
+        setSaved(true);
       } else {
         setComment("");
+        setSaved(false);
       }
     } catch (err) {
       console.error("Failed to fetch comment", err);
@@ -38,6 +46,18 @@ export default function ClosingCommentModal({ selectedDate, department }) {
     }
   }, [showModal, selectedDate, department]);
 
+  const confirmSave = () => {
+    if (!comment.trim()) return;
+    if (isAdmin) {
+      handleSave();
+      return;
+    }
+    Alert.alert("Save comment?", "Once saved, this comment cannot be edited.", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Save", onPress: handleSave },
+    ]);
+  };
+
   const handleSave = async () => {
     if (!comment.trim()) return;
     try {
@@ -47,7 +67,7 @@ export default function ClosingCommentModal({ selectedDate, department }) {
       setShowModal(false);
     } catch (err) {
       console.error("Failed to save comment", err);
-      Alert.alert("Error", "Failed to save comment");
+      Alert.alert("Error", err.response?.data?.message || "Failed to save comment");
     } finally {
       setSaving(false);
     }
@@ -66,7 +86,7 @@ export default function ClosingCommentModal({ selectedDate, department }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>
-              {isPastDate ? "Closing Comment" : "Add Closing Comment"}
+              {isLocked ? "Closing Comment" : "Add Closing Comment"}
             </Text>
             
             {loading ? (
@@ -75,7 +95,7 @@ export default function ClosingCommentModal({ selectedDate, department }) {
               <>
                 <Text style={styles.dateLabel}>Date: {selectedDate}</Text>
                 
-                {isPastDate ? (
+                {isLocked ? (
                   <View style={styles.readOnlyBox}>
                     <Text style={comment ? styles.commentText : styles.noCommentText}>
                       {comment ? comment : "No comment recorded for this date."}
@@ -100,8 +120,8 @@ export default function ClosingCommentModal({ selectedDate, department }) {
               <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowModal(false)}>
                 <Text style={styles.cancelText}>Close</Text>
               </TouchableOpacity>
-              {!isPastDate && (
-                <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={saving}>
+              {!isLocked && (
+                <TouchableOpacity style={styles.saveBtn} onPress={confirmSave} disabled={saving}>
                   <Text style={styles.saveText}>{saving ? "Saving..." : "Save Comment"}</Text>
                 </TouchableOpacity>
               )}

@@ -7,9 +7,16 @@ function ClosingComment({ selectedDate, department }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const userStr = localStorage.getItem("user");
+  const role = userStr ? JSON.parse(userStr)?.role : null;
+  const isAdmin = ["SUPER_ADMIN", "ADMIN"].includes(role);
   
   const today = new Date().toISOString().split("T")[0];
   const isPastDate = selectedDate < today;
+  // staff cannot change a comment once it has been saved
+  const isLocked = isPastDate || (saved && !isAdmin);
 
   const fetchComment = async () => {
     try {
@@ -21,8 +28,10 @@ function ClosingComment({ selectedDate, department }) {
       });
       if (res.data && res.data.length > 0) {
         setComment(res.data[0].comment);
+        setSaved(true);
       } else {
         setComment("");
+        setSaved(false);
       }
     } catch (err) {
       console.error("Failed to fetch comment", err);
@@ -39,6 +48,7 @@ function ClosingComment({ selectedDate, department }) {
 
   const handleSave = async () => {
     if (!comment.trim()) return;
+    if (!isAdmin && !window.confirm("Once saved, this comment cannot be edited. Save it?")) return;
     try {
       setSaving(true);
       const token = localStorage.getItem("token");
@@ -51,7 +61,7 @@ function ClosingComment({ selectedDate, department }) {
       setShowModal(false);
     } catch (err) {
       console.error("Failed to save comment", err);
-      alert("Failed to save comment");
+      alert(err.response?.data?.message || "Failed to save comment");
     } finally {
       setSaving(false);
     }
@@ -73,7 +83,7 @@ function ClosingComment({ selectedDate, department }) {
             <div className="modal-content border-0 shadow-lg">
               <div className="modal-header bg-info text-white">
                 <h5 className="modal-title fw-bold">
-                  {isPastDate ? "Closing Comment" : "Add Closing Comment"}
+                  {isLocked ? "Closing Comment" : "Add Closing Comment"}
                 </h5>
                 <button type="button" className="btn-close btn-close-white" onClick={() => setShowModal(false)}></button>
               </div>
@@ -83,7 +93,7 @@ function ClosingComment({ selectedDate, department }) {
                 ) : (
                   <>
                     <p className="text-muted small mb-2">Date: {selectedDate}</p>
-                    {isPastDate ? (
+                    {isLocked ? (
                       <div className="p-3 bg-light border rounded text-dark" style={{ minHeight: "80px" }}>
                         {comment ? comment : <span className="text-muted fst-italic">No comment recorded.</span>}
                       </div>
@@ -97,12 +107,18 @@ function ClosingComment({ selectedDate, department }) {
                         style={{ borderRadius: "8px" }}
                       ></textarea>
                     )}
+                    {isLocked && saved && !isPastDate && (
+                      <div className="text-muted small mt-2">This comment is saved and cannot be edited.</div>
+                    )}
+                    {!isLocked && !isAdmin && (
+                      <div className="text-warning small mt-2">Once saved, this comment cannot be edited.</div>
+                    )}
                   </>
                 )}
               </div>
               <div className="modal-footer border-0 pb-4 pe-4">
                 <button type="button" className="btn btn-light px-4" onClick={() => setShowModal(false)}>Close</button>
-                {!isPastDate && (
+                {!isLocked && (
                   <button type="button" className="btn btn-info px-4 fw-bold text-white" onClick={handleSave} disabled={saving}>
                     {saving ? "Saving..." : "Save Comment"}
                   </button>
