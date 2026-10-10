@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import API_BASE_URL from "../../config";
 
+// Past dates that are temporarily open for adding a first comment (locked again once saved)
+const UNLOCKED_DATES = ["2026-10-01", "2026-10-02", "2026-10-03"];
+
 function ClosingComment({ selectedDate, department }) {
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,7 +19,8 @@ function ClosingComment({ selectedDate, department }) {
   const today = new Date().toISOString().split("T")[0];
   const isPastDate = selectedDate < today;
   // staff cannot change a comment once it has been saved
-  const isLocked = isPastDate || (saved && !isAdmin);
+  const isUnlockedDate = UNLOCKED_DATES.includes(selectedDate);
+  const isLocked = (isPastDate && !isUnlockedDate) || (saved && !isAdmin);
 
   const fetchComment = async () => {
     try {
@@ -74,7 +78,7 @@ function ClosingComment({ selectedDate, department }) {
         onClick={() => setShowModal(true)}
         style={{ fontWeight: "600", borderRadius: "20px", padding: "6px 15px", marginLeft: "10px" }}
       >
-        <i className="bi bi-chat-text-fill me-1"></i> {isPastDate ? "View Comment" : "Leave Comment"}
+        <i className="bi bi-chat-text-fill me-1"></i> {isPastDate && !isUnlockedDate ? "View Comment" : "Leave Comment"}
       </button>
 
       {showModal && (
@@ -107,7 +111,7 @@ function ClosingComment({ selectedDate, department }) {
                         style={{ borderRadius: "8px" }}
                       ></textarea>
                     )}
-                    {isLocked && saved && !isPastDate && (
+                    {isLocked && saved && (
                       <div className="text-muted small mt-2">This comment is saved and cannot be edited.</div>
                     )}
                     {!isLocked && !isAdmin && (

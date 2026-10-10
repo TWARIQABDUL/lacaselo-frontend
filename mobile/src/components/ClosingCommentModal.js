@@ -3,6 +3,9 @@ import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, ActivityInd
 import apiClient from "../api/apiClient";
 import { useAuth } from "../context/AuthContext";
 
+// Past dates that are temporarily open for adding a first comment (locked again once saved)
+const UNLOCKED_DATES = ["2026-10-01", "2026-10-02", "2026-10-03"];
+
 export default function ClosingCommentModal({ selectedDate, department }) {
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,7 +21,8 @@ export default function ClosingCommentModal({ selectedDate, department }) {
   const localToday = new Date(today.getTime() - offset).toISOString().split("T")[0];
   const isPastDate = selectedDate < localToday;
   // staff cannot change a comment once it has been saved
-  const isLocked = isPastDate || (saved && !isAdmin);
+  const isUnlockedDate = UNLOCKED_DATES.includes(selectedDate);
+  const isLocked = (isPastDate && !isUnlockedDate) || (saved && !isAdmin);
 
   const fetchComment = async () => {
     try {
@@ -79,7 +83,7 @@ export default function ClosingCommentModal({ selectedDate, department }) {
         style={styles.openBtn} 
         onPress={() => setShowModal(true)}
       >
-        <Text style={styles.openBtnText}>{isPastDate ? "View Comment" : "Leave Comment"}</Text>
+        <Text style={styles.openBtnText}>{isPastDate && !isUnlockedDate ? "View Comment" : "Leave Comment"}</Text>
       </TouchableOpacity>
 
       <Modal visible={showModal} transparent animationType="slide">
