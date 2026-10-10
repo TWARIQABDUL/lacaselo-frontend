@@ -3,6 +3,9 @@ import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, ActivityInd
 import apiClient from "../api/apiClient";
 import { useAuth } from "../context/AuthContext";
 
+// Past dates still open for submitting a closing (locked again once submitted)
+const UNLOCKED_DATES = ["2026-10-01", "2026-10-02", "2026-10-03"];
+
 const fmt = (n) => Number(n || 0).toLocaleString();
 
 function Balance({ sales, total }) {
@@ -32,6 +35,8 @@ export default function ClosingSubmitModal({ selectedDate }) {
   const offset = now.getTimezoneOffset() * 60000;
   const localToday = new Date(now.getTime() - offset).toISOString().split("T")[0];
   const isPastDate = selectedDate < localToday;
+  const isUnlockedDate = UNLOCKED_DATES.includes(selectedDate);
+  const isClosedDate = isPastDate && !isUnlockedDate;
 
   const fetchClosing = async () => {
     try {
@@ -39,7 +44,7 @@ export default function ClosingSubmitModal({ selectedDate }) {
       const res = await apiClient.get("/closings", { params: { date: selectedDate } });
       const found = res.data && res.data.length > 0 ? res.data[0] : null;
       setClosing(found);
-      if (!found && !isPastDate) {
+      if (!found && !isClosedDate) {
         const prev = await apiClient.get("/closings/preview", { params: { date: selectedDate } });
         setSystemSales(Number(prev.data.system_sales) || 0);
       }
@@ -92,12 +97,12 @@ export default function ClosingSubmitModal({ selectedDate }) {
 
   if (!canClose) return null;
 
-  const canSubmit = !closing && !isPastDate;
+  const canSubmit = !closing && !isClosedDate;
 
   return (
     <>
       <TouchableOpacity style={styles.openBtn} onPress={() => setShowModal(true)}>
-        <Text style={styles.openBtnText}>{isPastDate ? "View Closing" : "Submit Closing"}</Text>
+        <Text style={styles.openBtnText}>{isClosedDate ? "View Closing" : "Submit Closing"}</Text>
       </TouchableOpacity>
 
       <Modal visible={showModal} transparent animationType="slide">
@@ -115,7 +120,7 @@ export default function ClosingSubmitModal({ selectedDate }) {
                 <Balance sales={closing.system_sales} total={Number(closing.momo_amount) + Number(closing.cash_amount)} />
                 <Text style={styles.lockedText}>Closing submitted and locked. It cannot be edited.</Text>
               </>
-            ) : isPastDate ? (
+            ) : isClosedDate ? (
               <Text style={styles.noText}>No closing was submitted for this date.</Text>
             ) : confirming ? (
               <>

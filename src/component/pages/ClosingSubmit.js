@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import API_BASE_URL from "../../config";
 
+// Past dates still open for submitting a closing (locked again once submitted)
+const UNLOCKED_DATES = ["2026-10-01", "2026-10-02", "2026-10-03"];
+
 const fmt = (n) => Number(n || 0).toLocaleString();
 
 function ClosingSubmit({ selectedDate }) {
@@ -20,6 +23,8 @@ function ClosingSubmit({ selectedDate }) {
 
   const today = new Date().toISOString().split("T")[0];
   const isPastDate = selectedDate < today;
+  const isUnlockedDate = UNLOCKED_DATES.includes(selectedDate);
+  const isClosedDate = isPastDate && !isUnlockedDate;
   const authHeader = () => ({
     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
   });
@@ -33,7 +38,7 @@ function ClosingSubmit({ selectedDate }) {
       });
       const found = res.data && res.data.length > 0 ? res.data[0] : null;
       setClosing(found);
-      if (!found && !isPastDate) {
+      if (!found && !isClosedDate) {
         const prev = await axios.get(`${API_BASE_URL}/closings/preview`, {
           params: { date: selectedDate },
           ...authHeader(),
@@ -100,7 +105,7 @@ function ClosingSubmit({ selectedDate }) {
 
   if (!canClose) return null;
 
-  const canSubmit = !closing && !isPastDate;
+  const canSubmit = !closing && !isClosedDate;
 
   return (
     <>
@@ -109,7 +114,7 @@ function ClosingSubmit({ selectedDate }) {
         onClick={() => setShowModal(true)}
         style={{ fontWeight: "600", borderRadius: "20px", padding: "6px 15px", marginLeft: "10px" }}
       >
-        <i className="bi bi-cash-coin me-1"></i> {isPastDate ? "View Closing" : "Submit Closing"}
+        <i className="bi bi-cash-coin me-1"></i> {isClosedDate ? "View Closing" : "Submit Closing"}
       </button>
 
       {showModal && (
@@ -132,7 +137,7 @@ function ClosingSubmit({ selectedDate }) {
                     <Balance sales={closing.system_sales} total={Number(closing.momo_amount) + Number(closing.cash_amount)} />
                     <div className="alert alert-secondary py-2 small mt-3 mb-0">Closing submitted and locked. It cannot be edited.</div>
                   </>
-                ) : isPastDate ? (
+                ) : isClosedDate ? (
                   <div className="text-muted fst-italic">No closing was submitted for this date.</div>
                 ) : confirming ? (
                   <>
