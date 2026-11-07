@@ -114,18 +114,18 @@ function MonthlyClosings() {
 
       <div className="card border-0 shadow-sm">
         <div className="table-responsive">
-          <table className="table table-hover align-middle mb-0">
+          <table className="table table-hover align-middle mb-0" style={{ minWidth: "1100px" }}>
             <thead className="table-light">
               <tr>
-                <th>Date</th>
-                <th className="text-end">Stock value</th>
-                <th className="text-end">On code</th>
-                <th className="text-end">In cash</th>
-                <th className="text-end">Code+cash vs stock</th>
-                <th className="text-end">Received</th>
-                <th className="text-end">Cash vs received</th>
-                <th>By</th>
-                <th style={{ minWidth: "220px" }}>Comments</th>
+                <th className="text-nowrap px-3 py-3">Date</th>
+                <th className="text-end text-nowrap px-3 py-3">Stock value</th>
+                <th className="text-end text-nowrap px-3 py-3">On code</th>
+                <th className="text-end text-nowrap px-3 py-3">In cash</th>
+                <th className="text-end text-nowrap px-3 py-3">Code+cash vs stock</th>
+                <th className="text-end text-nowrap px-3 py-3">Received</th>
+                <th className="text-end text-nowrap px-3 py-3">Cash vs received</th>
+                <th className="text-nowrap px-3 py-3">By</th>
+                <th className="px-3 py-3" style={{ minWidth: "300px" }}>Comments</th>
               </tr>
             </thead>
             <tbody>
@@ -136,21 +136,21 @@ function MonthlyClosings() {
               ) : (
                 data.days.map((d) => (
                   <tr key={d.date}>
-                    <td className="fw-semibold text-nowrap">{d.date}</td>
+                    <td className="fw-semibold text-nowrap px-3">{d.date}</td>
                     {d.closing ? (
                       <>
-                        <td className="text-end">{fmt(d.closing.system_sales)}</td>
-                        <td className="text-end">{fmt(d.closing.momo_amount)}</td>
-                        <td className="text-end">{fmt(d.closing.cash_amount)}</td>
-                        <td className="text-end"><Gap value={d.closing.sales_gap} /></td>
-                        <td className="text-end">{d.closing.received_amount === null ? <span className="text-muted">-</span> : fmt(d.closing.received_amount)}</td>
-                        <td className="text-end"><Gap value={d.closing.cash_gap} /></td>
-                        <td>{d.closing.username}</td>
+                        <td className="text-end text-nowrap px-3">{fmt(d.closing.system_sales)}</td>
+                        <td className="text-end text-nowrap px-3">{fmt(d.closing.momo_amount)}</td>
+                        <td className="text-end text-nowrap px-3">{fmt(d.closing.cash_amount)}</td>
+                        <td className="text-end text-nowrap px-3"><Gap value={d.closing.sales_gap} /></td>
+                        <td className="text-end text-nowrap px-3">{d.closing.received_amount === null ? <span className="text-muted">-</span> : fmt(d.closing.received_amount)}</td>
+                        <td className="text-end text-nowrap px-3"><Gap value={d.closing.cash_gap} /></td>
+                        <td className="text-nowrap px-3">{d.closing.username}</td>
                       </>
                     ) : (
-                      <td colSpan="7" className="text-muted fst-italic">No closing submitted</td>
+                      <td colSpan="7" className="text-muted fst-italic px-3">No closing submitted</td>
                     )}
-                    <td className="small">
+                    <td className="small px-3 py-2">
                       {d.comments.length === 0 ? (
                         <span className="text-muted">-</span>
                       ) : (
