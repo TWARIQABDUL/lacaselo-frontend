@@ -13,6 +13,7 @@ const ROLES = {
   EXPENSES: ["SUPER_ADMIN", "ADMIN"],
   CREDITS: ["SUPER_ADMIN", "ADMIN", "MANAGER"],
   LOGS: ["SUPER_ADMIN", "ADMIN"],
+  CLOSINGS: ["SUPER_ADMIN", "ADMIN"],
   PROFIT: ["SUPER_ADMIN", "ADMIN"],
   USERS: ["SUPER_ADMIN"],
 };
@@ -30,6 +31,7 @@ const NAV_ITEMS = [
   { name: "billiard", label: "Billiard", icon: "circle", lib: "fa5", roles: "BILLIARD" },
   { name: "expenses", label: "Expenses", icon: "cash-outline", lib: "ionicons", roles: "EXPENSES" },
   { name: "credits", label: "Staff / Credits", icon: "people-outline", lib: "ionicons", roles: "CREDITS" },
+  { name: "closings", label: "Monthly Closings", icon: "cash-outline", lib: "ionicons", roles: "CLOSINGS" },
   { name: "logs", label: "Activity Logs", icon: "list-outline", lib: "ionicons", roles: "LOGS" },
   { name: "profit", label: "Profit", icon: "trending-up-outline", lib: "ionicons", roles: "PROFIT" },
   { name: "users", label: "User Management", icon: "person-add-outline", lib: "ionicons", roles: "USERS" },
@@ -127,6 +129,7 @@ export default function DrawerLayout() {
       <Drawer.Screen name="billiard" options={{ title: "Billiard", drawerItemStyle: hasRole(role, ROLES.BILLIARD) ? {} : { display: "none" } }} />
       <Drawer.Screen name="expenses" options={{ title: "Expenses", drawerItemStyle: hasRole(role, ROLES.EXPENSES) ? {} : { display: "none" } }} />
       <Drawer.Screen name="credits" options={{ title: "Staff / Credits", drawerItemStyle: hasRole(role, ROLES.CREDITS) ? {} : { display: "none" } }} />
+      <Drawer.Screen name="closings" options={{ title: "Monthly Closings", drawerItemStyle: hasRole(role, ROLES.CLOSINGS) ? {} : { display: "none" } }} />
       <Drawer.Screen name="logs" options={{ title: "Activity Logs", drawerItemStyle: hasRole(role, ROLES.LOGS) ? {} : { display: "none" } }} />
       <Drawer.Screen name="profit" options={{ title: "Profit", drawerItemStyle: hasRole(role, ROLES.PROFIT) ? {} : { display: "none" } }} />
       <Drawer.Screen name="users" options={{ title: "User Management", drawerItemStyle: hasRole(role, ROLES.USERS) ? {} : { display: "none" } }} />

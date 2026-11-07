@@ -75,6 +75,15 @@ function Navbar() {
                 </li>
                 <li>
                   <Link
+                    to="/closings"
+                    className={`world-link ${location.pathname === "/closings" ? "active" : ""}`}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Closings
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     to="/activity-logs"
                     className={`world-link ${location.pathname === "/activity-logs" ? "active" : ""}`}
                     onClick={() => setMenuOpen(false)}
