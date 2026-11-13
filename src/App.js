@@ -21,6 +21,7 @@ import EmployeePenalties from "./component/pages/EmployeePenalties";
 import UserManagement from "./component/pages/UserManagement";
 import ActivityLogs from "./component/pages/ActivityLogs";
 import MonthlyClosings from "./component/pages/MonthlyClosings";
+import Profit from "./component/pages/Profit";
 
 // ===== Security =====
 import ProtectedRoute from "./component/auth/ProtectedRoutes.js";
@@ -151,6 +152,17 @@ function App() {
             <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN"]}>
               <Layout>
                 <UserManagement />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/profit"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "ADMIN"]}>
+              <Layout>
+                <Profit />
               </Layout>
             </ProtectedRoute>
           }
